@@ -1,0 +1,102 @@
+﻿@model List<StockTrack.Entity.Enitities.CargoName>
+@{
+    ViewData["Title"] = "Kargo Tanımları";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+        <h6 class="m-0 font-weight-bold text-primary">🚚 Kargo Firmaları</h6>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCargoModal">
+            <i class="fa fa-plus"></i> Yeni Firma Ekle
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="DataTables" class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Firma Adı</th>
+                        <th>Durum</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>@item.Name</td>
+                            <td>@(item.IsActive ? "Aktif" : "Pasif")</td>
+                            <td>
+                                <button type="button" class="btn btn-warning btn-sm"
+                                        onclick="openEditModal(@item.Id, '@item.Name')">
+                                    Düzenle
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="createCargoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Yeni Kargo Firması Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/CargoName/Create" method="post">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Firma Adı</label>
+                        <input type="text" class="form-control" name="Name" required placeholder="Örn: Aras Kargo" />
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editCargoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Kargo Firmasını Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/CargoName/Edit" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editCargoId" name="Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Firma Adı</label>
+                        <input type="text" class="form-control" id="editCargoName" name="Name" required />
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-warning">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+        function openEditModal(id, name) {
+        // Modal içindeki inputların ID'lerine göre değerleri ata
+        $('#editCargoId').val(id);
+        $('#editCargoName').val(name);
+        // Modalı aç
+        var myModal = new bootstrap.Modal(document.getElementById('editCargoModal'));
+        myModal.show();
+    }
+</script>

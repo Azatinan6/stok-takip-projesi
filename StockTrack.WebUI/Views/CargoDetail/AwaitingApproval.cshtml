@@ -1,0 +1,400 @@
+﻿@using StockTrack.Dto.CargoDetail
+@using StockTrack.WebUI.Enums
+@model List<ResultAwitingApprovalDto>
+@{
+    ViewData["Title"] = "Onay Bekleyen Kargolar";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex flex-wrap gap-3 mb-4">
+    <a href="/CargoDetail/Index?status=all" class="btn rounded-pill px-4 shadow-sm border" style="background-color: #f8f9fa; color: #495057;">
+        Tümü (@ViewBag.AllCount)
+    </a>
+
+    <a href="/CargoDetail/Index?status=pending" class="btn rounded-pill px-4 shadow-sm" style="background-color: #ffeaea; color: #dc3545; border: 1px solid #ffc2c2;">
+        Onay Bekliyor (@ViewBag.PendingCount)
+    </a>
+
+    <a href="/CargoDetail/Index?status=packaged" class="btn rounded-pill px-4 shadow-sm" style="background-color: #fff3cd; color: #ffc107; border: 1px solid #ffecb5;">
+        Paketlendi (@ViewBag.PackagedCount)
+    </a>
+
+    <a href="/CargoDetail/Index?status=incargo" class="btn rounded-pill px-4 shadow-sm" style="background-color: #cff4fc; color: #0dcaf0; border: 1px solid #b6effb;">
+        Kargoda (@ViewBag.InCargoCount)
+    </a>
+
+    <a href="/CargoDetail/Index?status=delivered" class="btn rounded-pill px-4 shadow-sm" style="background-color: #d1e7dd; color: #198754; border: 1px solid #badbcc;">
+        Teslim Edildi (@ViewBag.DeliveredCount)
+    </a>
+</div>
+
+<div class="card shadow mb-4 border-0">
+    <div class="card-body p-0">
+    </div>
+</div>
+
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+    <h4>Onay Bekleyen Kargolar</h4>
+</div>
+<hr />
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+<table id="DataTables" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Talep Onaylayan</th>
+            <th>Tarihi</th>
+            <th>Depo</th>
+            @* <th>Kategori</th> *@
+            <th>Ürün</th>
+            @* <th>Adet</th> *@
+            @* <th>Fotoğraf</th> *@
+            <th>Lokasyon</th>
+            <th>Adres</th>
+            <th>Alıcı</th>
+            <th>Telefon</th>
+            <th>Durum</th>
+            <th>İşlemler</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>#</th>
+            <th>Talep Onaylayan</th>
+            <th>Tarihi</th>
+            <th>Depo</th>
+            @* <th>Kategori</th> *@
+            <th>Ürün</th>
+            @* <th>Adet</th> *@
+            @* <th></th> *@
+            <th>Lokasyon</th>
+            <th>Adres</th>
+            <th>Alıcı</th>
+            <th>Telefon</th>
+            <th>Durum</th>
+            <th></th>
+            <th></th>
+        </tr>
+    </tfoot>
+    <tbody>
+        @{
+            var count = 1;
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>@(count++)</td>
+                    <td>@(item.RequestFormRequestedBy ?? "-")</td>
+                    <td>@item.RequestFormRequestedDate?.ToString("dd MMMM yyyy HH:mm")</td>
+                    <td>@item.MainRepoName</td>
+
+                    <td>
+                        <ul class="mb-0 ps-3 list-unstyled">
+                            @foreach (var product in item.Products)
+                            {
+                                <li class="d-flex align-items-center mb-1">
+                                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                    {
+                                        var imgPath = "/productimages/" + product.ImageUrl;
+                                        <a href="javascript:void(0);"
+                                           class="d-inline-block preview-img me-2"
+                                           data-img="@imgPath"
+                                           data-alt="@imgPath">
+                                            <img src="@imgPath" class="rounded-circle avatar-sm" />
+                                        </a>
+                                    }
+
+                                    <span>@product.CategoryName - @product.ProductName (@product.Quantity Adet)</span>
+                                </li>
+                            }
+                        </ul>
+                    </td>
+
+                 
+
+                    <td>@item.LocationName</td>
+                    <td>@item.LocationAdress</td>
+                    <td>@item.ReceiverFullName</td>
+                    <td>@item.Phone</td>
+                    <td>
+                        <span class="badge bg-danger">
+                            @item.StatusName
+                        </span>
+                    </td>
+
+                    <td>
+                        <button type="button"
+                                class="btn btn-sm btn-primary change-status-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#cargoStatusModal"
+                                data-cargodetail-id="@item.Id"
+                                data-location="@item.LocationName"
+                                data-category="@string.Join(", ", item.Products.Select(p => p.CategoryName))"
+                                data-product="@string.Join(", ", item.Products.Select(p => p.ProductName))"
+                                data-quantity="@string.Join(", ", item.Products.Select(p => p.Quantity))"
+                                data-receiver="@item.ReceiverFullName"
+                                data-address="@item.LocationAdress">
+                            <i class="mdi mdi-truck-outline"></i> Kargo Durumunu Değiştir
+                        </button>
+                    </td>
+
+                    <td>
+                        <a class="text-muted dropdown-toggle font-size-18 px-2" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bx bx-dots-vertical-rounded"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a href="javascript:void(0);" class="dropdown-item delete-cargo-btn" data-url="/CargoDetail/DeleteCargo/@item.Id" data-receiver="@item.ReceiverFullName">
+                                <i class="mdi mdi-delete"></i> Sil
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+
+<!-- Resim önizleme -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="" class="img-fluid rounded" style="max-height:70vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kargo Durumu Modal -->
+<div class="modal fade" id="cargoStatusModal" tabindex="-1" aria-labelledby="cargoStatusLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <form asp-action="SaveCargoInfo" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="cargoStatusLabel">Kargo Bilgileri ve Durum Güncelle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+
+                <div class="modal-body">
+                    <!-- Satır Özeti -->
+                    <div class="border rounded p-3 mb-3 bg-light">
+                        <div class="d-flex align-items-start gap-3">
+
+                            <div class="flex-grow-1">
+                                <div class="row g-2">
+
+
+                                    <div class="col-md-12">
+                                        <strong>Ürün Bilgileri:</strong>
+                                        <ul class="mb-0">
+                                            <li><strong>Kategori:</strong> <span id="summaryCategory">-</span></li>
+                                            <li><strong>Ürün:</strong> <span id="summaryProduct">-</span></li>
+                                            <li><strong>Adet:</strong> <span id="summaryQuantity">-</span></li>
+                                        </ul>
+                                    </div>
+
+                                    <div class="col-12"><hr class="my-2" /></div>
+                                    <div>
+                                        <div class="col-md-6"><strong>Alıcı:</strong> <span id="summaryRecipient">-</span></div>
+
+                                    </div>
+                                    <div class="col-md-6"><strong>Lokasyon:</strong> <span id="summaryLocation">-</span></div>
+                                    <div class="col-md-6"><strong>Teslimat Adresi:</strong> <div id="summaryAddress" class="text-break small">-</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="Id" id="cargoDetailId" />
+
+                    <div class="row g-3">
+                        <!-- Kargo Durumu -->
+                        <div class="col-md-6 d-flex align-items-center gap-2">
+                            <label class="form-label mb-0">Kargo Durum <span class="text-danger">*</span></label>
+                            <select name="StatusId" id="status" class="form-select" required style="width:200px;Top: 30px;">
+                                <option value="">-- Seçiniz --</option>
+                                <option value="@((int)EnumStatusType.Paketlendi)">Paketlendi - Kargoya Hazır</option>
+                                <option value="@((int)EnumStatusType.Kargoda)">Kargoya Verildi</option>
+                                <option value="@((int)EnumStatusType.İptal)">İptal Edildi</option>
+                            </select>
+                        </div>
+
+                        <!-- Ek alanlar (Kargoya Verildi ise) -->
+                        <div id="cargoExtraFields" class="row g-3 d-none">
+                            <div class="col-md-6 d-flex align-items-center gap-2">
+                                <label class="form-label mb-0">Kargo Firması <span class="text-danger">*</span></label>
+                                <select name="CargoNameId" id="cargoCompany" class="form-select" asp-items="@(ViewBag.CargoNames)" style="width:200px;">
+                                    <option value="">-- Seçiniz --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Kargo Takip Numarası <span class="text-danger">*</span></label>
+                                <input type="text" name="TrackingNumber" id="trackingNumber" class="form-control" maxlength="100" />
+                            </div>
+                        </div>
+
+                        <!-- Ek alan (İptal Edildi ise) -->
+                        <div id="cancelReasonField" class="row g-3 d-none">
+                            <div class="col-md-12">
+                                <label class="form-label">İptal Sebebi <span class="text-danger">*</span></label>
+                                <textarea name="CancelDescription" id="cancelReason" class="form-control" rows="3" maxlength="500"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">
+                        <i class="mdi mdi-content-save"></i> Kaydet
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Resim önizleme
+        $(document).on("click", ".preview-img", function () {
+            const imgSrc = $(this).data("img");
+            const imgAlt = $(this).data("alt") || "";
+            $("#modalImage").attr({ src: imgSrc, alt: imgAlt });
+            $("#imageModal").modal("show");
+        });
+
+        const ST_PAKET       = @((int)EnumStatusType.Paketlendi);
+        const ST_VERILDI     = @((int)EnumStatusType.Kargoda);
+        const ST_IPTALEDILDI = @((int)EnumStatusType.İptal);
+
+        function syncRequired() {
+            const st = parseInt($("#status").val() || 0, 10);
+
+            const needCargo  = (st === ST_VERILDI);
+            const needCancel = (st === ST_IPTALEDILDI);
+
+            // Kargo alanları
+            $("#cargoExtraFields").toggleClass("d-none", !needCargo);
+            $("#trackingNumber").prop("required", needCargo);
+            $("#cargoCompany").prop("required", needCargo);
+
+            if (!needCargo) {
+                $("#trackingNumber").val("");
+                $("#cargoCompany").val("");
+            }
+
+            // İptal sebebi alanı
+            $("#cancelReasonField").toggleClass("d-none", !needCancel);
+            $("#cancelReason").prop("required", needCancel);
+
+            if (!needCancel) {
+                $("#cancelReason").val("");
+            }
+        }
+
+        // Durum değişince kuralı uygula
+        $("#status").on("change", syncRequired);
+
+        //  Modal açan buton
+        $(document).on("click", ".change-status-btn", function () {
+            const d = $(this).data();
+
+            // Özet
+            $("#summaryLocation").text(d.location || "-");
+            $("#summaryCategory").text(d.category || "-");
+            $("#summaryProduct").text(d.product || "-");
+            $("#summaryQuantity").text(d.quantity || "-");
+            $("#summaryRecipient").text(d.receiver || "-");
+            $("#summaryAddress").text(d.address || "-");
+
+
+
+            // Form reset
+            $("#cargoDetailId").val(d.cargodetailId || "");
+            $("#status").val("").trigger("change");
+            $("#trackingNumber, #cargoCompany").val("");
+
+            // Başlangıç required/görünürlük
+            syncRequired();
+        });
+
+
+
+        //Silme işlem
+
+        $('.delete-cargo-btn').on('click', function(e) {
+             e.preventDefault();
+
+             var url = $(this).data('url');
+             var receiver = $(this).data('receiver');
+
+             Swal.fire({
+                 title: 'Emin misiniz?',
+                 text: receiver + " adlı alıcıya ait kargo silinecek!",
+                 icon: 'warning',
+                 showCancelButton: true,
+                 confirmButtonColor: '#3085d6',
+                 cancelButtonColor: '#d33',
+                 confirmButtonText: 'Evet, sil!',
+                 cancelButtonText: 'İptal'
+             }).then((result) => {
+                 if (result.isConfirmed) {
+                     $.ajax({
+                         url: url,
+                         type: 'POST',
+                         dataType: 'json', // C# tarafında JSON dönüyorsa
+                         success: function(response) {
+                             if (response.success) {
+                                 Swal.fire({
+                                     title: 'Silindi!',
+                                     text: receiver + " adlı alıcının kargosu silindi.",
+                                     icon: 'success',
+                                     showConfirmButton: false,
+                                     timer: 2000
+                                 });
+
+                                 setTimeout(function() {
+                                     location.reload();
+                                 }, 2000);
+                             } else {
+                                 Swal.fire({
+                                     title: 'Hata!',
+                                     text: response.message,
+                                     icon: 'error'
+                                 });
+                             }
+                         },
+                         error: function() {
+                             Swal.fire({
+                                 title: 'Hata!',
+                                 text: 'Sunucu ile iletişim kurulamadı.',
+                                 icon: 'error'
+                             });
+                         }
+                     });
+                 }
+             });
+         });
+    </script>
+}

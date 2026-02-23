@@ -1,0 +1,197 @@
+﻿@using Newtonsoft.Json
+@model List<InstallationCalenderDto>
+
+@{
+    ViewData["Title"] = "Kurulum";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    // JS'e gönderilecek veriyi doğrudan Model üzerinden hazırlıyoruz.
+    var events = Model.Select(item =>
+    {
+        var date = item.InstallationDate ?? DateTime.Today;
+
+        var productDisplay = item.Products.Select(p => $"{p.ProductName} ({p.Quantity} adet)").ToList();
+
+        return new
+        {
+            id = item.RequestFormDetailId,
+            title = $"{item.LocationName} - {string.Join(", ", item.Persons)}",
+            start = date.ToString("yyyy-MM-dd"),
+            color = item.Color,
+            extendedProps = new
+            {
+                productNames = string.Join(", ", productDisplay),
+                locationName = item.LocationName,
+                locationAdress = item.LocationAdress,
+                mainRepoName = item.MainRepoName,
+                installedDate = date.ToString("dd MMMM yyyy"),
+                note = item.Description ?? "",
+                cancelledDesc = item.CancelledDesc ?? "",
+                status = item.Status,
+                humanizedDays = item.HumanizedDays,
+                persons = string.Join(", ", item.Persons),
+                requester = item.RequestFormBy,
+                requestDate = item.RequestFormDate?.ToString("dd MMMM yyyy"),
+                imageUrls = item.Products.Select(p => "/productimages/" + p.ImageUrl).ToList()
+            }
+        };
+    });
+
+    var eventsJson = JsonConvert.SerializeObject(events);
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <script src="~/fullcalendar/index.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            var calendarEvents = @Html.Raw(eventsJson);
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'tr',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'multiMonthYear,dayGridMonth,timeGridWeek,listMonth'
+                },
+                buttonText: {
+                    today: 'Bugün', month: 'Ay', week: 'Hafta', day: 'Gün', list: 'Liste'
+                },
+                initialView: 'multiMonthYear',
+                initialDate: new Date(),
+                editable: false,
+                selectable: false,
+                dayMaxEvents: true,
+                events: calendarEvents,
+                eventClick: function (info) {
+                    var props = info.event.extendedProps;
+
+                    document.getElementById('modalStatus').textContent = props.status;
+                    document.getElementById('modalRequester').textContent = props.requester || 'Belirtilmemiş';
+                    document.getElementById('modalRequestDate').textContent = props.requestDate || 'Belirtilmemiş';
+                    document.getElementById('modalMainRepo').textContent = props.mainRepoName || 'Belirtilmemiş';
+                    document.getElementById('modalLocation').textContent = props.locationName || 'Belirtilmemiş';
+                    document.getElementById('modalLocationAdress').textContent = props.locationAdress || 'Belirtilmemiş';
+                    document.getElementById('modalPerson').textContent = props.persons || 'Belirtilmemiş';
+                    document.getElementById('modalInstalledDate').textContent = props.installedDate || 'Belirtilmemiş';
+                    document.getElementById('modalHumanized').textContent = props.humanizedDays || 'Belirtilmemiş';
+                    document.getElementById('modalNote').textContent = props.note || 'Belirtilmemiş';
+                    document.getElementById('modalCancelledDesc').textContent = props.cancelledDesc || 'Belirtilmemiş';
+
+                    // Ürün listesi oluşturma
+                    var modalProduct = document.getElementById('modalProduct');
+                    modalProduct.innerHTML = '';
+                    if (props.productNames) {
+                        var ul = document.createElement('ul');
+                        props.productNames.split(',').forEach(function(p){
+                             var li = document.createElement('li');
+                             li.textContent = p.trim();
+                             ul.appendChild(li);
+                        });
+                        modalProduct.appendChild(ul);
+                    }
+
+                    // Resimlerin eklenmesi
+                    var photoContainer = document.getElementById('photoContainer');
+                    photoContainer.innerHTML = '';
+                    if (props.imageUrls && props.imageUrls.length > 0) {
+                        props.imageUrls.forEach(function(url) {
+                            var imgDiv = document.createElement('div');
+                            imgDiv.classList.add('avatar-group-item', 'me-1');
+                            var img = document.createElement('img');
+                            img.src = url;
+                            img.classList.add('rounded-circle', 'avatar-sm');
+                            img.style.width = "50px";
+                            img.style.height = "50px";
+                            img.alt = "Ürün Resmi";
+                            imgDiv.appendChild(img);
+                            photoContainer.appendChild(imgDiv);
+
+                            // Resme tıklama olayı
+                            img.addEventListener('click', function() {
+                                var modalImgFull = document.getElementById('modalPhotoFull');
+                                if (!modalImgFull) {
+                                    modalImgFull = document.createElement('img');
+                                    modalImgFull.id = 'modalPhotoFull';
+                                    modalImgFull.style.maxWidth = '100%';
+                                    modalImgFull.style.marginTop = '10px';
+                                    photoContainer.appendChild(modalImgFull);
+                                }
+                                modalImgFull.src = url;
+                            });
+                        });
+                    }
+                    var myModal = new bootstrap.Modal(document.getElementById('eventModal'));
+                    myModal.show();
+                }
+            });
+            calendar.render();
+        });
+    </script>
+    <style>
+        /* CSS kodları aynı kaldı, düzenlemeye gerek yok */
+        body {
+            margin: 40px 10px;
+            font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+            font-size: 14px;
+        }
+
+        #calendar {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .avatar-group {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .avatar-group-item {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h1 class="text-center mb-4">Kurulum Takvimi</h1>
+        <div id="calendar"></div>
+    </div>
+
+    <div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Kurulum Detayı</h5>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Durum:</strong> <span id="modalStatus"></span></p>
+                    <p><strong>Talep Eden:</strong> <span id="modalRequester"></span></p>
+                    <p><strong>Talep Tarihi:</strong> <span id="modalRequestDate"></span></p>
+
+                    <p><strong>Depo:</strong> <span id="modalMainRepo"></span></p>
+                    <p><strong>Lokasyon:</strong> <span id="modalLocation"></span></p>
+                    <p><strong>Adres:</strong> <span id="modalLocationAdress"></span></p>
+                    <p><strong>Ürün:</strong> <div id="modalProduct"></div></p>
+
+                    <p><strong>İlgili Personel:</strong> <span id="modalPerson"></span></p>
+                    <p><strong>Kurulum Tarihi:</strong> <span id="modalInstalledDate"></span></p>
+                    <p><strong>Gün:</strong> <span id="modalHumanized"></span></p>
+
+                    <p><strong>Not:</strong> <span id="modalNote"></span></p>
+                    <p><strong>İptal Açıklaması:</strong> <span id="modalCancelledDesc"></span></p>
+
+                    <div id="photoContainer" class="avatar-group" style="margin-top:10px;">
+                        @* JS ile resimler buraya eklenecek *@
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

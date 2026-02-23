@@ -1,0 +1,220 @@
+﻿@model List<ReadyToInstallDto>
+@{
+    ViewData["Title"] = "Kuruluma Hazır Talepler";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+    <h4>Kuruluma Hazır Olan Talepler</h4>
+</div>
+<hr />
+
+<table id="DataTables" class="display table table-bordered table-striped" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Talep Eden</th>
+            <th>Talep Tarihi</th>
+            <th>Depo</th>
+            <th>Lokasyon</th>
+            <th>Adres</th>
+            <th>Kurulum Tarihi</th>
+            <th>Kalan Gün</th>
+            <th>Personeller</th>
+            @* <th>Kategoriler</th> *@
+            <th>Ürünler</th>
+            @* <th>Adet</th> *@
+            @* <th>Fotoğraflar</th> *@
+            <th>Açıklama</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>#</th>
+            <th>Talep Eden</th>
+            <th>Talep Tarihi</th>
+            <th>Depo</th>
+            <th>Lokasyon</th>
+            <th>Adres</th>
+            <th>Kurulum Tarihi</th>
+            <th>Kalan Gün</th>
+            <th>Personeller</th>
+            @* <th>Kategoriler</th> *@
+            <th>Ürünler</th>
+            @* <th>Adet</th> *@
+            @* <th></th> *@
+            <th>Açıklama</th>
+            <th></th>
+        </tr>
+    </tfoot>
+    <tbody>
+        @{
+            var count = 1;
+            foreach (var item in Model)
+            {
+                string kalanGunText = "-";
+                if (item.InstallationDate.HasValue)
+                {
+                    var today = DateTime.Today;
+                    var diff = (item.InstallationDate.Value.Date - today).Days;
+
+                    if (diff == 0)
+                        kalanGunText = "Bugün";
+                    else if (diff < 0)
+                        kalanGunText = "Geçti";
+                    else
+                        kalanGunText = diff + " Gün Kaldı";
+                }
+
+                <tr>
+                    <td>@(count++)</td>
+                    <td>@item.RequestFormBy</td>
+                    <td>@item.RequestFormDate?.ToString("dd MMMM yyyy HH:mm")</td>
+                    <td>@item.MainRepoName</td>
+                    <td>@item.LocationName</td>
+                    <td>@item.LocationAdress</td>
+                    <td>@item.InstallationDate?.ToString("dd MMMM yyyy")</td>
+                    <td>
+                        <span class="badge
+                                    @(kalanGunText == "Bugün" ? "bg-warning text-dark" :
+                              kalanGunText == "Geçti" ? "bg-danger" : "bg-success")">
+                            @kalanGunText
+                        </span>
+                    </td>
+                    <td>
+                        <ul class="mb-0 ps-3">
+                            @foreach (var person in item.Persons)
+                            {
+                                <li>@person</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>
+                        <ul class="mb-0 ps-3 list-unstyled">
+                            @foreach (var product in item.Products)
+                            {
+                                <li class="d-flex align-items-center mb-1">
+                                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                    {
+                                        var imgPath = "/productimages/" + product.ImageUrl;
+                                        <a href="javascript:void(0);"
+                                           class="d-inline-block preview-img me-2"
+                                           data-img="@imgPath"
+                                           data-alt="@imgPath">
+                                            <img src="@imgPath" class="rounded-circle avatar-sm" />
+                                        </a>
+                                    }
+
+                                    <span>@product.CategoryName - @product.ProductName (@product.Quantity Adet)</span>
+                                </li>
+                            }
+                        </ul>
+                    </td>
+                    <td>@item.Description</td>
+                    <td>
+                        <button type="button"
+                                class="btn btn-sm btn-primary change-request-status-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#requestStatusModal"
+                                data-request-id="@item.RequestFormDetailId"
+                                data-request-by="@item.RequestFormBy"
+                                data-request-date="@item.RequestFormDate?.ToString("dd MMMM yyyy HH:mm")">
+                            <i class="mdi mdi-check-circle-outline"></i> Durum Değiştir
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<!-- Ürün Resmi Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="" class="img-fluid rounded" style="max-height:70vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Talep Durumu Modal -->
+<div class="modal fade" id="requestStatusModal" tabindex="-1" aria-labelledby="requestStatusLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="SaveRequestFormStatus" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title" id="requestStatusLabel">Talep Durumu Değiştir</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="border rounded p-3 mb-3 bg-light">
+                        <strong>Talep Bilgileri:</strong>
+                        <ul class="list-unstyled mb-0">
+                            <li><strong>Talep Eden:</strong> <span id="summaryRequestBy">-</span></li>
+                            <li><strong>Talep Tarihi:</strong> <span id="summaryRequestDate">-</span></li>
+                        </ul>
+                    </div>
+                    <input type="hidden" name="RequestFormDetailId" id="requestFormId" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Durum <span class="text-danger">*</span></label>
+                            <select name="StatusId" id="status" class="form-select" required style="top:30px;">
+                                <option value="">-- Seçiniz --</option>
+                                <option value="@((int)EnumStatusType.Tamamlandı)">Kurulum Tamamlandı</option>
+                                <option value="@((int)EnumStatusType.İptal)">İptal Et</option>
+                            </select>
+                        </div>
+                        <div id="cancelReasonField" class="col-md-12 d-none">
+                            <label class="form-label">İptal Sebebi <span class="text-danger">*</span></label>
+                            <textarea name="CancelledDesc" id="cancelReason" class="form-control" rows="3" maxlength="500"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">
+                        <i class="mdi mdi-content-save"></i> Kaydet
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Fotoğraf modalı aç
+        $(document).on("click", ".preview-img", function () {
+            const imgSrc = $(this).data("img");
+            $("#modalImage").attr("src", imgSrc);
+            $("#imageModal").modal("show");
+        });
+
+        // İptal sebebi alanını göster/gizle
+        function syncRequired() {
+            const st = parseInt($("#status").val() || 0, 10);
+            const needCancel = (st === @((int)EnumStatusType.İptal));
+            $("#cancelReasonField").toggleClass("d-none", !needCancel);
+            $("#cancelReason").prop("required", needCancel);
+            if (!needCancel) {
+                $("#cancelReason").val("");
+            }
+        }
+
+        // Modal açıldığında bilgileri doldur
+        $(document).on("click", ".change-request-status-btn", function () {
+            const d = $(this).data();
+            $("#requestFormId").val(d.requestId);
+            $("#summaryRequestBy").text(d.requestBy || "-");
+            $("#summaryRequestDate").text(d.requestDate || "-");
+            $("#status").val("").trigger("change");
+            syncRequired();
+        });
+
+        $("#status").on("change", syncRequired);
+    </script>
+}

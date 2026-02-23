@@ -1,0 +1,116 @@
+﻿@model List<CompletedServicesDto>
+@{
+    ViewData["Title"] = "Tamamlanmış Servis Talepleri";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+    <h4>Tamamlanmış Servis Talepleri</h4>
+</div>
+<hr />
+
+<table id="DataTables" class="display table table-bordered table-striped" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Talebi Açan</th>
+            <th>Tarihi</th>
+            <th>Depo</th>
+            <th>Lokasyon</th>
+            <th>Adres</th>
+            <th>Kurulum Tarihi</th>
+            <th width="30%">Ürünler</th>
+            <th>Personeller</th>
+            <th>Açıklama</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>#</th>
+            <th>Talebi Açan</th>
+            <th>Tarihi</th>
+            <th>Depo</th>
+            <th>Lokasyon</th>
+            <th>Adres</th>
+            <th>Kurulum Tarihi</th>
+            <th>Ürünler</th>
+            <th>Personeller</th>
+            <th>Açıklama</th>
+        </tr>
+    </tfoot>
+    <tbody>
+        @{
+            var count = 1;
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>@(count++)</td>
+                    <td>@item.CreatedBy</td>
+                    <td>@item.CreatedDate.ToString("dd MMMM yyyy")</td>
+                    <td>@item.MainRepoName</td>
+                    <td>@item.LocationName</td>
+                    <td>@item.LocationAdress</td>
+                    <td>@item.InstallationDate?.ToString("dd MMMM yyyy")</td>
+                    <td>
+                        <ul class="mb-0 ps-3 list-unstyled">
+                            @foreach (var product in item.Products)
+                            {
+                                <li class="d-flex align-items-center mb-1">
+                                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                                    {
+                                        var imgPath = "/productimages/" + product.ImageUrl;
+                                        <a href="javascript:void(0);"
+                                           class="d-inline-block preview-img me-2"
+                                           data-img="@imgPath"
+                                           data-alt="@imgPath">
+                                            <img src="@imgPath" class="rounded-circle avatar-sm" />
+                                        </a>
+                                    }
+
+                                    <span>@product.CategoryName - @product.ProductName (@product.Quantity Adet)</span>
+                                </li>
+                            }
+                        </ul>
+                    </td>
+
+                    <td>
+                        <ul class="mb-0 ps-3">
+                            @foreach (var person in item.Persons)
+                            {
+                                <li>@person</li>
+                            }
+                        </ul>
+                    </td>
+                    <td>@item.Description</td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<!-- Ürün Resmi Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="" class="img-fluid rounded" style="max-height:70vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Fotoğraf modalı aç
+        $(document).on("click", ".preview-img", function () {
+            const imgSrc = $(this).data("img");
+            $("#modalImage").attr("src", imgSrc);
+            $("#imageModal").modal("show");
+        });
+    </script>
+}
+
+
+
+
+

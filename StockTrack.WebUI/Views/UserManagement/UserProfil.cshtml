@@ -1,0 +1,59 @@
+﻿@model UserProfilDetailDto
+@{
+    ViewData["Title"] = "Kullanıcı Profili";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    string profileImage = string.IsNullOrEmpty(Model.ImageUrl)
+        ? Url.Content("~/uploaduserimages/defaultimage.png")
+        : Url.Content("~/uploaduserimages/" + Model.ImageUrl);
+}
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="user-profile-img">
+            <img src="@profileImage" class="profile-img profile-foreground-img rounded-top" style="height: 150px;" alt="Arka Plan">
+            <div class="overlay-content rounded-top">
+                <div class="user-nav p-3">
+                   
+                </div>
+            </div>
+        </div>
+   
+
+        <div class="p-4 pt-0">
+            <div class="mt-n5 position-relative text-center border-bottom pb-3">
+                <img src="@profileImage" alt="Profil Resmi" class="avatar-xl rounded-circle img-thumbnail" />
+                <div class="mt-3">
+                    <h5 class="mb-1">@Model.NameSurname</h5>
+                    <p class="text-muted mb-0">@Model.Username</p>
+                </div>
+            </div>
+
+            <div class="mt-3">
+                <table class="table table-borderless mb-0">
+                    <tbody>
+                        <tr>
+                            <th class="fw-bold">Oluşturulma Tarihi :</th>
+                            <td class="text-muted">@Model.CreatedDate.ToString("dd MMMM yyyy")</td>
+                        </tr>
+                        <tr>
+                            <th class="fw-bold">E-posta :</th>
+                            <td class="text-muted">@Model.Email</td>
+                        </tr>
+                        <tr>
+                            <th class="fw-bold">Rol :</th>
+                            <td class="text-muted">@Model.RoleName</td>
+                        </tr>
+                        <tr>
+                            <th class="fw-bold">Aktiflik :</th>
+                            <td class="text-muted">
+                                @(Model.IsActive ? "Aktif" : "Pasif")
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>

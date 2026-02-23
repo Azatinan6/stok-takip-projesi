@@ -1,0 +1,709 @@
+﻿@using StockTrack.Dto.RequestForm
+@using StockTrack.WebUI.Enums
+@model CreateRequestFormDto
+
+@{
+    ViewData["Title"] = "Yeni Talep";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card">
+            <div class="card-header"><h4 class="card-title mb-0">Ürün Talep Formu</h4></div>
+            <div class="card-body">
+                <form asp-action="Create" method="post" id="requestWizardForm">
+                    @Html.AntiForgeryToken()
+
+                    <!-- Gizli alanlar -->
+                    <input type="hidden" name="ItemsJson" id="ItemsJson" />
+                    <!--  Persons listesi için hidden inputların üretileceği konteyner -->
+                    <div id="personsHiddenContainer"></div>
+
+                    <!-- adım başlıkları -->
+                    <ul class="wizard-nav mb-5">
+                        <li class="wizard-list-item">
+                            <div class="list-item active">
+                                <div class="step-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Lokasyon & Depo">
+                                    <i class="bx bx-buildings"></i>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="wizard-list-item">
+                            <div class="list-item">
+                                <div class="step-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Ürün Seçimi">
+                                    <i class="bx bx-package"></i>
+                                </div>
+                            </div>
+                        </li>
+                        <li class="wizard-list-item">
+                            <div class="list-item">
+                                <div class="step-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Özet & Tür">
+                                    <i class="bx bx-check-circle"></i>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+
+                    <!-- STEP 1: Lokasyon & Depo -->
+                    <div class="wizard-tab" data-step="1" style="display:block">
+                        <div class="text-center mb-4">
+                            <h5>Lokasyon & Depo</h5>
+                            <p class="card-title-desc">Önce lokasyon/hastane ve depoyu seçin.</p>
+                        </div>
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="LocationId" class="form-label">Lokasyon/Hastane</label>
+                                    <select id="LocationId" name="LocationId" class="form-select" asp-items="@(ViewBag.Locations as List<SelectListItem>)">
+                                        <option value="">Seçiniz</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="MainRepoId" class="form-label">Depo</label>
+                                    <select id="MainRepoId" name="MainRepoId" class="form-select" asp-items="@(ViewBag.MainRepos as List<SelectListItem>)">
+                                        <option value="">Seçiniz</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="step1Warn" class="alert alert-warning d-none">
+                            <span></span>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Ürün Seçimi -->
+                    <div class="wizard-tab" data-step="2" style="display:none">
+                        <div class="text-center mb-4">
+                            <h5>Kategori & Ürün Seçimi</h5>
+                            <p class="card-title-desc">Soldan kategoriye göre ürün seçin, sağda eklenenleri görün.</p>
+                        </div>
+
+                        <div class="row">
+                            <!-- Sol: filtre & ekleme -->
+                            <div class="col-lg-6">
+                                <div class="mb-3">
+                                    <label for="CategoryId" class="form-label">Kategori</label>
+                                    <select id="CategoryId" class="form-select">
+                                        <option value="">Önce depo seçiniz</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="ProductId" class="form-label">Ürün</label>
+                                    <select id="ProductId" class="form-select">
+                                        <option value="">Önce kategori seçiniz</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-2">
+                                    <strong>Stok Adeti: </strong>
+                                    <span id="RemainingStock" class="fw-bold text-primary">-</span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="AddQty" class="form-label">Miktar</label>
+                                    <input type="number" id="AddQty" class="form-control" min="1" placeholder="Miktar">
+                                    <div class="form-text">Miktar stok adeti sayısını aşamaz.</div>
+                                </div>
+
+                                <div id="addWarn" class="alert alert-warning d-none">
+                                    <span></span>
+                                </div>
+
+                                <button type="button" id="btnAddProduct" class="btn btn-outline-primary">
+                                    Ekle
+                                </button>
+                            </div>
+
+                            <!-- Sağ: eklenenler listesi -->
+                            <div class="col-lg-6">
+                                <div class="d-flex align-items-center justify-content-between mb-2">
+                                    <h6 class="mb-0">Eklenen Ürünler</h6>
+                                    <small class="text-muted" id="totalItemsInfo">0 ürün</small>
+                                </div>
+
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered align-middle" id="selectedItemsTable">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th style="width:38%">Ürün</th>
+                                                <th style="width:22%">Kategori</th>
+                                                <th style="width:20%" class="text-end">Max Stok Adeti</th>
+                                                <th style="width:15%">Miktar</th>
+                                                <th style="width:10%"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- JS ile doldurulacak -->
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div id="listWarn" class="alert alert-warning d-none">
+                                    <span></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3: Özet & Tür -->
+                    <div class="wizard-tab" data-step="3" style="display:none">
+                        <div class="text-center mb-4">
+                            <h5>Özet</h5>
+                            <p class="card-title-desc">Seçimlerinizi kontrol edin ve talep türünü belirleyin.</p>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-lg-6">
+                                <div class="card">
+                                    <div class="card-header"><strong>Lokasyon & Depo</strong></div>
+                                    <div class="card-body">
+                                        <div><strong>Lokasyon:</strong> <span id="sumLocation">-</span></div>
+                                        <div><strong>Depo:</strong> <span id="sumRepo">-</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-6">
+                                <div class="card">
+                                    <div class="card-header"><strong>Ürünler</strong></div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm" id="sumItemsTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Ürün</th>
+                                                        <th>Kategori</th>
+                                                        <th class="text-end">Miktar</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <fieldset class="mb-3">
+                            <legend class="fs-6">Talep Türü</legend>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="TypeId" id="typeKargo" value="@((int)EnumRequestType.Kargo)">
+                                <label class="form-check-label" for="typeKargo">Kargo</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="TypeId" id="typeKurulum" value="@((int)EnumRequestType.Kurulum)">
+                                <label class="form-check-label" for="typeKurulum">Kurulum</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="TypeId" id="typeServis" value="@((int)EnumRequestType.Servis)">
+                                <label class="form-check-label" for="typeServis">Servis</label>
+                            </div>
+                        </fieldset>
+
+                        <!-- Kargo alanları -->
+                        <div id="cargoFields" class="d-none">
+                            <div class="row">
+                                <!-- Alıcı Adı Soyadı -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="ReceiverFullName" class="form-label">
+                                        Alıcı Adı Soyadı <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" id="ReceiverFullName" name="ReceiverFullName" class="form-control" placeholder="Ad Soyad">
+                                </div>
+
+                                <!-- Telefon Numarası -->
+                                <div class="col-md-6 mb-3">
+                                    <label for="ReceiverPhone" class="form-label">
+                                        Telefon Numarası <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="tel" id="ReceiverPhone" name="Phone" class="form-control" placeholder="05xx xxx xx xx" pattern="^0[5-9][0-9]{9}$" maxlength="11">
+                                    <div class="form-text">Örn: 05xx xxx xx xx</div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Kurulum alanları -->
+                        <div id="installationFields" class="d-none">
+                            <div class="col-md-6 mb-3">
+                                <label for="InstallationDate" class="form-label">Tarih <span class="text-danger">*</span></label>
+                                <input type="date" id="InstallationDate" name="InstallationDate" class="form-control">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="mb-2">
+                                        <label for="PersonId" class="form-label">Personel Seç</label>
+                                        <select id="PersonId" class="form-select" asp-items="@(ViewBag.Persons as List<SelectListItem>)">
+                                            <option value="">Seçiniz</option>
+                                        </select>
+                                    </div>
+                                    <div id="userAddWarn" class="alert alert-warning d-none"><span></span></div>
+                                    <button type="button" id="btnAddPerson" class="btn btn-outline-primary">Ekle</button>
+                                </div>
+
+                                <div class="col-lg-6">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <h6 class="mb-0">Eklenen Personeller</h6>
+                                        <small class="text-muted" id="totalUsersInfo">0 kullanıcı</small>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered align-middle" id="selectedUsersTable">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th style="width:70%">Ad Soyad</th>
+                                                    <th style="width:30%" class="text-center">İşlem</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <!-- JS ile doldurulacak -->
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div id="userListWarn" class="alert alert-warning d-none"><span></span></div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="Note" class="form-label">Not</label>
+                                <textarea id="Note" name="Note" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+
+                        <div id="step3Warn" class="alert alert-warning d-none"><span></span></div>
+                    </div>
+
+                    <div class="d-flex align-items-start gap-3 mt-4">
+                        <button type="button" class="btn btn-secondary w-sm" id="prevBtn">Geri</button>
+                        <button type="button" class="btn btn-primary w-sm ms-auto" id="nextBtn">İleri</button>
+                        <button type="submit" class="btn btn-success w-sm ms-auto d-none" id="finishBtn">Tamamla</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // --- State ---
+        let currentStep = 1;
+        const items = [];    // {productId, productName, categoryId, categoryName, quantity, remaining}
+        const persons = [];  // { id, name }
+
+        // --- Helpers ---
+        function setWarn(divSel, msg) {
+            const $d = $(divSel);
+            if (!msg) { $d.addClass('d-none'); $d.find('span').text(''); return; }
+            $d.removeClass('d-none'); $d.find('span').text(msg);
+        }
+        function getSelText(sel) {
+            const v = $(sel).val();
+            if (!v) return null;
+            return $(sel).find('option:selected').text();
+        }
+        function refreshNav() {
+            $('.wizard-nav .list-item').removeClass('active');
+            $('.wizard-nav .list-item').eq(currentStep - 1).addClass('active');
+            $('.wizard-tab').hide();
+            $(`.wizard-tab[data-step="${currentStep}"]`).show();
+            $('#prevBtn').prop('disabled', currentStep === 1);
+            if (currentStep === 3) {
+                $('#nextBtn').addClass('d-none');
+                $('#finishBtn').removeClass('d-none');
+            } else {
+                $('#nextBtn').removeClass('d-none');
+                $('#finishBtn').addClass('d-none');
+            }
+        }
+        function step1Valid() {
+            const locOk = !!$('#LocationId').val();
+            const repoOk = !!$('#MainRepoId').val();
+            if (!locOk)  { setWarn('#step1Warn', 'Lütfen lokasyon seçiniz.'); return false; }
+            if (!repoOk) { setWarn('#step1Warn', 'Lütfen depo seçiniz.');     return false; }
+            setWarn('#step1Warn', null);
+            return true;
+        }
+        function step2Valid() {
+            if (items.length === 0) {
+                setWarn('#listWarn', 'En az bir ürün eklemelisiniz.');
+                return false;
+            }
+            setWarn('#listWarn', null);
+            return true;
+        }
+        function step3BindSummary() {
+            $('#sumLocation').text(getSelText('#LocationId') ?? '-');
+            $('#sumRepo').text(getSelText('#MainRepoId') ?? '-');
+            const $tb = $('#sumItemsTable tbody');
+            $tb.empty();
+            items.forEach(it => {
+                $tb.append(
+                    `<tr>
+                        <td>${it.productName}</td>
+                        <td>${it.categoryName}</td>
+                        <td class="text-end">${it.quantity}</td>
+                    </tr>`
+                );
+            });
+        }
+        function serializeItems() {
+            $('#ItemsJson').val(JSON.stringify(items));
+        }
+
+        // --- Persons: hidden inputs üretimi (List<int> Persons için) ---
+        function serializePersonsToInputs() {
+            const $cont = $('#personsHiddenContainer');
+            $cont.empty();
+            persons.forEach((p, i) => {
+                $cont.append(`<input type="hidden" name="Persons[${i}]" value="${p.id}">`);
+            });
+        }
+
+        // --- Items table render ---
+        function renderItemsTable() {
+            const $tb = $('#selectedItemsTable tbody');
+            $tb.empty();
+            items.forEach((it, idx) => {
+                $tb.append(
+                    `<tr data-idx="${idx}">
+                        <td>${it.productName}</td>
+                        <td>${it.categoryName}</td>
+                        <td class="text-end">${it.remaining}</td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm qty-input" min="1"
+                                   max="${it.remaining}" value="${it.quantity}">
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-remove">Sil</button>
+                        </td>
+                    </tr>`
+                );
+            });
+            $('#totalItemsInfo').text(`${items.length} ürün`);
+        }
+
+        // --- Persons render ---
+        function renderUsersTable() {
+            const $tb = $('#selectedUsersTable tbody');
+            $tb.empty();
+            persons.forEach((u, idx) => {
+                $tb.append(
+                    `<tr data-idx="${idx}">
+                        <td>${u.name}</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger btn-remove-user">Sil</button>
+                        </td>
+                    </tr>`
+                );
+            });
+            $('#totalUsersInfo').text(`${persons.length} kullanıcı`);
+        }
+
+        function clearPersonsUI() {
+            persons.length = 0;
+            renderUsersTable();
+            serializePersonsToInputs(); // <-- CSV yerine list hidden’ları güncelle
+            setWarn('#userAddWarn', null);
+            setWarn('#userListWarn', null);
+        }
+
+        // --- Wizard buttons ---
+        $('#prevBtn').on('click', function () {
+            if (currentStep > 1) currentStep--;
+            refreshNav();
+        });
+        $('#nextBtn').on('click', function () {
+            if (currentStep === 1) {
+                if (!step1Valid()) return;
+            } else if (currentStep === 2) {
+                if (!step2Valid()) return;
+                step3BindSummary();
+                serializeItems();
+            }
+            currentStep++;
+            refreshNav();
+        });
+
+        // Step 1: Depo değişince reset ve kategori yükle
+        $('#MainRepoId').on('change', function () {
+            $('#CategoryId').empty().append('<option value="">Seçiniz</option>');
+            $('#ProductId').empty().append('<option value="">Seçiniz</option>');
+            $('#RemainingStock').text('-');
+            $('#AddQty').val('').removeAttr('max');
+
+            items.length = 0;
+            renderItemsTable();
+            serializeItems();
+
+            $('#sumLocation').text('-');
+            $('#sumRepo').text('-');
+            $('#sumItemsTable tbody').empty();
+            $('input[name="TypeId"]').prop('checked', false);
+            $('#cargoFields').addClass('d-none');
+            $('#installationFields').addClass('d-none');
+            $('#InstallationDate').val('');
+            $('#Note').val('');
+            setWarn('#step3Warn', null);
+            setWarn('#listWarn', null);
+            setWarn('#addWarn', null);
+
+            clearPersonsUI(); // persons reset + hidden inputs reset
+
+            const repoId = $(this).val();
+            if (!repoId) return;
+
+            $.getJSON('@Url.Action("GetCategoriesByRepo", "RequestForm")', { mainRepoId: repoId })
+                .done(function (data) {
+                    $.each(data, function (i, item) {
+                        $('#CategoryId').append($('<option>', { value: item.id, text: item.text }));
+                    });
+                });
+        });
+
+        // Step 2: Kategori değişince ürünleri getir
+        $('#CategoryId').on('change', function () {
+            const repoId = $('#MainRepoId').val();
+            const catId = $(this).val();
+            $('#ProductId').empty().append('<option value="">Seçiniz</option>');
+            $('#RemainingStock').text('-');
+            $('#AddQty').val('').removeAttr('max');
+            setWarn('#addWarn', null);
+
+            if (!repoId || !catId) return;
+
+            $.getJSON('@Url.Action("GetProductsByRepoAndCategory", "RequestForm")',
+                { mainRepoId: repoId, categoryId: parseInt(catId) })
+                .done(function (data) {
+                    $.each(data, function (i, item) {
+                        $('#ProductId').append($('<option>', { value: item.id, text: item.text }));
+                    });
+                });
+        });
+
+               // Ürün değişince kalan stok
+        $('#ProductId').on('change', function () {
+            const pid = $(this).val();
+
+            // <-- EKLE: repoId'yi o anki formdan al
+            const repoId = $('#MainRepoId').val();
+
+            $('#RemainingStock').text('-');
+            $('#AddQty').val('').removeAttr('max');
+            setWarn('#addWarn', null);
+            if (!pid) return;
+
+            $.getJSON('@Url.Action("GetProductRemainingStock", "RequestForm")', { productId: pid, mainRepoId: repoId })
+                .done(function (d) {
+                    const rem = parseInt(d?.remaining ?? 0);
+                    $('#RemainingStock').text(rem);
+                    $('#AddQty').attr('max', rem > 0 ? rem : 1);
+                });
+        });  
+
+        // Miktar guard
+        $('#AddQty').on('input', function () {
+            const rem = parseInt($('#RemainingStock').text());
+            let val = parseInt($(this).val());
+            if (!isNaN(rem) && !isNaN(val) && rem >= 0 && val > rem) {
+                $(this).val(rem);
+                setWarn('#addWarn', `Maksimum girilebilecek miktar ${rem}.`);
+            } else {
+                setWarn('#addWarn', null);
+            }
+        });
+
+        // Ürün ekle
+        $('#btnAddProduct').on('click', function () {
+            const categoryId = $('#CategoryId').val();
+            const categoryName = getSelText('#CategoryId');
+            const productId = $('#ProductId').val();
+            const productName = getSelText('#ProductId');
+            const remaining = parseInt($('#RemainingStock').text());
+            const qty = parseInt($('#AddQty').val());
+
+            if (!categoryId || !productId) {
+                setWarn('#addWarn', 'Kategori ve ürün seçmelisiniz.');
+                return;
+            }
+            if (isNaN(qty) || qty <= 0) {
+                setWarn('#addWarn', 'Geçerli bir miktar giriniz.');
+                return;
+            }
+            if (isNaN(remaining) || remaining <= 0) {
+                setWarn('#addWarn', 'Bu ürün için kalan stok bulunmuyor.');
+                return;
+            }
+            if (qty > remaining) {
+                setWarn('#addWarn', `Maksimum girilebilecek miktar ${remaining}.`);
+                return;
+            }
+
+            const dup = items.find(x => x.productId == productId && x.categoryId == categoryId);
+            if (dup) {
+                setWarn('#addWarn', 'Bu ürün zaten eklendi. Aynı ürünü iki kez ekleyemezsiniz.');
+                return;
+            }
+
+            items.push({
+                productId: parseInt(productId),
+                productName,
+                categoryId: parseInt(categoryId),
+                categoryName,
+                quantity: qty,
+                remaining: remaining
+            });
+
+            renderItemsTable();
+            setWarn('#addWarn', null);
+            $('#AddQty').val('');
+            serializeItems();
+        });
+
+        // Ürün listesi içi değişiklikler
+        $('#selectedItemsTable')
+            .on('input', '.qty-input', function () {
+                const $tr = $(this).closest('tr');
+                const idx = parseInt($tr.data('idx'));
+                let val = parseInt($(this).val());
+                const max = parseInt($(this).attr('max'));
+                if (val > max) { val = max; $(this).val(val); }
+                if (val <= 0 || isNaN(val)) { val = 1; $(this).val(val); }
+                items[idx].quantity = val;
+                serializeItems();
+            })
+            .on('click', '.btn-remove', function () {
+                const $tr = $(this).closest('tr');
+                const idx = parseInt($tr.data('idx'));
+                items.splice(idx, 1);
+                renderItemsTable();
+                serializeItems();
+            });
+
+        // Tür değişimi
+        $('input[name="TypeId"]').on('change', function () {
+            var selectedVal = $(this).val();
+
+            if (selectedVal == '@((int)EnumRequestType.Kurulum)' || selectedVal == '@((int)EnumRequestType.Servis)') {
+                $('#installationFields').removeClass('d-none');
+                $('#cargoFields').addClass('d-none');
+                $('#ReceiverFullName').val('');
+            } else if (selectedVal == '@((int)EnumRequestType.Kargo)') {
+                $('#cargoFields').removeClass('d-none');
+                $('#installationFields').addClass('d-none');
+                $('#InstallationDate').val('');
+                $('#Note').val('');
+                clearPersonsUI(); // Kargo'da personel zorunlu değil
+            }
+            setWarn('#step3Warn', null);
+        });
+
+        // Personel ekle/sil
+        $('#btnAddPerson').on('click', function () {
+            const pid = $('#PersonId').val();
+            const pname = $('#PersonId option:selected').text();
+
+            if (!pid) {
+                setWarn('#userAddWarn', 'Lütfen bir kullanıcı seçiniz.');
+                return;
+            }
+            if (persons.some(x => x.id == pid)) {
+                setWarn('#userAddWarn', 'Bu kullanıcı zaten eklendi.');
+                return;
+            }
+
+            persons.push({ id: pid, name: pname });
+            setWarn('#userAddWarn', null);
+            renderUsersTable();
+            serializePersonsToInputs(); // <-- LIST HIDDEN güncelle
+        });
+
+        $('#selectedUsersTable').on('click', '.btn-remove-user', function () {
+            const idx = parseInt($(this).closest('tr').data('idx'));
+            persons.splice(idx, 1);
+            renderUsersTable();
+            serializePersonsToInputs(); // <-- LIST HIDDEN güncelle
+        });
+
+       
+
+        // Submit
+        $('#requestWizardForm').on('submit', function (e) {
+            if (items.length === 0) {
+                e.preventDefault();
+                currentStep = 2; refreshNav();
+                setWarn('#listWarn', 'En az bir ürün eklemelisiniz.');
+                return;
+            }
+
+            const typeVal = $('input[name="TypeId"]:checked').val();
+            if (!typeVal) {
+                e.preventDefault();
+                currentStep = 3; refreshNav();
+                setWarn('#step3Warn', 'Lütfen Kargo, Kurulum veya Servis seçiniz.');
+                return;
+            }
+
+            if (typeVal == @((int)EnumRequestType.Kargo)) {
+               
+             if (!$('#ReceiverFullName').val()) {
+            e.preventDefault();
+            currentStep = 3; refreshNav();
+            setWarn('#step3Warn', 'Kargo seçildiğinde alıcı adı zorunludur.');
+            return;
+            }
+
+            if (!$('#ReceiverPhone').val()) {
+                e.preventDefault();
+                currentStep = 3; refreshNav();
+                setWarn('#step3Warn', 'Kargo seçildiğinde telefon numarası zorunludur.');
+                return;
+            }
+
+            }
+
+            if ((typeVal == @((int)EnumRequestType.Kurulum) || typeVal == @((int)EnumRequestType.Servis)) && !$('#InstallationDate').val()) {
+                e.preventDefault();
+                currentStep = 3; refreshNav();
+                setWarn('#step3Warn', 'Kurulum veya servis seçildiğinde tarih zorunludur.');
+                return;
+            }
+
+            // Kurulum/Servis için personel zorunlu
+            if ((typeVal == @((int)EnumRequestType.Kurulum) || typeVal == @((int)EnumRequestType.Servis)) && persons.length === 0) {
+                e.preventDefault();
+                currentStep = 3; refreshNav();
+                setWarn('#userListWarn', 'En az bir personel eklemelisiniz.');
+                return;
+            }
+
+            // Ürünleri JSON'a yaz
+            serializeItems();
+
+            // !!! Persons list hidden inputlarını üret
+            serializePersonsToInputs();
+        });
+
+        // init
+        refreshNav();
+    </script>
+}

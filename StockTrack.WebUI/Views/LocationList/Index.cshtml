@@ -1,0 +1,480 @@
+﻿@model IEnumerable<ResultLocationListDto>
+
+@{
+    ViewData["Title"] = "Lokasyon Yönetimi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var count = 1;
+}
+
+<style>
+    #stockDetailModal .modal-dialog {
+        max-width: 95%; /* ekranın %95’i kadar */
+        width: auto; /* içeriğe göre genişlesin */
+    }
+
+    #stockDetailModal .modal-body {
+        max-height: 70vh; /* ekran yüksekliğinin %70’i */
+        overflow-y: auto; /* içerik taşarsa kaydır */
+    }
+</style>
+
+
+<h4 class="mb-3">Müşteri Yönetimi</h4>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+<table id="DataTables" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Lokasyon Adı</th>
+            <th>Adres</th>
+            <th>İlgili Kişi</th>
+            <th>İletişim</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Aktif mi?</th>
+            <th>Detay</th>
+
+            @if (User.IsInRole(RoleConsts.Admin))
+            {
+                <th>İşlemler</th>
+            }
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>#</th>
+            <th>Lokasyon Adı</th>
+            <th>Adres</th>
+            <th>İlgili Kişi</th>
+            <th>İletişim</th>
+            <th>Oluşturulma Tarihi</th>
+            <th></th>
+            <th>Aktif mi?</th>
+            <th></th>
+        </tr>
+    </tfoot>
+    <tbody>
+        @foreach (var location in Model)
+        {
+            <tr>
+                <td>@(count++)</td>
+                <td>@location.Name</td>
+                <td>@location.Adress</td>
+                <td>@location.ContactPerson</td>
+                <td>@location.Phone</td>
+                <td>@location.CreatedDate.ToString("dd MMMM yyyy")</td>
+                <td>
+                    <span class="@(location.IsActive ? "text-success" : "text-danger")">
+                        @(location.IsActive ? "Evet" : "Hayır")
+                    </span>
+                </td>
+                <td>
+                    <button type="button"
+                            class="btn btn-info show-stock-detail-btn"
+                            data-location-id="@location.Id">
+                        Detay
+                    </button>
+                </td>
+                @if (User.IsInRole(RoleConsts.Admin))
+                {
+                    <td>
+                        <a class="text-muted dropdown-toggle font-size-18 px-2" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bx bx-dots-vertical-rounded"></i>
+                        </a>
+
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <!-- Düzenle -->
+                            <a class="dropdown-item edit-location-btn"
+                               data-bs-toggle="modal"
+                               data-bs-target="#editLocationModal"
+                               data-location-id="@location.Id"
+                               data-location-name="@location.Name"
+                               data-location-address="@location.Adress"
+                               data-location-phone="@location.Phone"
+                               data-location-contact="@location.ContactPerson">
+                                <i class="mdi mdi-pencil"></i> Düzenle
+                            </a>
+
+                            <!-- Aktif/Pasif -->
+                            <a href="javascript:void(0);"
+                               class="dropdown-item toggle-location-btn"
+                               data-url="@Url.Action(location.IsActive ? "Deactivate" : "Activate", "LocationList", new { id = location.Id })"
+                               data-location-name="@location.Name">
+                                <i class="mdi mdi-check-circle-outline"></i>
+                                @(location.IsActive ? "Pasif Yap" : "Aktif Yap")
+                            </a>
+
+                            <!-- Sil -->
+                            <a href="javascript:void(0);"
+                               class="dropdown-item delete-location-btn"
+                               data-url="@Url.Action("DeleteLocation", "LocationList", new { id = location.Id })"
+                               data-location-name="@location.Name">
+                                <i class="mdi mdi-delete"></i> Sil
+                            </a>
+                        </div>
+                    </td>
+
+                }
+      
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="modal fade" id="stockDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl" style="max-width:95%; width:auto;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Çıkış Kayıtları</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div style="width: 100%; overflow-x: auto;">
+                    <table id="detailTable" class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>Lokasyon</th>
+                                <th>Talep Açan</th>
+                                <th>Talep Tarihi</th>
+                                <th>Talep</th>
+                                <th>Statü</th>
+                                <th>Depo</th>
+                                <th>Adres</th>
+                                <th>Alıcı</th>
+                                <th>Tel</th>
+                                <th>Onay Tarihi</th>
+                                <th>Paketleme Tarihi</th>                               
+                                <th>Kargo Firması</th>
+                                <th>Kargo Veriliş Tarihi</th>
+                                <th>Takip No</th>
+                                <th style="width:30%">Ürünler</th>
+                                <th>Tamamlanma Tarihi</th>
+                                <th>Kurulum Tarihi</th>
+                                <th>Personeller</th>
+                                <th>Açıklama</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sd-rows">
+                            <!-- AJAX ile doldurulacak -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+@if (User.IsInRole(RoleConsts.Admin))
+{
+    <!-- Yeni Lokasyon Ekle Butonu -->
+    <div class="d-flex justify-content-end align-items-center mt-4">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createLocationModal">
+            <i class="mdi mdi-plus-circle"></i> Yeni Müşteri Ekle
+        </button>
+    </div>
+
+    <!-- Lokasyon Ekleme Modal -->
+    <div class="modal fade" id="createLocationModal" tabindex="-1" aria-labelledby="createLocationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="Create" asp-controller="LocationList" id="createLocationForm" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Yeni Müşteri Ekle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Lokasyon Adı</label>
+                            <input type="text" name="Name" class="form-control" placeholder="Lokasyon Adı" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Adres</label>
+                            <textarea name="Address" class="form-control" rows="2" placeholder="Adres bilgisi"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">İlgili Personel</label>
+                            <input type="text" name="ContactPerson" class="form-control" placeholder="İlgili kişi" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Telefon</label>
+                            <input type="tel" name="Phone" class="form-control" placeholder="Telefon numarası" required maxlength="20" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lokasyon Düzenleme Modal -->
+    <div class="modal fade" id="editLocationModal" tabindex="-1" aria-labelledby="editLocationModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="Edit" asp-controller="LocationList" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editLocationModalLabel">Müşteri Düzenle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="editLocationId" name="Id" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Lokasyon Adı</label>
+                            <input type="text" id="editLocationName" name="Name" class="form-control" required />
+
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Adres</label>
+                            <textarea id="editLocationAddress" name="Address" class="form-control" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">İlgili Personel</label>
+                            <input type="text" id="editLocationContact" name="ContactPerson" class="form-control" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">İletişim</label>
+                            <input type="text" id="editLocationPhone" name="ContactPhone" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary">Güncelle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        // Aktif / Pasif Yapma Butonu (Lokasyon için)
+        $(document).on('click', '.toggle-location-btn', function (e) {
+            e.preventDefault();
+            const $btn = $(this);
+            const url = $btn.data('url');
+            const name = $btn.data('location-name');
+            const isDeactivate = $btn.text().includes("Pasif Yap");
+            const titleText = isDeactivate
+                ? `${name} lokasyonu pasif hale getirilecek.`
+                : `${name} lokasyonu aktif hale getirilecek.`;
+            const confirmButtonTxt = isDeactivate
+                ? 'Evet, pasif yap'
+                : 'Evet, aktif yap';
+
+            Swal.fire({
+                title: titleText,
+                text: 'Devam etmek istediğinize emin misiniz?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: confirmButtonTxt,
+                cancelButtonText: 'Hayır'
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $btn.prop('disabled', true);
+
+                Swal.fire({
+                    title: 'Lütfen bekleyin',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading(),
+                    showConfirmButton: false
+                });
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    dataType: 'json',
+                    complete: () => {
+                        Swal.close();
+                    },
+                    success: function (data) {
+                        Swal.fire({
+                            icon: data.success ? 'success' : 'error',
+                            title: data.success ? 'Başarılı' : 'Hata',
+                            text: data.message
+                        }).then(() => {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                $btn.prop('disabled', false);
+                            }
+                        });
+                    },
+                    error: function (xhr) {
+                        const resp = xhr.responseJSON || {};
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'İşlem Başarısız',
+                            text: resp.message || 'Beklenmeyen bir hata oluştu.'
+                        }).then(() => {
+                            $btn.prop('disabled', false);
+                        });
+                    }
+                });
+            });
+        });
+
+        // Düzenleme modalı tetiklendiğinde verileri doldur
+        $('#editLocationModal').on('show.bs.modal', function (event) {
+            const button = $(event.relatedTarget);
+
+            const id = button.data('location-id');
+            const name = button.data('location-name');
+            const address = button.data('location-address');
+            const contact = button.data('location-contact');
+            const phone = button.data('location-phone');
+
+            const modal = $(this);
+            modal.find('#editLocationId').val(id);
+            modal.find('#editLocationName').val(name);
+            modal.find('#editLocationAddress').val(address);
+            modal.find('#editLocationContact').val(contact);
+            modal.find('#editLocationPhone').val(phone);
+        });
+
+        // Lokasyon silme
+        $('.delete-location-btn').on('click', function () {
+            const $btn = $(this); // Buton referansı
+            const locationName = $btn.data('location-name');
+            const url = $btn.data('url');
+
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: `"${locationName}" lokasyonunu silmek istediğinize emin misiniz?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Butonu devre dışı bırak (tekrar tıklanmasın)
+                    $btn.prop('disabled', true);
+
+                    Swal.fire({
+                        title: 'Siliniyor...',
+                        text: 'Lütfen bekleyin.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: url,
+                        type: 'POST',
+                        success: function (data) {
+                            if (data.success) {
+                                Swal.fire('Silindi!', data.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Hata!', data.message || 'Silme işlemi başarısız oldu.', 'error');
+                                $btn.prop('disabled', false);
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Hata!', 'Sunucuya bağlanılamadı.', 'error');
+                            $btn.prop('disabled', false);
+                        }
+                    });
+                }
+            });
+        });
+
+        //Detay Butonu ile lokasyon bazlı yapılan işlemleri görüntüleme
+        $(".show-stock-detail-btn").on("click", function () {
+
+            const locationId = $(this).data("location-id");
+
+            $("#sd-rows").empty();
+
+            $.ajax({
+                url: "/LocationList/ProductDetailsForLocation",
+                type: "GET",
+                data: { id: locationId },
+                success: function (response) {
+                    if (!Array.isArray(response) || response.length === 0) {
+                        $("#sd-rows").append("<tr><td colspan='18' class='text-center'>Kayıt bulunamadı</td></tr>");
+                        $("#stockDetailModal").modal("show");
+                        return;
+                    }
+
+                    response.forEach(item => {
+                        const productList = (item.products && item.products.length > 0)
+                            ? item.products.map(p => `${p.categoryName}: ${p.productName} (${p.usedQuantity} Adet)`).join(", ")
+                            : "-";
+
+
+                        const persons = (item.persons && item.persons.length > 0)
+                            ? item.persons.join(", ")
+                            : "-";
+
+                        const row = `
+                            <tr>
+                                <td>${item.locationName}</td>
+                                <td>${item.requestBy || "-"}</td>
+                                <td>${item.requestDate || "-"}</td>
+                                <td>${item.requestFormType || "-"}</td>
+                                <td>${item.statusName || "-"}</td>
+                                <td>${item.mainRepoName || "-"}</td>
+                                <td>${item.adress || "-"}</td>
+                                <td>${item.toPerson || "-"}</td>
+                                <td>${item.phone || "-"}</td>
+                                 // <td>${item.approvalDate || "-"}</td>
+                                <td>${item.packingDate || "-"}</td>
+                                <td>${item.cargoName || "-"}</td>
+                                <td>${item.cargoGivenDate || "-"}</td>
+                                <td>${item.trackingNumber || "-"}</td>
+                                <td>${productList}</td>
+                                <td>${item.completedDate || "-"}</td>
+                                <td>${item.installationDate || "-"}</td>
+                                <td>${persons}</td>
+                                <td>${item.description || "-"}</td>
+                            </tr>
+                        `;
+                        $("#sd-rows").append(row);
+                    });
+
+                    $("#stockDetailModal").modal("show");
+                },
+                error: function () {
+                    $("#sd-rows").append("<tr><td colspan='18' class='text-center text-danger'>Veri alınamadı</td></tr>");
+                    $("#stockDetailModal").modal("show");
+                }
+            });
+        });
+
+    </script>
+}

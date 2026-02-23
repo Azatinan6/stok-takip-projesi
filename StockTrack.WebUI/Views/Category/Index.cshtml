@@ -1,0 +1,447 @@
+﻿@model IEnumerable<ResultCategoryDto>
+@{
+    ViewData["Title"] = "Kategori Yönetimi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var count = 1;
+}
+
+<h4 class="mb-3">Kategori Yönetimi</h4>
+<hr />
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+<!-- Kategori Tablosu -->
+<table id="DataTables" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Ad</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Aktif mi?</th>
+            @if (User.IsInRole(RoleConsts.Admin))
+            {
+                <th>İşlemler</th>
+            }
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>#</th>
+            <th>Ad</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Aktif mi?</th>                
+            <th></th>                
+        </tr>
+    </tfoot>
+    <tbody>
+        @foreach (var category in Model)
+        {
+            var isDeactivate = category.IsActive;
+
+            <tr>
+                <td>@(count++)</td>
+                <td>@category.Name</td>
+                <td>@category.CreatedDate.ToString("dd MMMM yyyy")</td>
+                <td>
+                    <span class="@(category.IsActive ? "text-success" : "text-danger")">
+                        @(category.IsActive ? "Evet" : "Hayır")
+                    </span>
+                </td>
+                @if (User.IsInRole(RoleConsts.Admin))
+                {
+                    <td>
+                        <a class="text-muted dropdown-toggle font-size-18 px-2" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bx bx-dots-vertical-rounded"></i>
+                        </a>
+
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <!-- Düzenle -->
+                            <a class="dropdown-item edit-category-btn"
+                               data-bs-toggle="modal"
+                               data-bs-target="#editCategoryModal"
+                               data-category-id="@category.Id"
+                               data-category-name="@category.Name">
+                                <i class="mdi mdi-pencil"></i> Düzenle
+                            </a>
+
+                            <!-- Aktif/Pasif Toggle -->
+                            <a href="javascript:void(0);"
+                               class="dropdown-item toggle-category-btn"
+                               data-url="@Url.Action(isDeactivate ? "Deactivate" : "Activate", "Category", new { Id = category.Id })"
+                               data-category-name="@category.Name"
+                               data-action="@(isDeactivate ? "deactivate" : "activate")">
+                                <i class="mdi mdi-check-circle-outline"></i> @(isDeactivate ? "Pasif Yap" : "Aktif Yap")
+                            </a>
+
+                            <!-- Sil -->
+                            <a href="javascript:void(0);"
+                               class="dropdown-item delete-category-btn"
+                               data-url="@Url.Action("DeleteCategory", "Category", new { id = category.Id })"
+                               data-category-name="@category.Name">
+                                <i class="mdi mdi-delete"></i> Sil
+                            </a>
+                        </div>
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (User.IsInRole(RoleConsts.Admin))
+{
+    <!-- Yeni Kategori Ekle Butonu -->
+    <div class="d-flex justify-content-end align-items-center mb-4">
+        <div>
+            <a href="/Category/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
+                <i class="mdi mdi-delete-restore"></i> Silinen Katagoriler
+            </a>
+
+            <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                <i class="mdi mdi-plus"></i> Yeni Kategori Ekle
+            </button>
+        </div>
+    </div>
+
+    <!-- Kategori Ekleme Modal -->
+    <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="Create" asp-controller="Category" id="createCategoryForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Yeni Kategori Ekle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="mb-3">
+                            <label class="form-label">Kategori Adı(Marka)</label>
+                            <input type="text" id="categoryNameInput" class="form-control" placeholder="Kategori Adı" />
+                            <span id="nameError" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Ekle butonu ve bilgilendirme metni -->
+                        <button type="button" id="addCategoryBtn" class="btn btn-success mb-2">Ekle</button>
+                        <div class="form-text mb-3">Birden fazla kayıt eklemek için tıklayınız, sonra Kaydet.</div>
+
+                        <!-- Eklenen Kayıtların Listesi -->
+                        <ul id="categoryList" class="list-group overflow-auto" style="max-height:200px;"></ul>
+
+                        <!-- Gizli inputlar (form submit için) -->
+                        <div id="hiddenFieldsContainer"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button id="saveCategoriesBtn" type="submit" class="btn btn-primary d-none">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @* Edit Category Modal *@
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="editCategoryForm" asp-action="Edit" asp-controller="Category" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editCategoryModalLabel">Kategori Düzenle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="CategoryId" name="Id" />
+
+                        <div class="mb-3">
+                            <label for="CategoryName" class="form-label">Kategori Adı</label>
+                            <input type="text" id="CategoryName" name="Name" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        //Aktif/Pasif Yapma
+        $(document).on('click', '.toggle-category-btn', function (e) {
+            e.preventDefault();
+            const $btn = $(this);
+            const url = $btn.data('url');
+            const name = $btn.data('category-name');
+            const action = $btn.data('action');
+            const isDeactivate = action === 'deactivate';
+            const titleText = isDeactivate
+                ? `${name} kategorisi pasif hale getirilecek.`
+                : `${name} kategorisi aktif hale getirilecek.`;
+            const confirmButtonTxt = isDeactivate
+                ? 'Evet, pasif yap'
+                : 'Evet, aktif yap';
+
+            Swal.fire({
+                title: titleText,
+                text: 'Devam etmek istediğinize emin misiniz?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: confirmButtonTxt,
+                cancelButtonText: 'Hayır'
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                $btn.prop('disabled', true);
+
+                Swal.fire({
+                    title: 'Lütfen bekleyin',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading(),
+                    showConfirmButton: false
+                });
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    dataType: 'json',
+                    complete: () => {
+                        Swal.close();
+                    },
+                    success: function (data) {
+                        Swal.fire({
+                            icon: data.success ? 'success' : 'error',
+                            title: data.success ? 'Başarılı' : 'Hata',
+                            text: data.message
+                        }).then(() => {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                $btn.prop('disabled', false);
+                            }
+                        });
+                    },
+                    error: function (xhr) {
+                        const resp = xhr.responseJSON || {};
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'İşlem Başarısız',
+                            text: resp.message || 'Beklenmeyen bir hata oluştu.'
+                        }).then(() => {
+                            $btn.prop('disabled', false);
+                        });
+                    }
+                });
+            });
+        });
+
+        //Güncelleme verileri doldurma
+        var editModal = document.getElementById('editCategoryModal');
+        editModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var id = button.getAttribute('data-category-id');
+            var name = button.getAttribute('data-category-name');
+
+            this.querySelector('#CategoryId').value = id;
+            this.querySelector('#CategoryName').value = name;
+        });
+
+        //Toplu kayıt ekleme işlemleri
+        var categories = [];
+
+        function renderCategoryList() {
+            var $list = $('#categoryList').empty();
+            var $hidden = $('#hiddenFieldsContainer').empty();
+            categories.forEach(function (cat, idx) {
+                var $li = $('<li>')
+                    .addClass('list-group-item d-flex justify-content-between align-items-center')
+                    .text((idx + 1) + '. ' + cat.name);
+                var $btn = $('<button>')
+                    .attr('type', 'button')
+                    .addClass('btn btn-sm btn-danger remove-category-btn')
+                    .attr('data-index', idx)
+                    .html('&times;');
+                $li.append($btn);
+                $list.append($li);
+
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: `categoryDataList[${idx}].Name`,
+                    value: cat.name
+                }).appendTo($hidden);
+            });
+
+            if (categories.length > 0) {
+                $('#saveCategoriesBtn').removeClass('d-none');
+            } else {
+                $('#saveCategoriesBtn').addClass('d-none');
+            }
+        }
+
+        $('#addCategoryBtn').off('click').on('click', function () {
+            var name = $('#categoryNameInput').val().trim();
+            $('#nameError').text('');
+
+            if (!name) {
+                $('#nameError').text('Kategori adı boş olamaz.');
+                return;
+            }
+
+            var exists = categories.some(function (cat) {
+                return cat.name.toLocaleLowerCase('tr-TR') === name.toLocaleLowerCase('tr-TR');
+            });
+
+            if (exists) {
+                $('#nameError').text('Bu kategori zaten eklenmiş.');
+                return;
+            }
+
+            categories.push({ name: name });
+            renderCategoryList();
+            $('#categoryNameInput').val('');
+        });
+
+        $('#categoryNameInput').on('input', function () {
+            if ($(this).val().trim()) {
+                $('#nameError').text('');
+            }
+        });
+
+        $('#categoryList').on('click', '.remove-category-btn', function () {
+            var idx = $(this).data('index');
+            categories.splice(idx, 1);
+            renderCategoryList();
+        });
+
+        $('#createCategoryModal').on('hidden.bs.modal', function () {
+            categories = [];
+            renderCategoryList();
+            $('#categoryNameInput').val('');
+            $('#nameError').text('');
+        });
+
+        //Kategori silme
+        $(document).ready(function () {
+            $('.delete-category-btn').on('click', function () {
+                const $btn = $(this);
+                const categoryName = $btn.data('category-name');
+                const url = $btn.data('url');
+
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    text: `"${categoryName}" kategorisini silmek istediğinize emin misiniz?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Evet, sil!',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $btn.prop('disabled', true);
+
+                        Swal.fire({
+                            title: 'Siliniyor...',
+                            text: 'Lütfen bekleyin.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        $.ajax({
+                            url: url,
+                            type: 'POST',
+                            success: function (data) {
+                                if (data.success) {
+                                    Swal.fire('Silindi!', data.message, 'success').then(() => {
+                                        location.reload();
+                                    });
+                                } else {
+                                    Swal.fire('Hata!', data.message || 'Silme işlemi başarısız oldu.', 'error');
+                                    $btn.prop('disabled', false);
+                                }
+                            },
+                            error: function () {
+                                Swal.fire('Hata!', 'Sunucuya bağlanılamadı.', 'error');
+                                $btn.prop('disabled', false);
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+        //Var olan silinmiş kayıt var ise geri getirme mesajı
+        $(document).ready(function () {
+            const hasDeleted = '@TempData["HasDeletedCategories"]' === 'True';
+            if (!hasDeleted) return;
+
+            const deletedNames = '@TempData["DeletedCategoryNames"]';
+            const deletedIdsCsv = '@TempData["DeletedCategoryIds"]';
+            const deletedIds = deletedIdsCsv
+                ? deletedIdsCsv.split(',').map(x => parseInt(x.trim(), 10)).filter(x => !isNaN(x))
+                : [];
+
+            Swal.fire({
+                title: 'Silinmiş Kategoriler',
+                text: `${deletedNames} kategorileri daha önce silinmiş. Tekrar eklemek (geri yüklemek) istiyor musunuz?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Evet, geri yükle!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Geri Yükleniyor...',
+                        text: 'Lütfen bekleyin.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    fetch('@Url.Action("RestoreDeletedCategories", "Category")', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(deletedIds)
+                    })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.status === 'ok') {
+                            Swal.fire({
+                                title: 'Başarılı!',
+                                text: res.message,
+                                icon: 'success',
+                                confirmButtonText: 'Tamam'
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Hata!', res.message || 'İşlem gerçekleştirilemedi.', 'error');
+                        }
+                    })
+                    .catch(() => {
+                        Swal.fire('Hata!', 'Sunucuya bağlanılamadı.', 'error');
+                    });
+                }
+            });
+        });
+    </script>
+}

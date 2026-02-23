@@ -1,0 +1,108 @@
+﻿@using StockTrack.Dto.Inventory
+@model IEnumerable<InventoryListDto>
+
+@{
+    ViewData["Title"] = "Güncel Stok Listesi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="card shadow-sm border-0">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h5 class="mb-0 text-dark"><i class="mdi mdi-warehouse text-primary me-2"></i> Güncel Stok Durumu</h5>
+        <a href="/Inventory/AddProduct" class="btn btn-primary shadow-sm">
+            <i class="mdi mdi-plus"></i> Yeni Ürün Girişi
+        </a>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="DataTables" class="table table-hover table-bordered align-middle" style="width:100%">
+                <thead class="table-light">
+                    <tr>
+                        <th>#ID</th>
+                        <th>Görsel</th>
+                        <th>Depo</th>
+                        <th>Kategori</th>
+                        <th>Ürün Adı</th>
+                        <th>Marka/Model</th>
+                        <th>Güncel Stok</th>
+                        <th>Durum</th>
+                        <th class="text-center">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null)
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.Id</td>
+                                <td>
+                                    <button class="btn btn-sm btn-light border" title="Görseli Gör">
+                                        <i class="mdi mdi-image-outline text-info fs-5"></i>
+                                    </button>
+                                </td>
+                                <td><span class="badge bg-secondary">@item.WarehouseName</span></td>
+                                <td>@item.CategoryName</td>
+                                <td class="fw-bold text-dark">@item.ProductName</td>
+                                <td>@item.Brand / @item.Model</td>
+
+                                <td>
+                                    @if (item.StockQuantity <= item.StockWarningLevel)
+                                    {
+                                        <span class="badge bg-danger fs-6" title="Kritik Seviye!">@item.StockQuantity</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success fs-6">@item.StockQuantity</span>
+                                    }
+                                </td>
+
+                                <td>
+                                    @if (item.IsActive)
+                                    {
+                                        <span class="badge bg-success-subtle text-success">Aktif</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger">Pasif</span>
+                                    }
+                                </td>
+
+                                <td class="text-center">
+                                    <div class="btn-group">
+                                        <a href="/Inventory/Detail/@item.Id" class="btn btn-sm btn-info text-white" title="Detay (Stok, Giriş, Çıkış)">
+                                            <i class="mdi mdi-eye"></i> Detay
+                                        </a>
+                                        <a href="/Inventory/Edit/@item.Id" class="btn btn-sm btn-outline-primary" title="Düzenle">
+                                            <i class="mdi mdi-pencil"></i>
+                                        </a>
+                                        <a href="/Inventory/ToggleStatus/@item.Id" class="btn btn-sm btn-outline-warning" title="Aktif/Pasif Yap">
+                                            <i class="mdi mdi-swap-horizontal"></i>
+                                        </a>
+                                        <a href="/Inventory/Delete/@item.Id" class="btn btn-sm btn-outline-danger" title="Sil" onclick="return confirm('Bu ürünü silmek istediğinize emin misiniz?');">
+                                            <i class="mdi mdi-trash-can"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th>ID</th>
+                        <th></th>
+                        <th>Depo</th>
+                        <th>Kategori</th>
+                        <th>Ürün Adı</th>
+                        <th>Marka/Model</th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,273 @@
+﻿@{
+    Layout = null;
+}
+
+<!doctype html>
+<html lang="tr">
+<head>
+    @await Component.InvokeAsync("Head")
+</head>
+<body>
+    <div id="layout-wrapper">
+        <header id="page-topbar" class="isvertical-topbar">
+            <div class="navbar-header">
+                <div class="d-flex">
+                    <button type="button" class="btn btn-sm px-3 font-size-24 header-item waves-effect vertical-menu-btn">
+                        <i class="bx bx-menu align-middle"></i>
+                    </button>
+                </div>
+
+                <div class="d-flex">
+                    <div class="dropdown d-inline-block">
+                        <button type="button" class="btn header-item noti-icon" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bx bx-search icon-sm align-middle"></i>
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0">
+                            <form class="p-2">
+                                <div class="search-box">
+                                    <div class="position-relative">
+                                        <input type="text" class="form-control rounded bg-light border-0" placeholder="Search...">
+                                        <i class="bx bx-search search-icon"></i>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="dropdown d-inline-block">
+                        @await Component.InvokeAsync("UserProfileDropdown")
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="vertical-menu">
+            <div class="navbar-brand-box">
+                <a asp-controller="Dashboard" asp-action="Index" class="logo logo-dark">
+                    <span class="logo-sm">
+                        <img src="~/logoimage/logoicon.png" alt="" height="26">
+                    </span>
+                    <span class="logo-lg">
+                        <img src="~/logoimage/logo.png" alt="" height="28">
+                    </span>
+                </a>
+            </div>
+
+            <button type="button" class="btn btn-sm px-3 font-size-24 header-item waves-effect vertical-menu-btn">
+                <i class="bx bx-menu align-middle"></i>
+            </button>
+
+            <div data-simplebar class="sidebar-menu-scroll">
+                <div id="sidebar-menu">
+                    <ul class="metismenu list-unstyled" id="side-menu">
+                        <li class="menu-title" data-key="t-menu">Anasayfa</li>
+                        <li>
+                            <a href="~/Dashboard/Index">
+                                <i class="bx bx-home-alt icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-dashboard">Anasayfa</span>
+                            </a>
+                        </li>
+
+                        <li class="menu-title" data-key="t-definitions-title">TANIMLAR</li>
+
+                        <li>
+                            <a href="/Hospital/Index" class="waves-effect">
+                                <i class="mdi mdi-hospital-building icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-def-hospitals">Hastaneler</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="/LocationList/Index" class="waves-effect">
+                                <i class="mdi mdi-map-marker icon nav-icon"></i>
+                                <span class="menu-item">Müşteriler</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="javascript:void(0);" class="has-arrow">
+                                <i class="mdi mdi-layers-outline icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-definitions">Ürün Tanımları</span>
+                            </a>
+                            <ul class="sub-menu" aria-expanded="false">
+                                <li><a href="/Product/Index">Ürünler</a></li>
+                                <li><a href="/Category/Index">Kategoriler</a></li>
+                                <li><a href="/Set/Index">Setler</a></li>
+                                <li><a href="/Rule/Index">Kurallar</a></li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <a href="javascript:void(0);" class="has-arrow waves-effect">
+                                <i class="mdi mdi-warehouse icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-def-warehouse">Depo Tanımları</span>
+                            </a>
+                            <ul class="sub-menu" aria-expanded="false">
+                                <li><a href="/MainRepoLocation/ProductList"><i class="mdi mdi-view-list me-1"></i> Depo Ürün Listesi</a></li>
+                                <li><a href="/MainRepoLocation/Index"><i class="mdi mdi-format-list-bulleted me-1"></i> Depolar</a></li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <a href="javascript:void(0);" class="has-arrow">
+                                <i class="mdi mdi-truck-outline icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-def-cargo">Kargo (Tanımlamalar)</span>
+                            </a>
+                            <ul class="sub-menu" aria-expanded="false">
+                                <li><a href="/CargoName/Index">Kargo Firmaları</a></li>
+                                <li><a href="/CargoDefinition/Index">Kontrol Sonucu (+Diğer)</a></li>
+                                <li><a href="/StatusType/Index">Ürün Durumu</a></li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <a href="javascript:void(0);" class="has-arrow">
+                                <i class="mdi mdi-clipboard-text-outline icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-def-demand">Talep Tanımları</span>
+                            </a>
+                            <ul class="sub-menu" aria-expanded="false">
+                                <li><a href="#">Gönderim Nedeni</a></li>
+                                <li><a href="#">İade Nedeni</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="menu-title" data-key="t-hospital-title">OPERASYON</li>
+
+                        <li>
+                            <a href="javascript:void(0);" class="has-arrow">
+                                <i class="mdi mdi-hospital-building icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-hospital">Hastane</span>
+                            </a>
+                            <ul class="sub-menu" aria-expanded="false">
+                                <li><a href="#">Konuşulacak</a></li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <a href="javascript:void(0);" class="has-arrow">
+                                <i class="mdi mdi-warehouse icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-inventory">Depo / Stok</span>
+                            </a>
+                            <ul class="sub-menu" aria-expanded="false">
+                                <li><a href="/Inventory/AddProduct">Ürün Ekle</a></li>
+                                <li><a href="/Inventory/Stock">Stok</a></li>
+                                <li><a href="/Inventory/Inbound">Giriş Hareketleri</a></li>
+                                <li><a href="/Inventory/Outbound">Çıkış Hareketleri</a></li>
+                            </ul>
+                        </li>
+
+                        @await Component.InvokeAsync("RequestFormMenu")
+                        @await Component.InvokeAsync("CargoMenu")
+                        @await Component.InvokeAsync("InstallationMenu")
+
+                        <li>
+                            <a href="/Installation/ServicesPage" class="waves-effect">
+                                <i class="mdi mdi-tools icon nav-icon"></i>
+                                <span class="menu-item">Servis İşlemleri</span>
+                            </a>
+                        </li>
+
+                        <li class="menu-title" data-key="t-filter-title">ARAÇLAR</li>
+
+                        <li>
+                            <a href="javascript:void(0);" class="has-arrow">
+                                <i class="mdi mdi-filter-variant icon nav-icon"></i>
+                                <span class="menu-item">Filtreler</span>
+                            </a>
+                            <ul class="sub-menu" aria-expanded="false">
+                                <li><a href="#">...</a></li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <a href="/ProductExcel/Index" class="waves-effect">
+                                <i class="mdi mdi-file-excel icon nav-icon"></i>
+                                <span class="menu-item">Excel'e Aktar</span>
+                            </a>
+                        </li>
+
+                        <li class="menu-title">SİSTEM YÖNETİMİ</li>
+
+                        <li>
+                            <a href="/UserManagement/Index" class="waves-effect">
+                                <i class="mdi mdi-account-group icon nav-icon"></i>
+                                <span class="menu-item">Kullanıcılar</span>
+                            </a>
+                        </li>
+
+                        @if (User.IsInRole(RoleConsts.Admin))
+                        {
+                            <li>
+                                <a href="/MailSetting/SettingSmtp" class="waves-effect">
+                                    <i class="mdi mdi-email-outline icon nav-icon"></i>
+                                    <span class="menu-item">Mail Ayarları</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <header class="ishorizontal-topbar">
+            <div class="topnav">
+            </div>
+        </header>
+
+        <div id="sidebar-setting"></div>
+
+        <div class="main-content">
+            <div class="page-content">
+                <div class="container-fluid">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @await Component.InvokeAsync("Footer")
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasActivity" aria-labelledby="offcanvasActivityLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 id="offcanvasActivityLabel">Offcanvas right</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+        </div>
+    </div>
+
+    @await Component.InvokeAsync("Scripts")
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        $(document).ready(function () {
+            var table = $('#DataTables').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                responsive: true,
+                scrollCollapse: true,
+                fixedColumns: true,
+                language: {
+                    url: '@Url.Content("~/DataTables/Turkish.json")'
+                }
+            });
+
+            $('#DataTables tfoot th').each(function (i) {
+                var title = $(this).text().trim();
+                if (title) {
+                    $(this).html('<input type="text" placeholder="Ara ' + title + '" data-index="' + i + '" class="form-control form-control-sm" />');
+                }
+            });
+
+            // Scroll/fixedColumns ile footer inputları doğru bağlamak için
+            $('#DataTables tfoot input').on('keyup change', function () {
+                var colIndex = $(this).data('index');
+                table.column(colIndex).search(this.value).draw();
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+    @await Component.InvokeAsync("NToastNotify")
+</body>
+</html>

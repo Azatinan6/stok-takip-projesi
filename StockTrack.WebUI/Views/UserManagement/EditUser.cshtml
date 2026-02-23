@@ -1,0 +1,158 @@
+﻿@model EditUserDetailDto
+
+@{
+    ViewData["Title"] = "Kullanıcıyı Düzenleme";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h2><i class="mdi mdi-account-edit"></i> Kullanıcıyı Düzenle</h2>
+<hr />
+
+<form asp-action="EditUser" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="row">
+        <!-- Sol taraf: Düzenlenebilir alanlar - Card içinde -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white">
+                    <i class="mdi mdi-pencil"></i> Düzenlenebilir Bilgiler
+                </div>
+                <div class="card-body">
+
+                    <!-- Ad Soyad -->
+                    <div class="mb-3">
+                        <label asp-for="NameSurname" class="form-label">
+                            <i class="mdi mdi-account"></i> Ad Soyad
+                        </label>
+                        <input asp-for="NameSurname" class="form-control" />
+                        <span asp-validation-for="NameSurname" class="text-danger"></span>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label asp-for="Email" class="form-label">
+                            <i class="mdi mdi-email"></i> E-Posta
+                        </label>
+                        <input asp-for="Email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <!-- Kullanıcı Adı -->
+                    <div class="mb-3">
+                        <label asp-for="Username" class="form-label">
+                            <i class="mdi mdi-account-box"></i> Kullanıcı Adı
+                        </label>
+                        <input asp-for="Username" class="form-control" />
+                        <span asp-validation-for="Username" class="text-danger"></span>
+                    </div>
+
+                    <!-- Profil Fotoğrafı -->
+                    <div class="mb-3" style="position: relative; width: max-content;">
+                        <label class="form-label">
+                            <i class="mdi mdi-image"></i> Profil Fotoğrafı
+                        </label>
+                        <input type="file" name="ProfileImage" class="form-control" id="imageUpload" accept="image/*" />
+
+                        <!-- Fotoğraf Önizleme ve Kaldır Butonu İçeren Kapsayıcı -->
+                        <div id="previewContainer" style="position: relative; display: inline-block; margin-top: 8px;">
+                            @if (Model.ImageUrl==null)
+                            {
+                                <img id="imagePreview" class="img-thumbnail" style="max-height: 120px; display: block;"
+                                src="~/uploaduserimages/defaultimage.png" alt="Profil Fotoğrafı" />
+                            }
+                            else
+                            {
+                                <img id="imagePreview" class="img-thumbnail" style="max-height: 120px; display: block;"
+                                     src="~/uploaduserimages/@Model.ImageUrl" alt="Profil Fotoğrafı" />
+                            }
+
+                            <!-- Kaldır ikonu, başlangıçta gizli -->
+                            <button type="button" id="removeImageBtn" title="Fotoğrafı Kaldır"
+                                    style="position: absolute; top: 2px; right: 2px; background: rgba(255,255,255,0.8);
+                   border: none; border-radius: 50%; padding: 2px 6px; cursor: pointer; display: none;">
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ taraf: Sadece bilgi gösterimi - Card -->
+        <div class="col-md-6">
+            <div class="card shadow-sm border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="mdi mdi-information-outline"></i> Kullanıcı Bilgileri
+                </div>
+                <div class="card-body">
+                    <p>
+                        <i class="mdi mdi-account-key"></i> <strong>Oluşturan:</strong> @Model.CreatedBy
+                    </p>
+                    <p>
+                        <i class="mdi mdi-calendar"></i> <strong>Oluşturulma Tarihi:</strong> @Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                    </p>
+                    <p>
+                        <i class="mdi mdi-check-circle-outline"></i> <strong>Durum:</strong>
+                        <span class="badge bg-@(Model.IsActive ? "success" : "secondary")">
+                            @(Model.IsActive ? "Aktif" : "Pasif")
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kaydet ve Geri Dön butonları -->
+    <div class="d-flex justify-content-left mt-4">
+        <a href="javascript:history.back()" class="btn btn-secondary">
+            <i class="mdi mdi-arrow-left"></i> Geri Dön
+        </a>
+        <button type="submit" class="btn btn-primary">
+            <i class="mdi mdi-content-save"></i> Kaydet
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        const imageUpload = document.getElementById('imageUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+
+        // Sayfa yüklendiğinde mevcut fotoğraf URL'si
+        const originalImageSrc = imagePreview.src;
+
+        imageUpload.addEventListener('change', function () {
+            const file = this.files[0];
+
+            if (file) {
+                // Dosya okuyucu ile seçilen fotoğrafı yükle
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+                    imagePreview.src = e.target.result;
+                    removeImageBtn.style.display = 'block'; // Kaldır butonunu göster
+                };
+
+                reader.readAsDataURL(file);
+            } else {
+                // Dosya seçilmediyse ya da iptal edildiyse
+                resetImage();
+            }
+        });
+
+        removeImageBtn.addEventListener('click', function () {
+            // Dosya inputu temizle
+            imageUpload.value = '';
+            // Önizlemeyi eski haline döndür
+            resetImage();
+        });
+
+        function resetImage() {
+            imagePreview.src = originalImageSrc;
+            removeImageBtn.style.display = 'none';
+        }
+    </script>
+}

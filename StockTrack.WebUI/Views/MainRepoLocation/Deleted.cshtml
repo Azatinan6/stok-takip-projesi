@@ -1,0 +1,56 @@
+﻿@using StockTrack.Dto.MainRepoLocation
+@model List<DeletedMainRepoLocationListDto>
+
+@{
+    ViewData["Title"] = "Silinen Depolar";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h4>Silinen Depolar</h4>
+<hr />
+
+<table id="DataTables" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Ad</th>
+            <th>Adres</th>
+            <th>Aktif mi?</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Silinme Tarihi</th>
+            <th>Silen Kullanıcı</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>#</th>
+            <th>Ad</th>
+            <th>Adres</th>
+            <th>Aktif mi?</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Silinme Tarihi</th>
+            <th>Silen Kullanıcı</th>
+        </tr>
+    </tfoot>
+    <tbody>
+        @{
+            int count = 1;
+        }
+        @foreach (var location in Model)
+        {
+            <tr>
+                <td>@(count++)</td>
+                <td>@location.Name</td>
+                <td>@location.Adress</td>
+                <td>
+                    <span class="@(location.IsActive ? "text-success" : "text-danger")">
+                        @(location.IsActive ? "Evet" : "Hayır")
+                    </span>
+                </td>
+                <td>@location.CreatedDate.ToString("dd MMMM yyyy ")</td>
+                <td>@location.DeletedDate?.ToString("dd MMMM yyyy ")</td>
+                <td>@location.DeletedBy</td>
+            </tr>
+        }
+    </tbody>
+</table>

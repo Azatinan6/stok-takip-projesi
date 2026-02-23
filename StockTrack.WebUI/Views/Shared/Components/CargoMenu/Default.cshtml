@@ -1,0 +1,58 @@
+﻿@model CargoMenuCountsVM    
+ 
+<!--Kargo işlemleri-->
+<li class="menu-title" data-key="t-cargo">Kargo İşlemleri</li>
+<li>
+    <a href="javascript:void(0);" class="has-arrow">
+        <i class="mdi mdi-truck icon nav-icon"></i>
+        <span class="menu-item" data-key="t-cargo-root">Kargo</span>
+    </a>
+    <ul class="sub-menu" aria-expanded="false">
+        <!-- Onay bekleyenler -->
+        <li>
+            <a href="/CargoDetail/AwaitingApproval" data-key="t-cargo-awaiting" class="d-flex justify-content-between align-items-center">
+                <span><i class="mdi mdi-timer-sand me-1"></i> Onay Bekleyenler</span>
+                <span class="badge bg-danger">@Model.AwaitingApproval</span>
+            </a>
+        </li>
+
+        <!-- Paketlenmiş / Kargoya Hazır -->
+        <li>
+            <a href="/CargoDetail/ReadyForCargo" data-key="t-cargo-ready" class="d-flex justify-content-between align-items-center">
+                <span><i class="mdi mdi-package-variant-closed me-1"></i> Paketlenmiş - Kargoya Hazır</span>
+                <span class="badge bg-warning">@Model.ReadyForCargo</span>
+            </a>
+        </li>
+
+        <!-- Kargoda Olanlar -->
+        <li>
+            <a href="/CargoDetail/CargoInDelivery" data-key="t-cargo-intransit" class="d-flex justify-content-between align-items-center">
+                <span><i class="mdi mdi-truck-fast-outline me-1"></i> Kargoda Olanlar</span>
+                <span class="badge bg-info">@Model.InTransit</span>
+            </a>
+        </li>
+
+        <!-- Teslim Edilmiş Kargolar -->
+        <li>
+            <a href="/CargoDetail/Delivered" data-key="t-cargo-delivered" class="d-flex justify-content-between align-items-center">
+                <span><i class="mdi mdi-checkbox-marked-circle-outline me-1"></i> Teslim Edilenler</span>
+                
+            </a>
+        </li>
+        <!-- İptal Edilen Kargolar -->
+        <li>
+            <a href="/CargoDetail/Cancelled" data-key="t-cargo-cancelled" class="d-flex justify-content-between align-items-center">
+                <span><i class="mdi mdi-cancel me-1"></i> İptal Edilenler</span>
+            </a>
+        </li>
+
+        <!-- Silinen Kargolar -->
+        <li>
+            <a href="/CargoDetail/Deleted" data-key="t-cargo-cancelled" class="d-flex justify-content-between align-items-center">
+                <span><i class="mdi mdi-delete me-1"></i> Silinen Kargolar</span>
+            </a>
+        </li>
+
+
+    </ul>
+</li>

@@ -1,0 +1,239 @@
+﻿@using StockTrack.Dto.MainRepoLocation
+@model IEnumerable<ResultMainRepoLocationDto>
+
+@{
+    ViewData["Title"] = "Depo  Yönetimi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var count = 1;
+}
+
+<h4 class="mb-3">Depo Yönetimi</h4>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<table id="DataTables" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Depo Adı</th>
+            <th>Adres</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Aktif mi?</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>#</th>
+            <th>Depo Adı</th>
+            <th>Adres</th>
+            <th>Oluşturulma Tarihi</th>
+            <th></th>
+            <th></th>
+        </tr>
+    </tfoot>
+    <tbody>
+        @foreach (var location in Model)
+        {
+            <tr>
+                <td>@(count++)</td>
+                <td>@location.Name</td>
+                <td>@location.Adress</td>
+                <td>@location.CreatedDate.ToString("dd MMMM yyyy")</td>
+                <td>
+                    <span class="@(location.IsActive ? "text-success" : "text-danger")">
+                        @(location.IsActive ? "Evet" : "Hayır")
+                    </span>
+                </td>
+                <td>
+                    <!-- Düzenle -->
+                    <a class="btn btn-sm btn-warning"
+                       data-bs-toggle="modal"
+                       data-bs-target="#editLocationModal"
+                       data-location-id="@location.Id"
+                       data-location-name="@location.Name"
+                       data-location-address="@location.Adress">
+                        <i class="mdi mdi-pencil"></i> Düzenle
+                    </a>
+
+                    <!-- Aktif/Pasif -->
+                    <button type="button"
+                            class="btn btn-sm toggle-location-btn @(location.IsActive ? "btn-danger" : "btn-success")"
+                            data-url="@Url.Action(location.IsActive ? "Deactivate" : "Activate", "MainRepoLocation", new { id = location.Id })"
+                            data-location-name="@location.Name">
+                        <i class="mdi mdi-check-circle-outline"></i>
+                        @(location.IsActive ? "Pasif Yap" : "Aktif Yap")
+                    </button>
+
+                    <!-- Sil -->
+                    <button type="button"
+                            class="btn btn-sm btn-danger delete-location-btn"
+                            data-url="@Url.Action("Delete", "MainRepoLocation", new { id = location.Id })"
+                            data-location-name="@location.Name">
+                        <i class="mdi mdi-delete"></i> Sil
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Yeni Lokasyon Ekle Butonu -->
+<div class="d-flex justify-content-end align-items-center mt-4">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createLocationModal">
+        <i class="mdi mdi-plus-circle"></i> Yeni Depo Ekle
+    </button>
+</div>
+
+<!-- Lokasyon Ekleme Modal -->
+<div class="modal fade" id="createLocationModal" tabindex="-1" aria-labelledby="createLocationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreateMainRepoLocation" asp-controller="MainRepoLocation" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Yeni Depo Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Depo Adı</label>
+                        <input type="text" name="Name" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Adres</label>
+                        <textarea name="Adress" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Lokasyon Düzenleme Modal -->
+<div class="modal fade" id="editLocationModal" tabindex="-1" aria-labelledby="editLocationModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="Edit" asp-controller="MainRepoLocation" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editLocationModalLabel">Depo Düzenle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editLocationId" name="Id" />
+                    <div class="mb-3">
+                        <label class="form-label">Depo Adı</label>
+                        <input type="text" id="editLocationName" name="Name" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Adres</label>
+                        <textarea id="editLocationAddress" name="Adress" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Aktif/Pasif işlemi
+        $(document).on('click', '.toggle-location-btn', function (e) {
+            e.preventDefault();
+            const $btn = $(this);
+            const url = $btn.data('url');
+            const name = $btn.data('location-name');
+            const isDeactivate = $btn.text().includes("Pasif Yap");
+            const titleText = isDeactivate
+                ? `${name} depo pasif hale getirilecek.`
+                : `${name} depo aktif hale getirilecek.`;
+            const confirmButtonTxt = isDeactivate ? 'Evet, pasif yap' : 'Evet, aktif yap';
+
+            Swal.fire({
+                title: titleText,
+                text: 'Devam etmek istediğinize emin misiniz?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: confirmButtonTxt,
+                cancelButtonText: 'Hayır'
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+                $btn.prop('disabled', true);
+                Swal.fire({ title: 'Lütfen bekleyin', allowOutsideClick: false, didOpen: () => Swal.showLoading(), showConfirmButton: false });
+                $.post(url, function (data) {
+                    Swal.close();
+                    Swal.fire({
+                        icon: data.success ? 'success' : 'error',
+                        title: data.success ? 'Başarılı' : 'Hata',
+                        text: data.message
+                    }).then(() => { if (data.success) location.reload(); else $btn.prop('disabled', false); });
+                }).fail(() => {
+                    Swal.fire('Hata!', 'Sunucuya bağlanılamadı.', 'error');
+                    $btn.prop('disabled', false);
+                });
+            });
+        });
+
+        // Düzenleme modalı doldurma
+        $('#editLocationModal').on('show.bs.modal', function (event) {
+            const button = $(event.relatedTarget);
+            $('#editLocationId').val(button.data('location-id'));
+            $('#editLocationName').val(button.data('location-name'));
+            $('#editLocationAddress').val(button.data('location-address'));
+        });
+
+        // Silme işlemi
+        $('.delete-location-btn').on('click', function () {
+            const $btn = $(this);
+            const locationName = $btn.data('location-name');
+            const url = $btn.data('url');
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: `"${locationName}" depyu silmek istediğinize emin misiniz?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $btn.prop('disabled', true);
+                    Swal.fire({ title: 'Siliniyor...', text: 'Lütfen bekleyin.', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+                    $.post(url, function (data) {
+                        if (data.success) {
+                            Swal.fire('Silindi!', data.message, 'success').then(() => location.reload());
+                        } else {
+                            Swal.fire('Hata!', data.message || 'Silme işlemi başarısız oldu.', 'error');
+                            $btn.prop('disabled', false);
+                        }
+                    }).fail(() => {
+                        Swal.fire('Hata!', 'Sunucuya bağlanılamadı.', 'error');
+                        $btn.prop('disabled', false);
+                    });
+                }
+            });
+        });
+    </script>
+}

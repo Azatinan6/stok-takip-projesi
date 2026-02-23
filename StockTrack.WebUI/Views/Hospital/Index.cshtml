@@ -1,0 +1,94 @@
+﻿@using StockTrack.Entity.Enitities
+@model List<Hospital>
+
+@{
+    ViewData["Title"] = "Hastaneler";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <h4 class="mb-0 text-dark fw-bold"><i class="mdi mdi-hospital-building me-2 text-muted"></i>Hastane (Kurum) Tanımları</h4>
+    <div>
+        <a href="/Hospital/Deleted" class="btn btn-outline-danger btn-sm me-2 shadow-sm">
+            <i class="mdi mdi-delete-restore me-1"></i> Silinenler
+        </a>
+        <a href="/Hospital/Add" class="btn btn-dark btn-sm shadow-sm">
+            <i class="mdi mdi-plus me-1"></i> Yeni Hastane Ekle
+        </a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr class="text-secondary small fw-bold text-uppercase">
+                        <th class="ps-4">#ID</th>
+                        <th>Kurum & Şube</th>
+                        <th>HBYS & Versiyon</th>
+                        <th>Kurulum Tarihi</th>
+                        <th class="text-center">Durum</th>
+                        <th class="text-end pe-4">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="ps-4 text-muted small">#@item.Id</td>
+                            <td>
+                                <div class="fw-bold text-dark">@item.Name</div>
+                                <div class="text-muted small">@(item.Branch ?? "Merkez Şube")</div>
+                            </td>
+                            <td>
+                                <div class="text-info fw-semibold">@(item.HbysName ?? "-")</div>
+                                <div class="text-muted x-small">V: @(item.HbysVersion ?? "1.0")</div>
+                            </td>
+                            <td class="small">
+                                <i class="mdi mdi-calendar-check text-muted me-1"></i>
+                                @(item.InstallationDate?.ToString("dd.MM.yyyy") ?? "Belirtilmedi")
+                            </td>
+                            <td class="text-center">
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success px-2 py-1 rounded-pill">Aktif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1 rounded-pill">Pasif</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="dropdown">
+                                    <button class="btn btn-light btn-sm dropdown-toggle border-0" type="button" data-bs-toggle="dropdown">
+                                        <i class="mdi mdi-dots-vertical"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                        <li><a class="dropdown-item" href="/Hospital/Update/@item.Id"><i class="mdi mdi-pencil me-2 text-warning"></i>Düzenle</a></li>
+                                        <li><a class="dropdown-item" href="/Hospital/Detail/@item.Id"><i class="mdi mdi-eye me-2 text-info"></i>Detayları Gör</a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="/Hospital/Delete/@item.Id"
+                                               onclick="return confirm('Bu hastaneyi silmek istediğinize emin misiniz?');">
+                                                <i class="mdi mdi-trash-can me-2"></i>Sil
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <i class="mdi mdi-hospital-marker text-muted" style="font-size: 3rem;"></i>
+        <p class="text-muted mt-2">Henüz kayıtlı bir hastane bulunamadı.</p>
+    </div>
+}

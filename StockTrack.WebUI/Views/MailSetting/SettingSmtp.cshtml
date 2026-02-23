@@ -1,0 +1,123 @@
+﻿@model List<ResultMailSetting>
+@{
+    ViewData["Title"] = "Mail Yönetimi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+
+<h4 class="">Mail Ayarları Yönetimi</h4>
+
+
+<div class="alert alert-info" role="alert">
+    <strong>Bilgilendirme:</strong> Yeni bir mail ayarı eklendiğinde, önceki mail ayarı pasif hale gelecektir. Lütfen yalnızca bir adet aktif mail ayarınız olduğundan emin olun.
+</div>
+
+
+<table id="DataTables" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>SMTP Host</th>
+            <th>SMTP Port</th>
+            <th>Gönderici E-posta (FromMail)</th>
+            <th>Oluşturan</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Aktif mi?</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int count = 1;
+        }
+        @foreach (var mailSetting in Model)
+        {
+            <tr>
+                <td>@(count++)</td>
+                <td>@mailSetting.SmtpHost</td>
+                <td>@mailSetting.SmtpPort</td>
+                <td>@mailSetting.FromMail</td>
+                <td>@mailSetting.CreatedBy</td>
+                <td>@mailSetting.CreatedDate.ToString("dd.MM.yyyy HH:mm")</td>
+                <td>@(mailSetting.IsActive ? "Evet" : "Hayır")</td>
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<div class="d-flex justify-content-end align-items-center mt-4">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createMailSettingModal">
+        <i class="mdi mdi-plus-circle"></i> Yeni Mail Ayarı Ekle
+    </button>
+</div>
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="createMailSettingModal" tabindex="-1" aria-labelledby="createMailSettingModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="CreateMailSetting" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createMailSettingModalLabel">Yeni Mail Ayarı Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info mb-3" role="alert">
+                        <strong>Bilgi:</strong> Yeni mail ayarı eklendiğinde, önceki mail adresi pasif hale getirilecektir.<br />
+                        Lütfen <u>şifrenizi doğru</u> girdiğinizden emin olunuz.
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">SMTP Host</label>
+                        <input name="SmtpHost" class="form-control" placeholder="smtp.example.com" required />
+                        <span id="SmtpHostError" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">SMTP Port</label>
+                        <input name="SmtpPort" type="number" class="form-control" placeholder="587" required />
+                        <span id="SmtpPortError" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Gönderici E-posta</label>
+                        <input name="FromMail" type="email" class="form-control" placeholder="info@example.com" required />
+                        <span id="FromMailError" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label for="Password" class="form-label">Şifre</label>
+                        <div class="input-group">
+                            <input id="Password" name="Password" type="password" class="form-control" aria-describedby="PasswordError" required />
+                            <button type="button" class="btn btn-outline-secondary border-start-0" id="password-toggle" tabindex="-1" aria-label="Şifreyi göster/gizle">
+                                <i class="mdi mdi-eye-outline fs-5"></i>
+                            </button>
+                        </div>
+                        <span id="PasswordError" class="text-danger"></span>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const passwordInput = document.getElementById("Password");
+      const toggleButton  = document.getElementById("password-toggle");
+      const toggleIcon    = toggleButton.querySelector("i");
+
+      toggleButton.addEventListener("click", () => {
+        const isPassword = passwordInput.type === "password";
+        passwordInput.type = isPassword ? "text" : "password";
+
+        toggleIcon.classList.toggle("mdi-eye-outline", !isPassword);
+        toggleIcon.classList.toggle("mdi-eye-off-outline", isPassword);
+      });
+    });
+</script>

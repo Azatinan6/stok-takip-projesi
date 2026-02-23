@@ -1,0 +1,107 @@
+﻿@model IEnumerable<DeletedProductDto>
+@{
+    ViewData["Title"] = "Silinen Ürünler";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h4>Silinen Ürünler</h4>
+<hr />
+
+<table id="DataTables" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Kategori</th>
+            <th>Model</th>
+            <th>Ad</th>
+            <th>Resim</th>
+            <th>Açıklama</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Aktif mi?</th>
+            <th>Silinme Tarihi</th>
+            <th>Silen Kullanıcı</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>#</th>
+            <th>Kategori</th>
+            <th>Model</th>
+            <th>Ad</th>
+            <th>Resim</th>
+            <th>Açıklama</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Aktif mi?</th>
+            <th>Silinme Tarihi</th>
+            <th>Silen Kullanıcı</th>
+        </tr>
+    </tfoot>
+    <tbody>
+        @{
+            int count = 1;
+        }
+        @foreach (var product in Model)
+        {
+            <tr>
+                <td>@(count++)</td>
+                <td>@product.CategoryName</td>
+                <td>@product.Model</td>
+                <td>@product.Name</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(product.PhotoUrl))
+                    {
+                        <img src="/productimages/@product.PhotoUrl"
+                             alt="@product.Name"
+                             class="img-fluid img-thumbnail"
+                             style="max-height:80px; cursor:pointer;"
+                             data-bs-toggle="modal"
+                             data-bs-target="#imageModal"
+                             data-img-url="/productimages/@product.PhotoUrl"
+                             data-img-alt="@product.Name" />
+                    }
+                </td>
+                <td>@product.Description</td>
+                <td>@product.CreatedDate.ToString("dd MMMM yyyy")</td>
+                <td>
+                    <span class="@(product.IsActive ? "text-success" : "text-danger")">
+                        @(product.IsActive ? "Evet" : "Hayır")
+                    </span>
+                </td>
+                <td>@(product.DeletedDate?.ToString("dd MMMM yyyy") ?? "")</td>
+                <td>@product.DeletedBy</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div class="mt-3">
+    <a asp-controller="Product" asp-action="Index" class="btn btn-secondary">
+        <i class="fa fa-arrow-left"></i>Ürün Listesine Dön
+    </a>
+</div>
+
+<!-- Resim Önizleme Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="" class="img-fluid rounded" style="max-height:70vh;" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+      
+
+            $('#imageModal').on('show.bs.modal', function (e) {
+                var trigger = $(e.relatedTarget);
+                $('#modalImage').attr('src', trigger.data('img-url'))
+                                .attr('alt', trigger.data('img-alt'));
+            }).on('hidden.bs.modal', function () {
+                $('#modalImage').attr('src', '').attr('alt', '');
+            });
+        });
+    </script>
+}
