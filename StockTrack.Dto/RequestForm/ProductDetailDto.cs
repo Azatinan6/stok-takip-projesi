@@ -6,5 +6,8 @@
         public string CategoryName { get; set; }
         public string ProductName { get; set; }
         public int Quantity { get; set; }
+        public int OperationType { get; set; }
+        public string? Label { get; set; }
+        public bool HasConfig { get; set; } // Config girilmiş mi?
     }
 }

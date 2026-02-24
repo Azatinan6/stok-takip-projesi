@@ -33,10 +33,6 @@ namespace StockTrack.DataAccess.Context
             
             base.OnModelCreating(modelBuilder);
 
-            // Sonra kendi entity’lerini konfigüre et   
-            modelBuilder.Entity<RequestProduct>()
-                .HasKey(rp => new { rp.RequestFormId, rp.ProductId });
-
             modelBuilder.Entity<PersonDetail>()
                 .HasKey(pd => new { pd.RequestFormDetailId, pd.AppUserId });
 

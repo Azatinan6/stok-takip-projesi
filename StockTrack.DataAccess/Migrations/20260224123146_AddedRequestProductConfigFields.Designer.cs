@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using StockTrack.DataAccess.Context;
 
@@ -11,9 +12,11 @@ using StockTrack.DataAccess.Context;
 namespace StockTrack.DataAccess.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260224123146_AddedRequestProductConfigFields")]
+    partial class AddedRequestProductConfigFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1026,35 +1029,14 @@ namespace StockTrack.DataAccess.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ConfigUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ConnectionType")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DhcpdConf")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Label")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OperationType")
-                        .HasColumnType("int");
-
                     b.Property<int>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ReasonId")
-                        .HasColumnType("int");
-
                     b.Property<int>("RequestFormId")
                         .HasColumnType("int");
-
-                    b.Property<string>("WpaSupplicantConf")
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
