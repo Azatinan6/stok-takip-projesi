@@ -1,0 +1,78 @@
+﻿@using StockTrack.Dto.Inventory
+@model InventoryEditDto
+
+@{
+    ViewData["Title"] = "Ürün Düzenle";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-light border-bottom py-3">
+                <h5 class="mb-0 text-dark fw-bold"><i class="mdi mdi-pencil-outline me-2"></i> Ürün Bilgilerini Güncelle</h5>
+            </div>
+
+            <div class="card-body p-4">
+                <form action="/Inventory/Edit" method="post" enctype="multipart/form-data">
+                    <input type="hidden" name="Id" value="@Model.Id" />
+                    <input type="hidden" name="ExistingPhotoUrl" value="@Model.ExistingPhotoUrl" />
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary">Kategori</label>
+                            <select class="form-select bg-light border-0" name="CategoryId" asp-items="@ViewBag.Categories" required>
+                                <option value="">-- Kategori Seçin --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary">Ürün Adı</label>
+                            <input type="text" class="form-control bg-light border-0" name="ProductName" value="@Model.ProductName" required />
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary">Marka</label>
+                            <input type="text" class="form-control bg-light border-0" name="Brand" value="@Model.Brand" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary">Model</label>
+                            <input type="text" class="form-control bg-light border-0" name="Model" value="@Model.Model" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary">Stok Uyarı Seviyesi</label>
+                            <input type="number" class="form-control bg-light border-0" name="StockWarningLevel" value="@Model.StockWarningLevel" min="1" required />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-secondary">Ürün Görseli (Değiştirmek için seçin)</label>
+                            <input type="file" class="form-control bg-light border-0" name="ProductImage" accept="image/*" />
+                            @if (!string.IsNullOrEmpty(Model.ExistingPhotoUrl))
+                            {
+                                <div class="mt-2">
+                                    <small class="text-muted">Mevcut Görsel: </small>
+                                    <img src="@Model.ExistingPhotoUrl" alt="Mevcut Görsel" class="img-thumbnail mt-1" style="height: 50px; border-radius: 8px;" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-secondary">Açıklama / Notlar</label>
+                        <textarea class="form-control bg-light border-0" name="Description" rows="3">@Model.Description</textarea>
+                    </div>
+
+                    <hr class="text-muted opacity-25" />
+
+                    <div class="d-flex justify-content-end mt-3">
+                        <a href="/Inventory/Stock" class="btn btn-outline-secondary px-4 me-2">İptal</a>
+                        <button type="submit" class="btn btn-dark px-4">Değişiklikleri Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

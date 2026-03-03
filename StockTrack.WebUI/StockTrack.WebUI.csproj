@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.105.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.8">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.8" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
+    <PackageReference Include="NToastNotify" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\StockTrack.Business\StockTrack.Business.csproj" />
+    <ProjectReference Include="..\StockTrack.DataAccess\StockTrack.DataAccess.csproj" />
+    <ProjectReference Include="..\StockTrack.Dto\StockTrack.Dto.csproj" />
+    <ProjectReference Include="..\StockTrack.Entity\StockTrack.Entity.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\productimages\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\alertifyjs\src\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\chart.js\controllers\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\chart.js\core\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\chart.js\elements\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\chart.js\helpers\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\chart.js\platform\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\chart.js\plugins\plugin.filler\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\chart.js\scales\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\chart.js\types\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\choices.js\public\types\cypress\e2e\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\choices.js\public\types\cypress\integration\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\choices.js\public\types\cypress\plugins\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\choices.js\public\types\cypress\support\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\choices.js\public\types\src\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\choices.js\src\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\eva-icons\style\scss\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\flatpickr\types\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\flatpickr\utils\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\gmaps\docs\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\gmaps\examples\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\gmaps\test\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\gridjs\src\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\metismenujs\types\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\rater-js\example\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\rater-js\test\" />
+    <Folder Include="wwwroot\WebAdmin\assets\libs\swiper\types\modules\" />
+  </ItemGroup>
+
+</Project>

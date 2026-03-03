@@ -1,0 +1,633 @@
+﻿ @model DashboardStatsDto
+@{
+    ViewData["Title"] = "Index";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .stat-avatar .avatar-title {
+        width: 48px;
+        height: 48px;
+        display: grid;
+        align-items: center;
+        justify-content: center;
+        border-radius: 9999px;
+    }
+
+    .chart-card {
+        height: 380px;
+        display: flex;
+        flex-direction: column;
+    }
+
+        .chart-card canvas {
+            flex: 1;
+        }
+
+    .row-zero {
+        background-color: #ffe5e5;
+    }
+    /* stok tükendi */
+    .row-low {
+        background-color: #fff3e0;
+    }
+    /* <=5 kritik */
+    .row-warn {
+        background-color: #fffbe6;
+    }
+    /* <=50 düşük */
+    .avatar-xs .avatar-title {
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+</style>
+
+<!--Ürün Bazlı Stok Durumu (Chart) && Uyarı Stok Bildirimi-->
+<div class="row align-items-stretch mb-3">
+    <!-- Ürün Bazlı Stok Durumu -->
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Ürün Bazlı Stok Durumu</h4>
+            </div>
+            <div class="card-body">
+                <div class="chart-card" style="width:100%;height:380px">
+                    <canvas id="productChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Kritik Stok Uyarıları -->
+    <div class="col-xl-6">
+        <div class="card h-100" id="criticalCard">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">
+                    <i class="bx bx-error-circle me-2 text-danger"></i>
+                    Kritik Stok Uyarıları
+                    <span id="criticalCount" class="badge bg-danger ms-2 d-none">0 Adet</span>
+                </h5>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="form-check form-switch me-2">
+                        <input class="form-check-input" type="checkbox" id="autoRefresh" checked>
+                        <label class="form-check-label small" for="autoRefresh">Oto yenile</label>
+                    </div>
+                    <button id="btnRefresh" class="btn btn-sm btn-outline-dark">
+                        <i class="bx bx-refresh me-1"></i>Yenile
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scroll içeren gövde -->
+            <div class="card-body" style="max-height:380px; overflow-y:auto;">
+                <!-- Bilgilendirme Mesajı (eşik: 50) -->
+                <div class="alert alert-warning d-flex align-items-center mb-3" role="alert" style="font-size:0.9rem;">
+                    <div>
+                        <i class="bx bx-info-circle me-2"></i>
+                        Stok miktarı <strong> uyarı stoğu </strong> değerinin altına düştüğünde ürünler burada listelenir.
+                    </div>
+                </div>
+
+                <!-- Yükleniyor durumu -->
+                <div id="criticalLoading" class="text-center text-muted py-4">
+                    <div class="spinner-border text-warning" role="status" style="width:2rem;height:2rem;"></div>
+                    <p class="mt-2">Yükleniyor…</p>
+                </div>
+
+                <!-- Boş durum -->
+                <div id="criticalEmpty" class="text-center text-muted py-4 d-none">
+                    <i class="bx bx-check-circle font-size-48 text-success"></i>
+                    <p class="mt-2">Kritik stok uyarısı bulunmuyor.</p>
+                </div>
+
+                <!-- Veri tablosu -->
+                <div id="criticalTableWrap" class="table-responsive d-none">
+                    <table class="table table-borderless align-middle mb-0">
+                        <tbody id="criticalTbody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* Kargo işlemleri bilgisi *@
+
+<div class="row mb-3">
+    <h5 class="mb-3">Kargo İşlemleri</h5>
+    <!-- Kargo -->
+    <div class="col-6 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                <div class="stat-avatar">
+                    <div class="avatar-title bg-primary-subtle">
+                        <i class="mdi mdi-truck" style="font-size:24px; color:#007bff;"></i>
+                    </div>
+                </div>
+                <h6 class="mb-1">Toplam Kargo</h6>
+                <h4 class="mb-0">@Model.TotalCargo</h4>
+            </div>
+        </div>
+    </div>
+    <!-- Onay Bekleyen Kargo -->
+    <div class="col-6 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/CargoDetail/AwaitingApproval">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                    <div class="stat-avatar">
+                        <div class="avatar-title bg-warning-subtle">
+                            <i class="bx bx-time-five font-size-24 text-warning"></i>
+                        </div>
+                    </div>
+                    <h6 class="mb-1">Onay Bekleyen</h6>
+                    <h4 class="mb-0">@Model.TotalAwaitingApprovalCargo</h4>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Paketlenen Kargo -->
+    <div class="col-6 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/CargoDetail/ReadyForCargo">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                    <div class="stat-avatar">
+                        <div class="avatar-title bg-primary-subtle">
+                            <i class="bx bx-package font-size-24 text-primary"></i>
+                        </div>
+                    </div>
+                    <h6 class="mb-1">Paketlendi</h6>
+                    <h4 class="mb-0">@Model.TotalPackingCargo</h4>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Kargoya Verilen -->
+    <div class="col-6 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/CargoDetail/CargoInDelivery">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                    <div class="stat-avatar">
+                        <div class="avatar-title bg-info-subtle">
+                            <i class="mdi mdi-truck" style="font-size:24px; color:#17a2b8;"></i>
+                        </div>
+                    </div>
+                    <h6 class="mb-1">Kargoda</h6>
+                    <h4 class="mb-0">@Model.TotalTransportationCargo</h4>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Teslim Edilen -->
+    <div class="col-6 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/CargoDetail/Delivered">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                    <div class="stat-avatar">
+                        <div class="avatar-title bg-success-subtle">
+                            <i class="bx bx-check font-size-24 text-success"></i>
+                        </div>
+                    </div>
+                    <h6 class="mb-1">Teslim Edilen</h6>
+                    <h4 class="mb-0">@Model.TotalCompletedCargo</h4>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- İptal Edilen -->
+    <div class="col-6 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/CargoDetail/Cancelled">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                <div class="stat-avatar">
+                    <div class="avatar-title bg-danger-subtle">
+                        <i class="bx bx-x font-size-24 text-danger"></i>
+                    </div>
+                </div>
+                <h6 class="mb-1">İptal Edilenler</h6>
+                <h4 class="mb-0">@Model.TotalCanceledCargo</h4>
+            </div>
+            </a>
+        </div>
+    </div>
+
+
+
+</div>
+
+
+@* Kurulum işlemleri bilgisi *@
+<div class="row mt-4 mb-3">
+    <h5 class="mb-3">Kurulum İşlemleri</h5>
+
+    <div class="col-6 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                <div class="stat-avatar">
+                    <div class="avatar-title bg-primary-subtle">
+                        <i class="mdi mdi-calendar-clock" style="font-size:24px; color:#007bff;"></i>
+                    </div>
+                </div>
+                <h6 class="mb-1">Toplam Kurulum</h6>
+                <h4 class="mb-0">@Model.TotalInstillation</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/Installation/PendingInstallations">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                    <div class="stat-avatar">
+                        <div class="avatar-title bg-warning-subtle">
+                            <i class="mdi mdi-clock-outline font-size-24 text-warning"></i>
+                        </div>
+                    </div>
+                    <h6 class="mb-1">Onay Bekleyen</h6>
+                    <h4 class="mb-0">@Model.InstallationPending</h4>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/Installation/ReadyToInstall">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                    <div class="stat-avatar">
+                        <div class="avatar-title bg-info-subtle">
+                            <i class="mdi mdi-tools font-size-24 text-info"></i>
+                        </div>
+                    </div>
+                    <h6 class="mb-1">Kuruluma Hazır</h6>
+                    <h4 class="mb-0">@Model.InstallationReady</h4>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/Installation/CompletedInstallations">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                    <div class="stat-avatar">
+                        <div class="avatar-title bg-success-subtle">
+                            <i class="mdi mdi-check-circle-outline font-size-24 text-success"></i>
+                        </div>
+                    </div>
+                    <h6 class="mb-1">Tamamlanan</h6>
+                    <h4 class="mb-0">@Model.InstallationCompleted</h4>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/Installation/CancelledInstallations">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                    <div class="stat-avatar">
+                        <div class="avatar-title bg-danger-subtle">
+                            <i class="mdi mdi-close-circle-outline font-size-24 text-danger"></i>
+                        </div>
+                    </div>
+                    <h6 class="mb-1">İptal Edilenler</h6>
+                    <h4 class="mb-0">@Model.InstallationCancelled</h4>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+
+@* Ürün işlemleri bilgisi *@
+<div class="row mb-3">
+    <h5 class="mb-3">Genel Talep & Servis & Kullanıcı İşlemleri</h5>
+
+    <!-- Talep Sayısı -->
+    <div class="col-4 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/RequestForm/RequestFormList">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                    <div class="stat-avatar">
+                        <div class="avatar-title bg-warning-subtle">
+                            <i class="mdi mdi-package-variant-closed font-size-24 text-warning"></i>
+                        </div>
+                    </div>
+                    <h6 class="mb-1">Talep Sayısı</h6>
+                    <h4 class="mb-0">@Model.TotalRequested</h4>
+                </div>
+            </a>
+        </div>
+    </div>
+    <!-- Toplam Servis Sayısı -->
+    <div class="col-4 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/Installation/ServicesPage">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                    <div class="stat-avatar">
+                        <div class="avatar-title bg-primary-subtle">
+                            <i class="mdi mdi-tools font-size-24 text-primary"></i>
+                        </div>
+                    </div>
+                    <h6 class="mb-1">Toplam Servis</h6>
+                    <h4 class="mb-0">@Model.TotalServices</h4>
+                </div>
+            </a>
+
+        </div>
+    </div>
+    <!-- Kategori Sayısı -->
+    @*     <div class="col-4 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                <div class="stat-avatar">
+                    <div class="avatar-title bg-warning-subtle">
+                        <i class="mdi mdi-tag-multiple font-size-24 text-warning"></i>
+                    </div>
+                </div>
+                <h6 class="mb-1">Kategori Sayısı</h6>
+                <h4 class="mb-0">@Model.CategoryCount</h4>
+            </div>
+        </div>
+    </div> *@
+
+    <!-- Toplam Ürün -->
+    @*     <div class="col-4 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                <div class="stat-avatar">
+                    <div class="avatar-title bg-primary-subtle">
+                        <i class="bx bx-package font-size-24 text-primary"></i>
+                    </div>
+                </div>
+                <h6 class="mb-1">Toplam Ürün</h6>
+                <h4 class="mb-0">@Model.TotalProducts</h4>
+            </div>
+        </div>
+    </div> *@
+
+
+
+    <!-- Aktif Ürünler -->
+    @*     <div class="col-4 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                <div class="stat-avatar">
+                    <div class="avatar-title bg-info-subtle">
+                        <i class="bx bx-check-circle font-size-24 text-info"></i>
+                    </div>
+                </div>
+                <h6 class="mb-1">Aktif Ürünler</h6>
+                <h4 class="mb-0">@Model.ActiveProducts</h4>
+            </div>
+        </div>
+    </div> *@
+
+
+    <!-- Aktif Kullanıcılar -->
+    <div class="col-4 col-md-2 d-flex">
+        <div class="card h-100 w-100">
+            <a href="/UserManagement/Index">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center text-center gap-2">
+                    <div class="stat-avatar">
+                        <div class="avatar-title bg-danger-subtle">
+                            <i class="bx bx-user-check font-size-24 text-danger"></i>
+                        </div>
+                    </div>
+                    <h6 class="mb-1">Aktif Kullanıcılar</h6>
+                    <h4 class="mb-0">@Model.ActiveUserCount</h4>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // --- yardımcılar ---
+    const truncate = (s, n=18) => s && s.length>n ? s.slice(0,n-1)+'…' : s;
+    const makeColors = (n)=> Array.from({length:n},(_,i)=>{
+      const h = Math.round(360*i/n);
+      return `hsl(${h} 70% 55%)`;
+    });
+    function groupTopN(items, metric, n=8){
+      if(!n || items.length<=n) return items;
+      const sorted=[...items].sort((a,b)=>b[metric]-a[metric]);
+      const top=sorted.slice(0,n);
+      const other=sorted.slice(n).reduce((t,x)=>t + Number(x[metric]||0),0);
+      return other>0 ? [...top, { label:'Diğer', totalStock:other, distributedStock:0, remainingStock:other, __others:true }] : top;
+    }
+
+    // merkez yazısı (yalnızca görünür dilim)
+    const CenterTotal = {
+      id:'centerTotal',
+      afterDatasetsDraw(chart){
+        const ds = chart.data.datasets[0];
+        const meta = chart.getDatasetMeta(0);
+        const visibleTotal = meta.data.reduce((sum,_arc,i)=>(
+          chart.getDataVisibility(i) ? sum + Number(ds.data[i] ?? 0) : sum
+        ),0);
+        const {ctx, chartArea:{left,right,top,bottom}} = chart;
+        ctx.save();
+        ctx.font = '600 14px system-ui,-apple-system,Segoe UI,Roboto';
+        ctx.fillStyle = '#333';
+        ctx.textAlign = 'center';
+        ctx.fillText(`Toplam: ${visibleTotal}`, (left+right)/2, (top+bottom)/2);
+        ctx.restore();
+      }
+    };
+
+    (async ()=>{
+      const el = document.getElementById('productChart');
+
+      // hangi metrik? remainingStock / totalStock / distributedStock
+      const metric = 'remainingStock';
+
+      let raw=[];
+      try{
+        const res = await fetch('/Dashboard/GetProductStockData');
+        raw = await res.json();
+      }catch{
+        el.replaceWith(Object.assign(document.createElement('div'),{innerText:'Grafik yüklenirken hata oluştu.'}));
+        return;
+      }
+
+      if(!raw || raw.length===0){
+        el.replaceWith(Object.assign(document.createElement('div'),{innerText:'Gösterilecek veri bulunamadı.'}));
+        return;
+      }
+
+      // 0 kalan stokluları çıkar
+      const filtered = raw.filter(x => Number(x[metric]) > 0);
+      if(filtered.length===0){
+        el.replaceWith(Object.assign(document.createElement('div'),{innerText:'Gösterilecek veri bulunamadı.'}));
+        return;
+      }
+
+      // Top-N + "Diğer"
+      const dataArr = groupTopN(filtered, metric, 8);
+
+      const labelsFull = dataArr.map(x => x.label || 'Diğer');
+      const labels     = dataArr.map(x => truncate(x.label || 'Diğer'));
+      const values     = dataArr.map(x => Number(x[metric] || 0));
+      const colors     = makeColors(values.length);
+
+      new Chart(el, {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data: values, backgroundColor: colors }] },
+        options: {
+          responsive:true,
+          maintainAspectRatio:false,
+          cutout:'60%',
+          plugins:{
+            legend:{ position:'right' },
+            tooltip:{
+              callbacks:{
+                title: (ctx)=> labelsFull[ctx[0].dataIndex],
+                label: (ctx)=>{
+                  const i   = ctx.dataIndex;
+                  const val = Number(ctx.parsed ?? 0);
+                  const ds  = ctx.chart.data.datasets[0];
+                  const meta= ctx.chart.getDatasetMeta(0);
+                  const visibleTotal = meta.data.reduce((sum,_arc,idx)=>(
+                    ctx.chart.getDataVisibility(idx) ? sum + Number(ds.data[idx] ?? 0) : sum
+                  ),0);
+                  const pct = visibleTotal ? (val*100/visibleTotal).toFixed(1) : 0;
+
+                  // İlgili satırın tam kaydını bul (Diğer için __others olabilir)
+                  const item = dataArr[i] || {};
+                  const totalStock = Number(item.totalStock ?? (item.__others ? val : 0));
+                  const distributed = Number(item.distributedStock ?? 0);
+                  const remaining   = Number(item.remainingStock ?? val);
+
+                  return ` ${remaining} (${pct}%)  |  Dağıtılan: ${distributed}  |  Toplam: ${totalStock || (distributed+remaining)}`;
+                }
+              }
+            }
+          }
+        },
+        plugins:[CenterTotal]
+      });
+    })();
+
+
+    const ENDPOINT = '/Dashboard/GetCriticalStockData';
+    const refreshMs = 30_000; // oto yenileme (30 sn)
+
+    const elCount   = document.getElementById('criticalCount');
+    const elLoad    = document.getElementById('criticalLoading');
+    const elEmpty   = document.getElementById('criticalEmpty');
+    const elWrap    = document.getElementById('criticalTableWrap');
+    const elBody    = document.getElementById('criticalTbody');
+    const btnRefresh= document.getElementById('btnRefresh');
+    const autoRef   = document.getElementById('autoRefresh');
+
+    function rowClassByStock(stock){
+      if (stock === 0) return 'row-zero';
+      if (stock <= 5)  return 'row-low';
+      return 'row-warn';
+    }
+
+    function badgeStyle(color){
+      return `style="background-color:${color};color:#fff;"`;
+    }
+
+    function renderRows(items){
+      elBody.innerHTML = items.map(item => `
+        <tr class="${rowClassByStock(item.currentStock)}">
+          <td>
+            <div class="d-flex align-items-center">
+              <div class="flex-shrink-0">
+                <div class="avatar-xs">
+                  <span class="avatar-title rounded-circle" ${badgeStyle(item.color)}>
+                    <i class="bx bx-package"></i>
+                  </span>
+                </div>
+              </div>
+              <div class="flex-grow-1 ms-3">
+                <h6 class="mb-1">${(item.productName)}</h6>
+                <p class="text-muted mb-0">${(item.categoryName)}</p>
+                 <p class="text-muted small mb-0"><i class="bx bx-home"></i> ${(item.mainRepoName)}</p>
+              </div>
+            </div>
+          </td>
+          <td class="text-end">
+            <span class="badge" ${badgeStyle(item.color)}>${(item.stockStatus)}</span>
+            <div class="text-muted small">Stok: ${Number(item.currentStock)}</div>
+          </td>
+          <div class="text-muted small">
+          Uyarı seviyesi: ${item.threshold}
+
+        </div>
+        </tr>
+      `).join('');
+    }
+
+    function setState({loading=false, empty=false, hasData=false, count=0}){
+      elLoad.classList.toggle('d-none', !loading);
+      elEmpty.classList.toggle('d-none', !empty);
+      elWrap.classList.toggle('d-none', !hasData);
+      if (count > 0) {
+        elCount.classList.remove('d-none');
+        elCount.textContent = `${count} Adet`;
+      } else {
+        elCount.classList.add('d-none');
+      }
+    }
+
+    async function loadCritical(){
+      try {
+        setState({loading:true});
+        const res = await fetch(ENDPOINT, { cache:'no-store' });
+        const data = await res.json();
+
+        // Beklenen alanlar: productName, categoryName, currentStock, stockStatus, color
+        const items = Array.isArray(data) ? data.map(x => ({
+          productName: x.ProductName ?? x.productName ?? '',
+          categoryName: x.CategoryName ?? x.categoryName ?? '',
+          currentStock: Number(x.CurrentStock ?? x.currentStock ?? 0),
+          stockStatus:  x.StockStatus  ?? x.stockStatus  ?? '',
+          color:        x.Color        ?? x.color        ?? '#ffc107',
+          threshold:    Number(x.Threshold ?? x.threshold ?? 0),
+           mainRepoName:  x.MainRepoName  ?? x.mainRepoName  ?? ''
+        })) : [];
+
+        if (items.length === 0){
+          setState({loading:false, empty:true, hasData:false, count:0});
+          return;
+        }
+
+        renderRows(items);
+        setState({loading:false, empty:false, hasData:true, count:items.length});
+      } catch (e){
+        setState({loading:false, empty:true, hasData:false, count:0});
+        elEmpty.innerHTML = `
+          <i class="bx bx-error-circle font-size-48 text-danger"></i>
+          <p class="mt-2">Kritik stok verisi yüklenemedi.</p>`;
+      }
+    }
+
+
+    // ilk yükleme
+    loadCritical();
+
+    // manuel yenile
+    btnRefresh.addEventListener('click', loadCritical);
+
+    // otomatik yenile
+    let timer = setInterval(() => { if (autoRef.checked) loadCritical(); }, refreshMs);
+    autoRef.addEventListener('change', () => {
+      if (!autoRef.checked) return;
+      // Açıldığında hemen yenilesin
+      loadCritical();
+    });
+</script>

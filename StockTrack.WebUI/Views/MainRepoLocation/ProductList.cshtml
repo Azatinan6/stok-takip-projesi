@@ -1,0 +1,744 @@
+﻿@using StockTrack.Dto.MainRepoLocation
+@model List<ResultProductMainRepoDto>
+
+@{
+    ViewData["Title"] = "Ürün Depo Listesi";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    var count = 1;
+}
+
+<h4 class="mb-3">Depoda Bulunan Ürünlerin Listesi</h4>
+<hr />
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+<!-- Ürün – Depo Tablosu -->
+<table id="DataTables" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Depo</th>
+            <th>Kategori</th>
+            <th>Model</th>
+            <th>Ürün Adı</th>
+            <th>Toplam Stok</th>
+            <th>Dağıtılan</th>
+            <th>Kalan</th>
+            <th>Resim</th>
+            <th>Açıklama</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Aktif mi?</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>#</th>
+            <th>Depo</th>
+            <th>Kategori</th>
+            <th>Model</th>
+            <th>Ürün Adı</th>
+            <th>Toplam</th>
+            <th>Dağıtılan</th>
+            <th>Kalan</th>
+            <th></th>
+            <th></th>
+            <th>Oluşturulma Tarihi</th>
+            <th></th>
+            <th></th>
+        </tr>
+    </tfoot>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            var isActive = item.IsActive;
+            <tr>
+                <td>@(count++)</td>
+                <td>@item.MainRepoLocationName</td>
+                <td>@item.CategoryName</td>
+                <td>@item.ProductModel</td>
+                <td>@item.ProductName</td>
+
+                <td><span class="badge bg-secondary">@item.TotalQuantity</span></td>
+                <td><span class="badge bg-primary">@item.DistributedQuantity</span></td>
+                <td>
+                    <span class="badge @(item.RemainingQuantity <= 0 ? "bg-danger" : "bg-success")">@item.RemainingQuantity</span>
+                    <a href="#" class="btn btn-sm btn-info stock-detail-btn"
+                       data-bs-toggle="modal"
+                       data-bs-target="#stockDetailModal"
+                       data-product-id="@item.ProductId"
+                       data-mainrepo-id="@item.Id"
+                       data-product-name="@item.ProductName"
+                       data-category-name="@item.CategoryName"
+                       data-mainrepo-name="@item.MainRepoLocationName"
+                       data-total-quantity="@item.TotalQuantity"
+                       data-distributed-quantity="@item.DistributedQuantity"
+                       data-remaining-quantity="@item.RemainingQuantity">
+                        Detay
+                    </a>
+                </td>
+
+                <td>
+                    @if (!string.IsNullOrEmpty(item.PhotoUrl))
+                    {
+                        <img src="/productimages/@item.PhotoUrl"
+                             alt="@item.ProductName"
+                             class="img-fluid img-thumbnail"
+                             style="max-height:80px; cursor:pointer;"
+                             data-bs-toggle="modal"
+                             data-bs-target="#imageModal"
+                             data-img-url="/productimages/@item.PhotoUrl"
+                             data-img-alt="@item.ProductName" />
+                    }
+                </td>
+                <td>@item.ProductDescription</td>
+                <td>@item.CreatedDate.ToString("dd MMMM yyyy")</td>
+                <td>
+                    <span class="@(isActive ? "text-success" : "text-danger")">
+                        @(isActive ? "Evet" : "Hayır")
+                    </span>
+                </td>
+                <td>
+                    @if (User.IsInRole(RoleConsts.Admin))
+                    {
+
+
+                        <a class="text-muted dropdown-toggle font-size-18 px-2" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bx bx-dots-vertical-rounded"></i>
+                        </a>
+
+                        <div class="dropdown-menu dropdown-menu-end">
+                            <a class="dropdown-item increase-stock-btn" href="#" data-bs-toggle="modal" data-bs-target="#increaseStockModal"
+                               data-mainrepo-id="@item.Id"
+                               data-mainrepo-name="@item.MainRepoLocationName"
+                               data-product-name="@item.ProductName"
+                               data-product-id="@item.ProductId"
+                               data-remaining-quantity="@item.RemainingQuantity">
+                                <i class="mdi mdi-plus-box-outline"></i> Stok Artır
+                            </a>
+
+                            <a class="dropdown-item decrease-stock-btn" href="#"
+                               data-bs-toggle="modal" data-bs-target="#decreaseStockModal"
+                               data-mainrepo-id="@item.Id"
+                               data-mainrepo-name="@item.MainRepoLocationName"
+                               data-product-name="@item.ProductName"
+                               data-product-id="@item.ProductId"
+                               data-remaining-quantity="@item.RemainingQuantity">
+                                <i class="mdi mdi-minus-box-outline"></i> Stok Azalt
+                            </a>
+
+                            <button type="button" class="dropdown-item invoice-detail-btn" data-product-id="@item.ProductId" data-mainrepo-id="@item.Id" data-product-name="@item.ProductName" data-bs-toggle="modal" data-bs-target="#invoiceDetailModal">
+                                <i class="mdi mdi-file-document-outline"></i> İrsaliyeleri Gör
+                            </button>
+
+
+
+                            @*      <!-- Düzenle -->
+                            <a class="dropdown-item edit-product-btn"
+                               data-bs-toggle="modal"
+                               data-bs-target="#editProductModal"
+                               data-product-id="@item.Id"
+                               data-product-name="@item.ProductName"
+                               data-product-model="@item.ProductModel"
+                               data-product-categoryid="@item.CategoryId"
+                               data-product-mainrepolocationid="@item.MainRepoLocationId"
+                               data-product-description="@item.ProductDescription"
+                               data-product-photourl="@item.PhotoUrl"                           
+                               data-mainrepo="@item.MainRepoLocationName">
+                                <i class="mdi mdi-pencil"></i> Düzenle
+                            </a> *@
+
+                            @*      <!-- Aktif/Pasif -->
+                            <a class="dropdown-item toggle-product-btn"
+                               data-url="@Url.Action(isActive ? "Deactivate" : "Activate", "Product", new { Id = product.Id })"
+                               data-product-name="@product.Name"
+                               data-action="@(isActive ? "deactivate" : "activate")">
+                                <i class="mdi mdi-check-circle-outline"></i>
+                                        @(isActive ? "Pasif Yap" : "Aktif Yap")
+                            </a>
+
+                            <!-- Sil -->
+                            <a class="dropdown-item delete-product-btn"
+                               data-url="@Url.Action("DeleteProduct", "Product", new { id = product.Id })"
+                               data-product-name="@product.Name">
+                                <i class="mdi mdi-delete"></i> Sil
+                            </a>  *@
+                        </div>
+
+
+
+                    }
+
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+<div class="modal fade" id="stockDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Çıkış Kayıtları</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div>
+                    <p><strong>Depo:</strong> <span id="sd-mainrepo-name"></span></p>
+                    <p>
+                        <strong>Kategori:</strong> <span id="sd-category-name"></span>
+                        <strong>Ürün:</strong> <span id="sd-product-name"></span>
+                        
+                    </p>
+                    <p>
+                        <strong>Toplam Stok:</strong> <span id="sd-total-quantity"></span>
+                        <strong>Dağıtılan:</strong> <span id="sd-distributed-quantity"></span>
+                        <strong>Kalan:</strong> <span id="sd-remaining-quantity"></span>
+                    </p>
+                    <p>
+                        <strong>Durum:</strong> <span id="sd-status-name" class="text-success"></span>
+                    </p>
+
+                </div>
+
+                <hr />
+
+                <h6 class="mb-2">Dağıtım Detayları</h6>
+                <div style="width: 100%; overflow-x: auto;">
+                    <table class="table table-sm table-striped">
+                        <thead>
+                            <tr>
+                                <th>Talep Açan</th>
+                                <th>Talep Tarihi</th>
+                                <th>Durum</th>
+                                <th>Lokasyon</th>
+                                <th>Adres</th>
+                                <th>Alıcı</th>
+                                <th>Tel</th>
+                                <th>Kargo</th>
+                                <th>Takip No</th>
+                                <th>Adet</th>
+                                <th>Tamamlanma Tarihi</th>
+                                <th>Personeller</th>
+                                <th>Açıklama</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sd-rows">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (User.IsInRole(RoleConsts.Admin))
+{
+    //ürün atama işlemi
+    <div class="d-flex justify-content-end align-items-center mt-4">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#assignToDepotModal">
+            <i class="mdi mdi-plus-circle"></i> Depoya Ürün Ata
+        </button>
+    </div>
+    //Ürün atama işlemi
+    <div class="modal fade" id="assignToDepotModal" tabindex="-1" aria-labelledby="assignToDepotLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form asp-action="AssignProductToDepo" asp-controller="MainRepoLocation" method="post" enctype="multipart/form-data">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="assignToDepotLabel">Depoya Ürün Atama</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <!-- Depo -->
+                        <div class="mb-3">
+                            <label class="form-label">Depo Seç</label>
+                            <select name="MainRepoLocationId"
+                                    class="form-select"
+                                    asp-items="(IEnumerable<SelectListItem>)ViewBag.MainRepoLocations"
+                                    required>
+                                <option value="">-- Depo Seçiniz --</option>
+                            </select>
+                        </div>
+
+                        <!-- Kategori & Ürün -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Kategori</label>
+                                <select id="assignCategoryId"
+                                        name="CategoryId"
+                                        class="form-select"
+                                        asp-items="(IEnumerable<SelectListItem>)ViewBag.Categories"
+                                        required>
+                                    <option value="">-- Kategori Seçiniz --</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ürün</label>
+                                <select id="assignProductId" name="ProductId" class="form-select" required>
+                                    <option value="">-- Önce kategori seçiniz --</option>
+                                </select>
+                                <div class="form-text" id="assignProductHint"></div>
+                            </div>
+                        </div>
+
+                        <!-- Adet -->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Toplam Adet</label>
+                                <input type="number" name="Quantity" id="assignQuantity" min="1" class="form-control" required />
+                                <small id="assignQtyErr" class="text-danger" style="display:none;">Adet 1 veya daha büyük olmalıdır.</small>
+                            </div>
+                        </div>
+
+                        <!-- İrsaliye Bilgileri -->
+                        <h6 class="mt-2">İrsaliye Bilgileri</h6>
+                        <hr class="mt-1 mb-2" />
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">İrsaliye No</label>
+                                <input type="text" name="InvoiceNumber" class="form-control" placeholder="Örn: INV-2025-001" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">İrsaliye Tarihi</label>
+                                <input type="date" name="InvoiceDate" class="form-control" />
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">İrsaliye Açıklaması</label>
+                                <input type="text" name="Description" class="form-control" placeholder="Açıklama" />
+                            </div>
+                        </div>
+
+                        <!-- (Opsiyonel) Seçili depo-ürün mevcut dağıtım/stok özeti -->
+                        <div id="assignStockInfo" class="small text-muted"></div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary" id="assignSubmitBtn">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stok Artır Modal -->
+    <div class="modal fade" id="increaseStockModal" tabindex="-1" aria-labelledby="increaseStockLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="IncreaseStock" asp-controller="MainRepoLocation" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="increaseStockLabel">Stok Artır</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <input type="hidden" id="incMainRepoId" name="MainRepoId" />
+                        <input type="hidden" id="incProductId" name="ProductId" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Depo</label>
+                            <input type="text" id="incMainRepoName" class="form-control" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Ürün</label>
+                            <input type="text" id="incProductName" class="form-control" name="ProductName" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Mevcut Stok</label>
+                            <input type="number" id="incCurrentStock" class="form-control" disabled />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Eklenecek Miktar</label>
+                            <input type="number" class="form-control" name="IncreaseBy" min="1" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">İrsaliye Numarası</label>
+                            <input type="text" class="form-control" name="InvoiceNumber" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">İrsaliye Tarihi</label>
+                            <input type="date" class="form-control" name="InvoiceDate" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Açıklama</label>
+                            <input type="text" class="form-control" name="Description" placeholder="İrsaliye / not" />
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!--Stok Azaltma Modal-->
+    <div class="modal fade" id="decreaseStockModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="decreaseStockForm" asp-action="DecreaseStock" asp-controller="MainRepoLocation" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Stok Azalt</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="mainRepoId" name="mainRepoId" />
+                        <input type="hidden" id="productId" name="productId" />
+
+                        <div class="mb-3">
+                            <label for="mainRepoName" class="form-label">Depo</label>
+                            <input type="text" id="mainRepoName" class="form-control" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="productName" class="form-label">Ürün</label>
+                            <input type="text" id="productName" class="form-control" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="remainingQuantity" class="form-label">Mevcut Stok</label>
+                            <input type="text" id="remainingQuantity" class="form-control" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="quantityToDecrease" class="form-label">Azaltılacak Miktar</label>
+                            <input type="number" id="quantityToDecrease" name="quantityToDecrease" class="form-control" min="1" required />
+                            <span id="quantityToDecreaseError" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Açıklama</label>
+                            <textarea id="description" name="description" class="form-control" rows="2"></textarea>
+                        </div>
+                        <div id="generalError" class="alert alert-danger d-none" role="alert"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                        <button type="submit" class="btn btn-danger">Stok Azalt</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- İrsaliye Detayları Modal -->
+    <div class="modal fade" id="invoiceDetailModal" tabindex="-1" aria-labelledby="invoiceDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        İrsaliye Detayları - <span id="inv-product-name">-</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div id="inv-loading" class="d-none text-center my-3">
+                        <div class="spinner-border" role="status"><span class="visually-hidden">Yükleniyor...</span></div>
+                    </div>
+
+                    <div id="inv-empty" class="text-muted d-none">Bu ürüne ait irsaliye kaydı bulunamadı.</div>
+
+                    <div id="inv-table-wrap" class="table-responsive d-none">
+                        <table class="table table-sm table-striped align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 15%;">İrsaliye No</th>
+                                    <th style="width: 15%;">Tarih</th>
+                                    <th style="width: 10%;" class="text-end">Adet</th>
+                                    <th>Açıklama</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inv-tbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
+<!-- Resim Önizleme Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="" class="img-fluid rounded" style="max-height:70vh;" />
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Tablodaki resme tıklayınca modalda büyüt
+        $(document).ready(function () {
+            $('#imageModal').on('show.bs.modal', function (event) {
+                const img = $(event.relatedTarget);
+                const imageUrl = img.data('img-url');
+                const imageAlt = img.data('img-alt');
+                $('#modalImage').attr('src', imageUrl).attr('alt', imageAlt);
+            });
+        });
+
+        //kategoriye göre ürün listeleme
+        $('#assignCategoryId').change(function () {
+                let categoryId = $(this).val();
+                console.log("Seçilen Kategori ID: ", categoryId);
+                let productSelect = $('#assignProductId');
+
+                if (categoryId && categoryId !== "") {
+                    productSelect.empty().append('<option value="">Yükleniyor...</option>');
+                    $.getJSON('@Url.Action("GetProductsByCategory", "MainRepoLocation")', { categoryId: categoryId }, function (data) {
+                        productSelect.empty().append('<option value="">-- Ürün Seçiniz --</option>');
+                        $.each(data, function (i, item) {
+                            productSelect.append(`<option value="${item.id}">${item.name} (${item.model})</option>`);
+                        });
+                    }).fail(function() {
+                        productSelect.empty().append('<option value="">Ürünler yüklenemedi!</option>');
+                    });
+                } else {
+                    productSelect.empty().append('<option value="">-- Önce kategori seçiniz --</option>');
+                }
+            });
+
+        //Stok artırma
+        const increaseStockModal = document.getElementById('increaseStockModal');
+        increaseStockModal.addEventListener('show.bs.modal', event => {
+            const button = event.relatedTarget;
+            const mainRepoId = button.getAttribute('data-mainrepo-id');
+            const productId = button.getAttribute('data-product-id');
+            const mainRepoName = button.getAttribute('data-mainrepo-name');
+            const productName = button.getAttribute('data-product-name');
+            const productQuantity = button.getAttribute('data-remaining-quantity');
+
+            increaseStockModal.querySelector('#incMainRepoId').value = mainRepoId;
+            increaseStockModal.querySelector('#incProductId').value =productId ;
+            increaseStockModal.querySelector('#incMainRepoName').value = mainRepoName;
+            increaseStockModal.querySelector('#incProductName').value = productName;
+            increaseStockModal.querySelector('#incCurrentStock').value = productQuantity;
+        });
+
+        //stok azaltma              
+        function clearFormErrors() {
+            $(".text-danger").text("");
+            $("#generalError").addClass("d-none").text("");
+        }
+
+        // Stok azaltma butonunun olay yöneticisi
+        $(".decrease-stock-btn").on("click", function () {
+           
+            clearFormErrors();
+
+            const mainRepoId = $(this).data("mainrepo-id");
+            const productId = $(this).data("product-id");
+            const mainRepoName = $(this).data("mainrepo-name");
+            const productName = $(this).data("product-name");
+            const remainingQuantity = $(this).data("remaining-quantity");
+
+            // Gizli ve görüntülenen alanları ayarla
+            $("#decreaseStockForm #mainRepoId").val(mainRepoId);
+            $("#decreaseStockForm #productId").val(productId);
+            $("#decreaseStockForm #mainRepoName").val(mainRepoName);
+            $("#decreaseStockForm #productName").val(productName);
+            $("#decreaseStockForm #remainingQuantity").val(remainingQuantity);
+        });
+
+        //stok azaltma işleminde mevcut stoktan fazla girmeme
+          $(document).ready(function() {            
+            $('#decreaseStockForm').on('submit', function(e) {
+                var remaining = parseInt($('#remainingQuantity').val());
+                var decrease = parseInt($('#quantityToDecrease').val());
+
+                if (decrease > remaining) {
+                    e.preventDefault(); // Formun gönderilmesini engelle
+                    $('#quantityToDecreaseError').text('Azaltılacak miktar mevcut stoktan fazla olamaz.');
+                    return false;
+                }
+            });
+
+            // Kullanıcı input girerken anlık kontrol
+            $('#quantityToDecrease').on('input', function() {
+                var remaining = parseInt($('#remainingQuantity').val());
+                var decrease = parseInt($(this).val());
+
+                if (decrease > remaining) {
+                    $('#quantityToDecreaseError').text('Azaltılacak miktar mevcut stoktan fazla olamaz.');
+                    $(this).val(remaining);
+                } else {
+                    $('#quantityToDecreaseError').text('');
+                }
+            });
+        });
+
+
+
+        //iresaliye görüntüleme
+        $(document).on('click', '.invoice-detail-btn', function () {
+            const productId  = $(this).data('product-id');
+            const mainRepoId = $(this).data('mainrepo-id');
+            const productName = $(this).data('product-name') || '-';
+
+
+            $('#invoiceDetailModal').modal('show');
+
+
+            $('#inv-product-name').text(productName);
+
+
+            $('#inv-loading').removeClass('d-none');
+            $('#inv-empty').addClass('d-none');
+            $('#inv-table-wrap').addClass('d-none');
+            $('#inv-tbody').empty();
+
+            // AJAX isteği
+            $.ajax({
+                //url: '/MainRepoLocation/GetProductInvoices', <--- Eski Hatalı Satır
+                url: '@Url.Action("GetProductInvoices", "MainRepoLocation")', // <--- Yeni Doğru Satır
+                type: 'GET',
+                dataType: 'json',
+                data: { productId, mainRepoId },
+                        success: function (res) {
+            $('#inv-loading').addClass('d-none');
+
+            if (!res || res.length === 0) {
+                $('#inv-empty').removeClass('d-none');
+                return;
+            }
+
+            const $tbody = $('#inv-tbody');
+            res.forEach(function (x) {
+
+                const dateTxt = (x.invoiceDate && String(x.invoiceDate).trim() !== '') ? x.invoiceDate : '-';
+
+             $tbody.append(`
+                    <tr>
+                        <td>${x.invoiceNumber || '-'}</td>
+                        <td>${dateTxt}</td>
+                        <td class="text-end">${x.quantity ?? 0}</td>
+                        <td>${x.description || ''}</td>
+                    </tr>
+                `);
+            });
+
+            $('#inv-table-wrap').removeClass('d-none');
+        },
+
+                error: function(xhr, status, error) {
+                    $('#inv-loading').addClass('d-none');
+                    $('#inv-empty')
+                        .removeClass('d-none')
+                        .text(`İrsaliyeler yüklenemedi. Hata: ${xhr.status} ${xhr.statusText}`);
+                    console.error('AJAX Error:', error);
+                }
+            });
+        });
+
+        //Stok detayları
+        $(document).on('click', '.stock-detail-btn', function () {
+            const productId = $(this).data('product-id');
+            const mainRepoId = $(this).data('mainrepo-id');
+
+        $('#sd-mainrepo-name').text($(this).data('mainrepo-name'));
+        $('#sd-category-name').text($(this).data('category-name'));
+        $('#sd-product-name').text($(this).data('product-name'));
+        $('#sd-total-quantity').text($(this).data('total-quantity'));
+        $('#sd-distributed-quantity').text($(this).data('distributed-quantity'));
+        $('#sd-remaining-quantity').text($(this).data('remaining-quantity'));
+
+
+            const $tableBody = $('#sd-rows');
+            $tableBody.html('<tr><td colspan="13" class="text-center"><div class="spinner-border text-primary" role="status"></div></td></tr>');
+
+                    // AJAX isteği
+            $.ajax({
+                //url: '/MainRepoLocation/GetStockDetails',
+                url: '@Url.Action("GetStockDetails", "MainRepoLocation")',
+                type: 'GET',
+                dataType: 'json',
+                data: { productId, mainRepoId },
+                success: function (res) {
+                    const $tableBody = $('#sd-rows');
+                    $tableBody.empty();
+
+                    if (!res || res.length === 0) {
+                         $tableBody.append('<tr><td colspan="13" class="text-center">Bu ürüne ait dağıtım bilgisi bulunamadı.</td></tr>');
+                         return;
+                    }
+
+                    // Genel bilgileri listenin ilk elemanından alıyoruz
+                    const firstItem = res[0];
+                    $('#sd-mainrepo-name').text(firstItem.mainRepoName || '-');
+                    $('#sd-status-name').text(firstItem.statusName || '-');
+                    $('#sd-category-name').text(firstItem.categoryName || '-');
+                    $('#sd-product-name').text(firstItem.productName || '-');
+
+                    // Listenin her bir elemanı için tabloya yeni bir satır ekliyoruz
+                    res.forEach(function(item) {
+                        const row = `
+                            <tr>
+                                <td>${item.requestBy || '-'}</td>
+                                <td>${item.requestDate ? new Date(item.requestDate).toLocaleDateString('tr-TR') : '-'}</td>
+                                <td>${item.requestFormType || '-'}</td>
+                                <td>${item.locationName || '-'}</td>
+                                <td>${item.locationAddress || '-'}</td>
+                                <td>${item.toPerson || '-'}</td>
+                                <td>${item.phone || '-'}</td>
+                                <td>${item.cargoName || '-'}</td>
+                                <td>${item.trackingNumber || '-'}</td>
+                                <td>${item.quantity || 0}</td>
+
+                                <td>${item.completedDate ? new Date(item.completedDate).toLocaleDateString('tr-TR') : '-'}</td>
+                                <td>${item.persons || '-'}</td>
+                                <td>${item.description || '-'}</td>
+                            </tr>
+                        `;
+                        $tableBody.append(row);
+                    });
+                },
+                error: function (xhr, status, error) {
+
+                }
+            });
+        });
+
+
+
+
+    </script>
+}
+

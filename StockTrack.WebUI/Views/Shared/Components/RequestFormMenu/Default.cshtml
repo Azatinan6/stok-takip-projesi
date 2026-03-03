@@ -1,0 +1,26 @@
+﻿@model RequestFormCountsVM
+<li class="menu-title" data-key="t-request">Talep İşlemleri</li>
+
+<li>
+    <a href="javascript:void(0);" class="has-arrow">
+        <i class="mdi mdi-package-variant-closed icon nav-icon"></i>
+        <span class="menu-item" data-key="t-location-request-history">Talepler</span>
+    </a>
+    <ul class="sub-menu" aria-expanded="false">
+        <li>
+            <a href="/RequestForm/Create" data-key="t-request-create">
+                <i class="mdi mdi-plus-box me-1"></i> Talep Oluştur
+            </a>
+        </li>
+        <li>
+       
+            <a href="/RequestForm/RequestFormList" data-key="t-request-setup-list">
+                <i class="mdi mdi-format-list-bulleted me-1"></i> Talep Listesi
+                <span class="badge rounded-pill bg-warning float-end">@Model.Requested</span>
+
+            </a>
+        </li>
+
+
+    </ul>
+</li>

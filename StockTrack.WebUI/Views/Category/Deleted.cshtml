@@ -1,0 +1,57 @@
+﻿@model IEnumerable<DeletedCategoryDto>
+@{
+    ViewData["Title"] = "Silinen Kategoriler";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h4>Silinen Kategoriler</h4>
+<hr />
+
+<table id="DataTables" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Ad</th>
+            <th>Aktif mi?</th>
+            <th>Silinme Tarihi</th>
+            <th>Silen Kullanıcı</th>
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>#</th>
+            <th>Ad</th>
+            <th>Aktif mi?</th>
+            <th>Silinme Tarihi</th>
+            <th>Silen Kullanıcı</th>
+        </tr>
+    </tfoot>
+    <tbody>
+        @{
+            int count = 1;
+        }
+        @foreach (var category in Model)
+        {
+            <tr>
+                <td>@(count++)</td>
+                <td>@category.Name</td>
+                <td>
+                    <span class="@(category.IsActive ? "text-success" : "text-danger")">
+                        @(category.IsActive ? "Evet" : "Hayır")
+                    </span>
+                </td>
+                <td>@category.DeletedDate?.ToString("dd MMMM yyyy HH:mm")</td>
+                <td>@category.DeletedBy</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div class="mt-3">
+    <a asp-controller="Category" asp-action="Index" class="btn btn-secondary">
+        <i class="fa fa-arrow-left"></i>Katagory Listesine Dön
+    </a>
+</div>
+
+
+
+

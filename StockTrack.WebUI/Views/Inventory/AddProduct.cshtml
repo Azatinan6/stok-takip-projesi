@@ -1,0 +1,95 @@
+﻿@using StockTrack.Dto.Inventory
+@model InventoryAddDto
+
+@{
+    ViewData["Title"] = "Depoya Ürün Ekle";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white d-flex align-items-center">
+                <i class="mdi mdi-plus-box fs-4 me-2"></i>
+                <h5 class="card-title mb-0 text-white">Yeni Ürün Girişi</h5>
+            </div>
+
+            <div class="card-body">
+                <form asp-controller="Inventory" asp-action="AddProduct" method="post" enctype="multipart/form-data">
+
+                    <h6 class="text-muted mb-3">📍 Lokasyon ve Kategori Bilgileri</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Depo Seçiniz</label>
+                            <select class="form-select" asp-for="WarehouseId" asp-items="@ViewBag.Warehouses" required>
+                                <option value="">-- Depo Seçin --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Kategori Seçiniz</label>
+                            <select class="form-select" asp-for="CategoryId" asp-items="@ViewBag.Categories" required>
+                                <option value="">-- Kategori Seçin --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Ürün Durumu</label>
+                            <select class="form-select" asp-for="ProductStatusId" asp-items="@ViewBag.ProductStatuses" required>
+                                <option value="">-- Durum Seçin --</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h6 class="text-muted mb-3">📦 Ürün Detayları</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Ürün Adı</label>
+                            <input type="text" class="form-control" asp-for="ProductName" placeholder="Örn: Switch" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Marka</label>
+                            <input type="text" class="form-control" asp-for="Brand" placeholder="Örn: Cisco" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Model</label>
+                            <input type="text" class="form-control" asp-for="Model" placeholder="Örn: C9200L" required>
+                        </div>
+                    </div>
+
+                    <h6 class="text-muted mb-3">📊 Stok ve Medya</h6>
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold text-success">Başlangıç Stok Adeti</label>
+                            <input type="number" class="form-control" asp-for="StockQuantity" min="0" value="0" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold text-danger">Stok Uyarı Seviyesi</label>
+                            <input type="number" class="form-control" asp-for="StockWarningLevel" min="0" value="5" required>
+                            <small class="text-muted">Stok bu sayının altına düşünce uyarı verir.</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label fw-bold">Ürün Görseli</label>
+                            <input type="file" class="form-control" asp-for="ProductImage" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold">Açıklama / Notlar</label>
+                            <textarea class="form-control" asp-for="Description" rows="3" placeholder="Ürünle ilgili ekstra bilgiler..."></textarea>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <div class="d-flex justify-content-end">
+                        <a href="/Inventory/Stock" class="btn btn-light border me-2">İptal</a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="mdi mdi-content-save"></i> Ürünü Depoya Kaydet
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

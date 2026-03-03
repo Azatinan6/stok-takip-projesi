@@ -1,0 +1,64 @@
+﻿@model IEnumerable<StockTrack.Entity.Enitities.StockMovement>
+
+@{
+    ViewData["Title"] = "Giriş Hareketleri";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
+            <h4 class="mb-0 text-dark fw-bold"><i class="mdi mdi-arrow-bottom-left text-muted me-2"></i>Stok Giriş Geçmişi</h4>
+            <span class="text-muted small">Toplam Kayıt: @Model.Count()</span>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-light border text-center text-muted py-4 rounded-3 shadow-sm">
+        <i class="mdi mdi-inbox-outline fs-1 d-block mb-2"></i>
+        Henüz herhangi bir giriş hareketi bulunmuyor.
+    </div>
+}
+else
+{
+    <div class="list-group shadow-sm">
+        @foreach (var item in Model)
+        {
+            <div class="list-group-item list-group-item-action border-0 border-bottom p-3 bg-white">
+                <div class="row align-items-center">
+                    <div class="col-md-2 text-muted small">
+                        <i class="mdi mdi-calendar-clock me-1"></i> @item.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="fw-bold text-dark">@item.Product?.Name</div>
+                        <div class="text-muted small">@item.Product?.Brand @item.Product?.Model</div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <span class="text-secondary"><i class="mdi mdi-warehouse me-1"></i> @item.MainRepoLocation?.Name</span>
+                    </div>
+
+                    <div class="col-md-2">
+                        <span class="badge bg-light text-secondary border">İşlem ID: @item.MovementStatusId</span>
+                    </div>
+
+                    <div class="col-md-2 text-end">
+                        <span class="fw-bold text-dark fs-5">+@item.MovementQuantity</span>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(item.Description))
+                {
+                    <div class="row mt-2 pt-2 border-top border-light">
+                        <div class="col-12 text-muted small">
+                            <i class="mdi mdi-comment-text-outline me-1"></i> <strong>Açıklama:</strong> @item.Description
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

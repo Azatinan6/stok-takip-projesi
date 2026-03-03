@@ -1,0 +1,40 @@
+﻿@model InstallationMenuCountsVM
+<li class="menu-title" data-key="t-installation">Kurulum İşlemleri</li>
+
+<li>
+    <a href="javascript:void(0);" class="has-arrow">
+        <i class="mdi mdi-calendar-clock icon nav-icon"></i>
+        <span class="menu-item" data-key="t-installations">Kurulumlar</span>
+    </a>
+    <ul class="sub-menu" aria-expanded="false">
+        <li>
+           
+            <a href="/Installation/PendingInstallations" data-key="t-installation-upcoming">
+                <i class="mdi mdi-clock-outline me-1"></i> Onay Bekleyen Talepler                
+                    <span class="badge rounded-pill bg-warning float-end">@Model.Pending</span>                
+            </a>
+        </li>
+        <li>
+            <a href="/Installation/ReadyToInstall" data-key="t-installation-upcoming">
+                <i class="mdi mdi-tools me-1"></i> Hazır Olan Talepler
+                <span class="badge rounded-pill bg-info float-end">@Model.Ready</span>
+            </a>
+
+        </li>
+        <li>
+            <a href="/Installation/CompletedInstallations" data-key="t-installation-completed">
+                <i class="mdi mdi-check-circle-outline me-1"></i> Tamamlananlar
+            </a>
+        </li>
+        <li>
+            <a href="/Installation/InstallationCalender" data-key="t-installation-upcoming">
+                <i class="mdi mdi-calendar-month-outline me-1"></i> Kurulum Takvimi
+            </a>
+        </li>
+        <li>
+            <a href="/Installation/CancelledInstallations" data-key="t-installation-cancelled">
+                <i class="mdi mdi-close-circle-outline me-1"></i> İptal Edilenler
+            </a>
+        </li>
+    </ul>
+</li>
