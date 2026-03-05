@@ -62,7 +62,7 @@
                     <ul class="metismenu list-unstyled" id="side-menu">
                         <li class="menu-title" data-key="t-menu">Anasayfa</li>
                         <li>
-                            <a href="~/Dashboard/Index">
+                            <a asp-controller="Dashboard" asp-action="Index">
                                 <i class="bx bx-home-alt icon nav-icon"></i>
                                 <span class="menu-item" data-key="t-dashboard">Anasayfa</span>
                             </a>
@@ -71,14 +71,14 @@
                         <li class="menu-title" data-key="t-definitions-title">TANIMLAR</li>
 
                         <li>
-                            <a href="/Hospital/Index" class="waves-effect">
+                            <a asp-controller="Hospital" asp-action="Index" class="waves-effect">
                                 <i class="mdi mdi-hospital-building icon nav-icon"></i>
                                 <span class="menu-item" data-key="t-def-hospitals">Hastaneler</span>
                             </a>
                         </li>
 
                         <li>
-                            <a href="/LocationList/Index" class="waves-effect">
+                            <a asp-controller="LocationList" asp-action="Index" class="waves-effect">
                                 <i class="mdi mdi-map-marker icon nav-icon"></i>
                                 <span class="menu-item">Müşteriler</span>
                             </a>
@@ -90,10 +90,10 @@
                                 <span class="menu-item" data-key="t-definitions">Ürün Tanımları</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="false">
-                                <li><a href="/Category/Index">Kategoriler</a></li>
-                                <li><a href="/Product/Index">Ürünler</a></li>
-                                <li><a href="/Set/Index">Setler</a></li>
-                                <li><a href="/Rule/Index">Kurallar</a></li>
+                                <li><a asp-controller="Category" asp-action="Index">Kategoriler</a></li>
+                                <li><a asp-controller="Product" asp-action="Index">Ürünler</a></li>
+                                <li><a asp-controller="Set" asp-action="Index">Setler</a></li>
+                                <li><a asp-controller="Rule" asp-action="Index">Kurallar</a></li>
                             </ul>
                         </li>
 
@@ -110,9 +110,9 @@
                                 <span class="menu-item" data-key="t-def-cargo">Kargo (Tanımlamalar)</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="false">
-                                <li><a href="/CargoName/Index">Kargo Firmaları</a></li>
-                                <li><a href="/CargoDefinition/Index">Kontrol Sonucu (+Diğer)</a></li>
-                                <li><a href="/CargoDefinition/ProductStatusIndex">Ürün Durumu</a></li>
+                                <li><a asp-controller="CargoName" asp-action="Index">Kargo Firmaları</a></li>
+                                <li><a asp-controller="CargoDefinition" asp-action="Index">Kontrol Sonucu (+Diğer)</a></li>
+                                <li><a asp-controller="CargoDefinition" asp-action="ProductStatusIndex">Ürün Durumu</a></li>
                             </ul>
                         </li>
 
@@ -123,8 +123,8 @@
                                 <span class="menu-item" data-key="t-def-demand">Talep Tanımları</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="false">
-                                <li><a href="/CargoDefinition/RequestReasonIndex/4">Gönderim Nedenleri</a></li>
-                                <li><a href="/CargoDefinition/RequestReasonIndex/5">İade Nedenleri</a></li>
+                                <li><a asp-controller="CargoDefinition" asp-action="RequestReasonIndex" asp-route-id="4">Gönderim Nedenleri</a></li>
+                                <li><a asp-controller="CargoDefinition" asp-action="RequestReasonIndex" asp-route-id="5">İade Nedenleri</a></li>
                             </ul>
                         </li>
                         
@@ -147,10 +147,10 @@
                                 <span class="menu-item" data-key="t-inventory">Depo / Stok</span>
                             </a>
                             <ul class="sub-menu" aria-expanded="false">
-                                <li><a href="/MainRepoLocation/ProductList"><i class="mdi mdi-view-list me-1"></i> Depo Ürün Listesi</a></li>
-                                <li><a href="/Inventory/Stock">Stok</a></li>
-                                <li><a href="/Inventory/Inbound">Giriş Hareketleri</a></li>
-                                <li><a href="/Inventory/Outbound">Çıkış Hareketleri</a></li>
+                                <li><a asp-controller="MainRepoLocation" asp-action="ProductList"><i class="mdi mdi-view-list me-1"></i> Depo Ürün Listesi</a></li>
+                                <li><a asp-controller="Inventory" asp-action="Stock">Stok</a></li>
+                                <li><a asp-controller="Inventory" asp-action="Inbound">Giriş Hareketleri</a></li>
+                                <li><a asp-controller="Inventory" asp-action="Outbound">Çıkış Hareketleri</a></li>
                             </ul>
                         </li>
 
@@ -159,7 +159,7 @@
                         @await Component.InvokeAsync("InstallationMenu")
 
                         <li>
-                            <a href="/Installation/ServicesPage" class="waves-effect">
+                            <a asp-controller="Installation" asp-action="ServicesPage" class="waves-effect">
                                 <i class="mdi mdi-tools icon nav-icon"></i>
                                 <span class="menu-item">Servis İşlemleri</span>
                             </a>
@@ -178,7 +178,7 @@
                         </li>
 
                         <li>
-                            <a href="/ProductExcel/Index" class="waves-effect">
+                            <a asp-controller="ProductExcel" asp-action="Index" class="waves-effect">
                                 <i class="mdi mdi-file-excel icon nav-icon"></i>
                                 <span class="menu-item">Excel'e Aktar</span>
                             </a>
@@ -187,7 +187,7 @@
                         <li class="menu-title">SİSTEM YÖNETİMİ</li>
 
                         <li>
-                            <a href="/UserManagement/Index" class="waves-effect">
+                            <a asp-controller="UserManagement" asp-action="Index" class="waves-effect">
                                 <i class="mdi mdi-account-group icon nav-icon"></i>
                                 <span class="menu-item">Kullanıcılar</span>
                             </a>
@@ -196,7 +196,7 @@
                         @if (User.IsInRole(RoleConsts.Admin))
                         {
                             <li>
-                                <a href="/MailSetting/SettingSmtp" class="waves-effect">
+                                <a asp-controller="MailSetting" asp-action="SettingSmtp" class="waves-effect">
                                     <i class="mdi mdi-email-outline icon nav-icon"></i>
                                     <span class="menu-item">Mail Ayarları</span>
                                 </a>
@@ -229,8 +229,7 @@
             <h5 id="offcanvasActivityLabel">Offcanvas right</h5>
             <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
         </div>
-        <div class="offcanvas-body">
-        </div>
+        <div class="offcanvas-body"></div>
     </div>
 
     @await Component.InvokeAsync("Scripts")
