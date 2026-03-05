@@ -23,5 +23,6 @@ namespace StockTrack.Dto.Hospital
         // Sağlık.Net (SN) Alanları
         public string? SnUsername { get; set; }
         public string? SnPassword { get; set; }
+
     }
 }
