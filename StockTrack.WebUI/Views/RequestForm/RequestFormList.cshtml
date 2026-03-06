@@ -32,7 +32,7 @@
             <th>Talep Tarihi</th>
             <th>Türü</th>
             <th>Depo</th>
-            <th>Lokasyon</th>
+            <th>Hastane</th>
             <th>Adres</th>
             <th>Alıcı</th>
             <th>Telefon</th>
@@ -53,7 +53,7 @@
             <th>Talep Tarihi</th>
             <th>Türü</th>
             <th>Depo</th>
-            <th>Lokasyon</th>
+            <th>Hastane</th>
             <th>Adres</th>
             <th>Alıcı</th>
             <th>Telefon</th>
@@ -83,8 +83,8 @@
                         item.RequestFormTypeId == (int)EnumRequestType.Servis ? "Servis" : "Belirtilmemiş")
                     </td>
                     <td>@(item.MainRepoLocationName)</td>
-                    <td>@(item.Location)</td>
-                    <td>@(item.Address)</td>
+                    <td>@(item.HospitalName)</td>
+                    <td>@(item.HospitalAddress)</td>
                     <td>@(item.ReceiverName)</td>
                     <td>@(item.Phone)</td>
                     <td>@(item.InstallationDate?.ToString("dd MMMM yyyy"))</td>

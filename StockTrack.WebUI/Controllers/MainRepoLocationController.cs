@@ -477,7 +477,7 @@ namespace StockTrack.WebUI.Controllers
                                         join rp in _appDbContext.RequestProducts on rf.Id equals rp.RequestFormId
                                         join product in _appDbContext.Products on rp.ProductId equals product.Id
                                         join category in _appDbContext.Categories on product.CategoryId equals category.Id
-                                        where rf.MainRepoLocationId == mainRepoId && rp.ProductId == productId && ( rfd.StatusId == (int)EnumStatusType.Tamamlandı || rfd.StatusId == (int)EnumStatusType.Kargoda)
+                                        where rf.MainRepoLocationId == mainRepoId && rp.ProductId == productId && (rfd.StatusId == (int)EnumStatusType.Tamamlandı || rfd.StatusId == (int)EnumStatusType.Kargoda)
                                         select new { rf, rfd, rp, product, category }).ToListAsync();
 
             var resultList = new List<StockDetailDto>();
@@ -491,8 +491,10 @@ namespace StockTrack.WebUI.Controllers
                     var dto = new StockDetailDto
                     {
                         MainRepoName = _appDbContext.MainRepoLocations.Where(m => m.Id == mainRepoId).Select(m => m.Name).FirstOrDefault(),
-                        LocationName = _appDbContext.LocationLists.Where(l => l.Id == firstItem.rf.LocationListId).Select(l => l.Name).FirstOrDefault(),
-                        LocationAddress = _appDbContext.LocationLists.Where(l => l.Id == firstItem.rf.LocationListId).Select(l => l.Address).FirstOrDefault(),
+
+                        // YENİ EKLENEN KISIM: LocationLists yerine Hospitals kullanıyoruz ve HospitalId'ye göre arıyoruz.
+                        LocationName = _appDbContext.Hospitals.Where(h => h.Id == firstItem.rf.HospitalId).Select(h => h.Name).FirstOrDefault(),
+                        LocationAddress = _appDbContext.Hospitals.Where(h => h.Id == firstItem.rf.HospitalId).Select(h => h.Address).FirstOrDefault(),
 
                         CategoryName = item.category.Name,
                         ProductName = item.product.Name,

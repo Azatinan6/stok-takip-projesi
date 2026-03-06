@@ -29,15 +29,15 @@ namespace StockTrack.WebUI.Controllers
         {
             var requestFroms = (from rf in _appDbContext.RequestForms
                                 join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
-                                join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
+                                join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                                 join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
                                 where rf.RequestFormTypeId == (int)EnumRequestType.Kurulum && !rfd.IsDeleted && rfd.StatusId == (int)EnumStatusType.OnayBekliyor
                                 select new ApprovalPendingRequestFormDto
                                 {
                                     RequestFormDetailId = rfd.Id,
                                     MainRepoName = m.Name,
-                                    LocationName = l.Name,
-                                    LocationAdress = l.Address,
+                                    HospitalName = h.Name,
+                                    HospitalAddress = h.Address,
                                     CreatedBy = rfd.CreatedBy,
                                     CreatedDate = rfd.CreatedDate,
                                     InstallationDate = rfd.InstallationDate,
@@ -70,7 +70,7 @@ namespace StockTrack.WebUI.Controllers
         {
             var requestForms = (from rf in _appDbContext.RequestForms
                                 join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
-                                join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
+                                join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                                 join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
                                 where rf.RequestFormTypeId == (int)EnumRequestType.Kurulum && !rfd.IsDeleted && rfd.StatusId == (int)EnumStatusType.KurulumBekliyor
                                 select new ReadyToInstallDto
@@ -78,8 +78,8 @@ namespace StockTrack.WebUI.Controllers
                                     RequestFormDetailId = rfd.Id,
                                     RequestFormTypeId = rf.RequestFormTypeId,
                                     MainRepoName = m.Name,
-                                    LocationName = l.Name,
-                                    LocationAdress = l.Address,
+                                    HospitalName = h.Name,
+                                    HospitalAddress = h.Address,
                                     CreatedBy = rfd.CreatedBy,
                                     CreatedDate = rfd.CreatedDate,
                                     InstallationDate = rfd.InstallationDate,
@@ -112,7 +112,7 @@ namespace StockTrack.WebUI.Controllers
         {
             var requestForms = (from rf in _appDbContext.RequestForms
                                 join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
-                                join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
+                                join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                                 join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
                                 where rf.RequestFormTypeId == (int)EnumRequestType.Kurulum && !rfd.IsDeleted && rfd.StatusId == (int)EnumStatusType.Tamamlandı
                                 select new CompletedInstallDto
@@ -120,8 +120,8 @@ namespace StockTrack.WebUI.Controllers
                                     RequestFormDetailId = rfd.Id,
                                     RequestFormTypeId = rf.RequestFormTypeId,
                                     MainRepoName = m.Name,
-                                    LocationName = l.Name,
-                                    LocationAdress = l.Address,
+                                    HospitalName = h.Name,
+                                    HospitalAddress = h.Address,
                                     CreatedBy = rfd.CreatedBy,
                                     CreatedDate = rfd.CreatedDate,
                                     InstallationDate = rfd.InstallationDate,
@@ -155,7 +155,7 @@ namespace StockTrack.WebUI.Controllers
         {
             var requestForms = (from rf in _appDbContext.RequestForms
                                 join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
-                                join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
+                                join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                                 join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
                                 where rf.RequestFormTypeId == (int)EnumRequestType.Kurulum && !rfd.IsDeleted && rfd.StatusId == (int)EnumStatusType.İptal
                                 select new CancelledInstallDto
@@ -163,8 +163,8 @@ namespace StockTrack.WebUI.Controllers
                                     RequestFormDetailId = rfd.Id,
                                     RequestFormTypeId = rf.RequestFormTypeId,
                                     MainRepoName = m.Name,
-                                    LocationName = l.Name,
-                                    LocationAdress = l.Address,
+                                    HospitalName = h.Name,
+                                    HospitalAddress = h.Address,
                                     CreatedBy = rfd.CreatedBy,
                                     CreatedDate = rfd.CreatedDate,
                                     InstallationDate = rfd.InstallationDate,
@@ -201,7 +201,7 @@ namespace StockTrack.WebUI.Controllers
 
             var data = await (from rf in _appDbContext.RequestForms
                               join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
-                              join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
+                              join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                               join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
                               where rf.RequestFormTypeId == (int)EnumRequestType.Kurulum && !rfd.IsDeleted
                               orderby rfd.CanceledDate descending
@@ -209,7 +209,7 @@ namespace StockTrack.WebUI.Controllers
                               {
                                   rf,
                                   rfd,
-                                  l,
+                                 h,
                                   m,
                                   Products = (from rp in _appDbContext.RequestProducts
                                               join p in _appDbContext.Products on rp.ProductId equals p.Id
@@ -265,8 +265,8 @@ namespace StockTrack.WebUI.Controllers
                     RequestFormDetailId = x.rfd.Id,
                     RequestFormTypeId = x.rf.RequestFormTypeId,
                     MainRepoName = x.m.Name,
-                    LocationName = x.l.Name,
-                    LocationAdress = x.l.Address,
+                    HospitalName = x.h.Name,
+                    HospitalAddress = x.h.Address,
                     CreatedBy = x.rfd.CreatedBy,
                     CreatedDate = x.rfd.CreatedDate,
                     InstallationDate = x.rfd.InstallationDate,
@@ -300,7 +300,7 @@ namespace StockTrack.WebUI.Controllers
 
             var data = await (from rf in _appDbContext.RequestForms
                               join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
-                              join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
+                              join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                               join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
                               where rf.RequestFormTypeId == (int)EnumRequestType.Kurulum && !rfd.IsDeleted
                               orderby rfd.CanceledDate descending
@@ -308,7 +308,7 @@ namespace StockTrack.WebUI.Controllers
                               {
                                   rf,
                                   rfd,
-                                  l,
+                                  h,
                                   m,
                                   Products = (from rp in _appDbContext.RequestProducts
                                               join p in _appDbContext.Products on rp.ProductId equals p.Id
@@ -364,8 +364,8 @@ namespace StockTrack.WebUI.Controllers
                     RequestFormDetailId = x.rfd.Id,
                     RequestFormTypeId = x.rf.RequestFormTypeId,
                     MainRepoName = x.m.Name,
-                    LocationName = x.l.Name,
-                    LocationAdress = x.l.Address,
+                    HospitalName = x.h.Name,
+                    HospitalAddress = x.h.Address,
                     CreatedBy = x.rfd.CreatedBy,
                     CreatedDate = x.rfd.CreatedDate,
                     InstallationDate = x.rfd.InstallationDate,
@@ -395,16 +395,16 @@ namespace StockTrack.WebUI.Controllers
         {
             var requestForms = (from rf in _appDbContext.RequestForms
                                       join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
-                                      join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
-                                      join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
+                                join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
+                                join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
                                       where rf.RequestFormTypeId == (int)EnumRequestType.Servis && !rfd.IsDeleted && rfd.StatusId == (int)EnumStatusType.Tamamlandı
                                       select new CompletedServicesDto
                                       {
                                           RequestFormDetailId = rfd.Id,
                                           RequestFormTypeId = rf.RequestFormTypeId,
                                           MainRepoName = m.Name,
-                                          LocationName = l.Name,
-                                          LocationAdress = l.Address,
+                                          HospitalName = h.Name,
+                                          HospitalAddress = h.Address,
                                           CreatedBy = rfd.CreatedBy,
                                           CreatedDate = rfd.CreatedDate,
                                           InstallationDate = rfd.InstallationDate,

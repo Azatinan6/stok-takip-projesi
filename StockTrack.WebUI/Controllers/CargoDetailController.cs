@@ -31,7 +31,7 @@ namespace StockTrack.WebUI.Controllers
             var resultAwaitingApprovals = (from rfd in _appDbContext.RequestFormDetails
                                            join rf in _appDbContext.RequestForms on rfd.RequestFormId equals rf.Id
                                            join mrl in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals mrl.Id
-                                           join rl in _appDbContext.LocationLists on rf.LocationListId equals rl.Id
+                                           join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                                            join st in _appDbContext.StatusTypes on rfd.StatusId equals st.Id
                                            where rfd.StatusId == (int)EnumStatusType.OnayBekliyor && !rfd.IsDeleted
                                            select new ResultAwitingApprovalDto
@@ -41,8 +41,8 @@ namespace StockTrack.WebUI.Controllers
                                                StatusName = st.Name,
                                                ReceiverFullName = rfd.ToPerson,
                                                Phone = rfd.Phone,
-                                               LocationName = rl.Name,
-                                               LocationAdress = rl.Address,
+                                               HospitalName = h.Name,
+                                               HospitalAddress = h.Address,
                                                RequestFormRequestedBy = rfd.RequestBy,
                                                RequestFormRequestedDate = rfd.RequestDate,
                                                MainRepoName = mrl.Name,
@@ -70,7 +70,7 @@ namespace StockTrack.WebUI.Controllers
             var resultCargoForReadyDtos = (from rfd in _appDbContext.RequestFormDetails
                                            join rf in _appDbContext.RequestForms on rfd.RequestFormId equals rf.Id
                                            join mrl in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals mrl.Id
-                                           join rl in _appDbContext.LocationLists on rf.LocationListId equals rl.Id
+                                           join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                                            join st in _appDbContext.StatusTypes on rfd.StatusId equals st.Id
                                            where rf.RequestFormTypeId == (int)EnumRequestType.Kargo
                                            where rfd.StatusId == (int)EnumStatusType.Paketlendi && !rfd.IsDeleted
@@ -79,9 +79,9 @@ namespace StockTrack.WebUI.Controllers
                                                Id = rfd.Id,
                                                StatusId = rfd.StatusId,
                                                ReceiverFullName = rfd.ToPerson,
-                                               Phone = rfd.Phone,
-                                               LocationName = rl.Name,
-                                               LocationAdress = rl.Address,
+                                               Phone = rfd.Phone,                                              
+                                               HospitalName = h.Name,
+                                               HospitalAddress = h.Address,
                                                RequestFormRequestedBy = rfd.CreatedBy, //talebi onaylayan kişi 
                                                RequestFormRequestedDate = rfd.PackingDate, //tarihi
                                                MainRepoName = mrl.Name,
@@ -109,7 +109,7 @@ namespace StockTrack.WebUI.Controllers
                                            join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
                                            join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
                                            join cn in _appDbContext.CargoNames on rfd.CargoNameId equals cn.Id
-                                           join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
+                                           join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                                            where rf.RequestFormTypeId == (int)EnumRequestType.Kargo
                                            where rfd.StatusId == (int)EnumStatusType.Kargoda && !rfd.IsDeleted
                                            select new ResultCargoInDeliveryDto
@@ -118,8 +118,8 @@ namespace StockTrack.WebUI.Controllers
                                                StatusId = rfd.StatusId,
                                                ReceiverFullName = rfd.ToPerson,
                                                Phone = rfd.Phone,
-                                               LocationName = l.Name,
-                                               LocationAdress = l.Address,
+                                               HospitalName = h.Name,
+                                               HospitalAddress = h.Address,
                                                RequestFormBy = rfd.CreatedBy,
                                                RequestFormDate = rfd.CreatedDate,
                                                MainRepoName = m.Name,
@@ -152,7 +152,7 @@ namespace StockTrack.WebUI.Controllers
                                          join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
                                          join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
                                          join cn in _appDbContext.CargoNames on rfd.CargoNameId equals cn.Id
-                                         join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
+                                         join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                                          join s in _appDbContext.StatusTypes on rfd.StatusId equals s.Id
                                          where rf.RequestFormTypeId == (int)EnumRequestType.Kargo
                                          where rfd.StatusId == (int)EnumStatusType.Tamamlandı && !rfd.IsDeleted
@@ -162,8 +162,8 @@ namespace StockTrack.WebUI.Controllers
                                              StatusId = rfd.StatusId,
                                              ReceiverFullName = rfd.ToPerson,
                                              Phone = rfd.Phone,
-                                             LocationName = l.Name,
-                                             LocationAdress = l.Address,
+                                             HospitalName = h.Name,
+                                             HospitalAddress = h.Address,
                                              RequestFormBy = rfd.CreatedBy,
                                              RequestFormDate = rfd.CreatedDate,
                                              MainRepoName = m.Name,
@@ -199,7 +199,7 @@ namespace StockTrack.WebUI.Controllers
                                         join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
                                         join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
                                         join cn in _appDbContext.CargoNames on rfd.CargoNameId equals cn.Id
-                                        join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
+                                        join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                                         join s in _appDbContext.StatusTypes on rfd.StatusId equals s.Id
                                         where rf.RequestFormTypeId == (int)EnumRequestType.Kargo
                                         where rfd.StatusId == (int)EnumStatusType.İptal && !rfd.IsDeleted
@@ -209,8 +209,8 @@ namespace StockTrack.WebUI.Controllers
                                             StatusId = rfd.StatusId,
                                             ReceiverFullName = rfd.ToPerson,
                                             Phone = rfd.Phone,
-                                            LocationName = l.Name,
-                                            LocationAdress = l.Address,
+                                            HospitalName = h.Name,
+                                            HospitalAddress = h.Address,
                                             CancaledBy = rfd.CanceledBy,
                                             CanceledDesc = rfd.CanceledDesc,
                                             RequestFormBy = rfd.CreatedBy,
@@ -382,7 +382,7 @@ namespace StockTrack.WebUI.Controllers
             var resultCargoDeleteds = (from rf in _appDbContext.RequestForms
                                        join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
                                        join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
-                                       join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
+                                       join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                                        join s in _appDbContext.StatusTypes on rfd.StatusId equals s.Id
                                        where rf.RequestFormTypeId == (int)EnumRequestType.Kargo
                                        where rfd.IsDeleted == true
@@ -391,8 +391,8 @@ namespace StockTrack.WebUI.Controllers
                                            Id = rfd.Id,
                                            ReceiverFullName = rfd.ToPerson,
                                            Phone = rfd.Phone,
-                                           LocationName = l.Name,
-                                           LocationAdress = l.Address,
+                                           HospitalName = h.Name,
+                                           HospitalAddress = h.Address,
                                            DeletedBy = rfd.DeletedBy,
                                            DeletedDate = rfd.DeletedDate,
                                            RequestFormBy = rfd.CreatedBy,

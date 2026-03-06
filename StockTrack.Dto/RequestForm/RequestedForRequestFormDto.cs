@@ -9,21 +9,21 @@
         public string MainRepoLocationName { get; set; }
         public string RequestBy { get; set; }
         public DateTime? RequestDate { get; set; }
-       
-     
-        public string Location { get; set; }
-        public string Address { get; set; }
+
+        // --- Lokasyon Yerine Hastane Bilgileri ---
+        public string HospitalName { get; set; } // Eski 'Location'
+        public string HospitalAddress { get; set; } // Eski 'Address'
+
+        // --- Kargo Detayları ---
         public string ReceiverName { get; set; }
         public string Phone { get; set; }
 
-        //Kurulum & Servis
+        // --- Kurulum & Servis Detayları ---
         public DateTime? InstallationDate { get; set; }
         public string? Description { get; set; }
         public List<string> Persons { get; set; }
 
-        //ürünler
-        public List<ProductDetailDto> Products { get; set; } 
-
+        // --- Ürün Listesi ---
+        public List<ProductDetailDto> Products { get; set; }
     }
-   
 }

@@ -10,8 +10,10 @@ namespace StockTrack.Dto.CargoDetail
         public string ReceiverFullName { get; set; }
         public string Phone { get; set; }
         //public List<string> ProductNames { get; set; }
-        public string LocationName { get; set; }
-        public string LocationAdress { get; set; }
+        //public string LocationName { get; set; }
+        //public string LocationAdress { get; set; }
+        public string HospitalName { get; set; }
+        public string HospitalAddress { get; set; }
         public string MainRepoName { get; set; }
         //public List<int> Quantities { get; set; }
         public DateTime? RequestFormRequestedDate { get; set; } //Talebi oluşturulma tarihi

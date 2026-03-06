@@ -18,7 +18,6 @@ namespace StockTrack.DataAccess.Context
         public DbSet<ProductSetItem> ProductSetItems { get; set; }
         public DbSet<CargoDefinition> CargoDefinitions { get; set; }
         public DbSet<Product> Products { get; set; }
-        public DbSet<LocationList> LocationLists { get; set; }
         public DbSet<MainRepoLocation> MainRepoLocations { get; set; }
         public DbSet<RequestForm> RequestForms { get; set; }
         public DbSet<RequestProduct> RequestProducts { get; set; }

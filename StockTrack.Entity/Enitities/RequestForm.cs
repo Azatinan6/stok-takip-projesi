@@ -4,7 +4,9 @@
     {
         public int MainRepoLocationId { get; set; }
 
-        public int LocationListId { get; set; }
+        //public int LocationListId { get; set; }
+
+        public int HospitalId { get; set; }
 
         public int RequestFormTypeId { get; set; }
 

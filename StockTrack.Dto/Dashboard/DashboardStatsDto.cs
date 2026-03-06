@@ -6,7 +6,7 @@
         public int TotalProducts { get; set; }  // Ürün tablosundaki toplam ürün sayısı
         public int ActiveProducts { get; set; }  // Aktif ürün sayısı
         public int CategoryCount { get; set; }  // Kategori sayısı
-        public int LocationCount { get; set; }  // Lokasyon sayısı
+        public int LocationCount { get; set; }  // Hastane sayısı
         public int DeletedProductsCount { get; set; }    // Silinmiş (IsDeleted) ürün sayısı
         public int ActiveUserCount { get; set; }  // Kullanıcı sayısı
         public int TotalLocationCount { get; set; } //Lokasyon sayısı

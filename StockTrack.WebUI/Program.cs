@@ -82,9 +82,6 @@ builder.Services.AddScoped<IHospitalDal, EfHospitalDal>();
 builder.Services.AddScoped<IProductService, ProductManager>();
 builder.Services.AddScoped<IProductDal, EfProductDal>();
 
-builder.Services.AddScoped<ILocationListService, LocationListManager>();
-builder.Services.AddScoped<ILocationListDal, EfLocationListDal>();
-
 builder.Services.AddScoped<IMainRepoLocationService, MainRepoLocationManager>();
 builder.Services.AddScoped<IMainRepoLocationDal, EfMainRepoLocationDal>();
 

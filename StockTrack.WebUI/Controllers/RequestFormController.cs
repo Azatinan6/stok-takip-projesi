@@ -21,23 +21,28 @@ namespace StockTrack.WebUI.Controllers
         private readonly ICategoryService _categoryService;
         private readonly IMainRepoLocationService _mainRepoLocationService;
         private readonly IProductService _productService;
-        private readonly ILocationListService _locationListService;
+        private readonly IHospitalService _hospitalService;
         private readonly UserManager<AppUser> _userManager;
 
-        public RequestFormController(AppDbContext appDbContext, ICategoryService categoryService, IMainRepoLocationService mainRepoLocationService, IProductService productService, ILocationListService locationListService, UserManager<AppUser> userManager)
+        public RequestFormController(AppDbContext appDbContext, ICategoryService categoryService, IMainRepoLocationService mainRepoLocationService, IProductService productService, IHospitalService hospitalService, UserManager<AppUser> userManager)
         {
             _appDbContext = appDbContext;
             _categoryService = categoryService;
             _mainRepoLocationService = mainRepoLocationService;
             _productService = productService;
-            _locationListService = locationListService;
+            _hospitalService = hospitalService;
             _userManager = userManager;
         }
 
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            var locations = await _appDbContext.LocationLists.AsNoTracking()
+            //var locations = await _appDbContext.LocationLists.AsNoTracking()
+            //    .Where(x => !x.IsDeleted && x.IsActive)
+            //    .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name })
+            //    .ToListAsync();
+
+            var hospitals = await _appDbContext.Hospitals.AsNoTracking()
                 .Where(x => !x.IsDeleted && x.IsActive)
                 .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name })
                 .ToListAsync();
@@ -52,7 +57,8 @@ namespace StockTrack.WebUI.Controllers
                 .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.NameSurname })
                 .ToListAsync();
 
-            ViewBag.Locations = locations;
+            //ViewBag.Locations = locations;
+            ViewBag.Locations = hospitals;
             ViewBag.MainRepos = repos;
             ViewBag.Persons = persons;
 
@@ -84,8 +90,8 @@ namespace StockTrack.WebUI.Controllers
                 }
             }
 
-            // ADIM 2) Görünüm verilerini her durumda doldur (Hata olursa sayfa dolu gelsin)
-            ViewBag.Locations = await _appDbContext.LocationLists.AsNoTracking()
+            // ADIM 2) Görünüm verilerini doldur (HATA BURADAYDI, DÜZELTİLDİ)
+            ViewBag.Locations = await _appDbContext.Hospitals.AsNoTracking() 
                 .Where(x => !x.IsDeleted && x.IsActive)
                 .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name })
                 .ToListAsync();
@@ -100,10 +106,9 @@ namespace StockTrack.WebUI.Controllers
                 .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.NameSurname })
                 .ToListAsync();
 
-
             // ADIM 3) Sunucu Tarafı Doğrulamaları
             if (dto.MainRepoId <= 0) ModelState.AddModelError("", "Depo seçimi zorunludur.");
-            if (dto.LocationId <= 0) ModelState.AddModelError("", "Lokasyon seçimi zorunludur.");
+            if (dto.LocationId <= 0) ModelState.AddModelError("", "Hastane seçimi zorunludur.");
             if (dto.TypeId <= 0) ModelState.AddModelError("", "Talep türü zorunludur.");
 
             if (dto.TypeId == (int)EnumRequestType.Kargo)
@@ -168,7 +173,7 @@ namespace StockTrack.WebUI.Controllers
                 var requestForm = new RequestForm
                 {
                     MainRepoLocationId = dto.MainRepoId,
-                    LocationListId = dto.LocationId,
+                    HospitalId = dto.LocationId,
                     RequestFormTypeId = dto.TypeId,
                     IsShipAfterReturn = dto.IsShipAfterReturn, // Yeni
                     IsOfficeDelivery = dto.IsOfficeDelivery,   // Yeni
@@ -322,7 +327,7 @@ namespace StockTrack.WebUI.Controllers
         {
             var requestList = (from rf in _appDbContext.RequestForms
                                join mrl in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals mrl.Id
-                               join rl in _appDbContext.LocationLists on rf.LocationListId equals rl.Id
+                               join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                                join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
                                join rft in _appDbContext.RequestFormTypes on rf.RequestFormTypeId equals rft.Id
                                where rf.IsActive && !rf.IsDeleted && rfd.StatusId == (int)EnumStatusType.Talep && rfd.StatusId != (int)EnumStatusType.İptal
@@ -330,7 +335,7 @@ namespace StockTrack.WebUI.Controllers
                                {
                                    RequestFormDetailId = rfd.Id,
                                    MainRepoLocationName = mrl.Name,
-                                   Location = rl.Name,
+                                   HospitalName = h.Name,
                                    RequestTypeName = rft.Name,
                                    RequestFormTypeId = rf.RequestFormTypeId,
 
@@ -357,7 +362,7 @@ namespace StockTrack.WebUI.Controllers
                                    Description = rfd.Description,
                                    ReceiverName = rfd.ToPerson,
                                    Phone = rfd.Phone,
-                                   Address = rl.Address,
+                                   HospitalAddress = h.Address,
                                    Persons = (from pd in _appDbContext.PersonDetails
                                               join u in _appDbContext.Users on pd.AppUserId equals u.Id
                                               where rfd.Id == pd.RequestFormDetailId

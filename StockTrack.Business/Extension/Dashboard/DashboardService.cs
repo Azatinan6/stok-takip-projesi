@@ -19,10 +19,13 @@ namespace StockTrack.Business.Extension.Dashboard
             var totalProducts = await _appDbContext.Products.CountAsync(p => !p.IsDeleted);
             var activeProducts = await _appDbContext.Products.CountAsync(p => !p.IsDeleted && p.IsActive);
             var categoryCount = await _appDbContext.Categories.CountAsync(c => !c.IsDeleted);
-            var locationCount = await _appDbContext.LocationLists.CountAsync(l => !l.IsDeleted);
+
+            // ESKİ: LocationLists üzerinden sayıyordu
+            // YENİ: Artık hastaneleri (Hospitals) sayıyoruz
+            var hospitalCount = await _appDbContext.Hospitals.CountAsync(h => !h.IsDeleted);
+
             var activeUserCount = await _appDbContext.Users.CountAsync(u => !u.IsDeleted);
             var totalMainRepoCount = await _appDbContext.MainRepoLocations.CountAsync(m => m.IsActive && !m.IsDeleted);
-
 
             // DTO ile istatistikleri döndür
             return new DashboardStatsDto
@@ -30,16 +33,15 @@ namespace StockTrack.Business.Extension.Dashboard
                 TotalProducts = totalProducts,
                 ActiveProducts = activeProducts,
                 CategoryCount = categoryCount,
-                LocationCount = locationCount,
+
+                // Dashboard ekranında 'Lokasyon Sayısı' yazan yere 'Hastane Sayısı' gelecek
+                LocationCount = hospitalCount,
+                TotalLocationCount = hospitalCount,
+
                 ActiveUserCount = activeUserCount,
-                TotalLocationCount = locationCount, 
-                TotalCategories = categoryCount,    
+                TotalCategories = categoryCount,
                 TotalMainRepoCount = totalMainRepoCount
             };
         }
-
-
-
     }
 }
-

@@ -37,7 +37,7 @@
                     <ul class="wizard-nav mb-5">
                         <li class="wizard-list-item">
                             <div class="list-item active">
-                                <div class="step-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Lokasyon & Depo">
+                                <div class="step-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="Hastane & Depo">
                                     <i class="bx bx-buildings"></i>
                                 </div>
                             </div>
@@ -60,15 +60,15 @@
 
                     <div class="wizard-tab" data-step="1" style="display:block">
                         <div class="text-center mb-4">
-                            <h5>Lokasyon & Depo</h5>
-                            <p class="card-title-desc text-muted">Önce işlem yapılacak lokasyonu ve çıkış yapılacak depoyu seçin.</p>
+                            <h5>Hastane & Depo</h5>
+                            <p class="card-title-desc text-muted">Önce işlem yapılacak hastaneyi ve çıkış yapılacak depoyu seçin.</p>
                         </div>
                         <div class="row">
                             <div class="col-lg-6">
                                 <div class="mb-3">
-                                    <label for="LocationId" class="form-label">Lokasyon <span class="text-danger">*</span></label>
+                                    <label for="LocationId" class="form-label">Hastane / Kurum <span class="text-danger">*</span></label>
                                     <select id="LocationId" name="LocationId" class="form-select" asp-items="@(ViewBag.Locations as List<SelectListItem>)">
-                                        <option value="">-- Seçiniz --</option>
+                                        <option value="">-- Hastane Seçiniz --</option>
                                     </select>
                                 </div>
                             </div>
@@ -76,7 +76,7 @@
                                 <div class="mb-3">
                                     <label for="MainRepoId" class="form-label">Depo <span class="text-danger">*</span></label>
                                     <select id="MainRepoId" name="MainRepoId" class="form-select" asp-items="@(ViewBag.MainRepos as List<SelectListItem>)">
-                                        <option value="">-- Seçiniz --</option>
+                                        <option value="">-- Depo Seçiniz --</option>
                                     </select>
                                 </div>
                             </div>
@@ -219,9 +219,9 @@
                         <div class="row mb-4">
                             <div class="col-lg-6">
                                 <div class="card border shadow-sm">
-                                    <div class="card-header bg-light"><strong><i class="mdi mdi-map-marker me-1"></i> Lokasyon & Depo</strong></div>
+                                    <div class="card-header bg-light"><strong><i class="mdi mdi-map-marker me-1"></i> Hastane & Depo</strong></div>
                                     <div class="card-body">
-                                        <div class="mb-1"><strong>Lokasyon:</strong> <span id="sumLocation">-</span></div>
+                                        <div class="mb-1"><strong>Hastane:</strong> <span id="sumLocation">-</span></div>
                                         <div><strong>Depo:</strong> <span id="sumRepo">-</span></div>
                                     </div>
                                 </div>
@@ -430,7 +430,7 @@
         function step1Valid() {
             const locOk = !!$('#LocationId').val();
             const repoOk = !!$('#MainRepoId').val();
-            if (!locOk)  { setWarn('#step1Warn', 'Lütfen lokasyon seçiniz.'); return false; }
+            if (!locOk)  { setWarn('#step1Warn', 'Lütfen hastane seçiniz.'); return false; }
             if (!repoOk) { setWarn('#step1Warn', 'Lütfen depo seçiniz.');     return false; }
             setWarn('#step1Warn', null);
             return true;

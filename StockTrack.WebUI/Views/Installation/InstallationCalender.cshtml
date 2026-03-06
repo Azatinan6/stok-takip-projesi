@@ -15,14 +15,14 @@
         return new
         {
             id = item.RequestFormDetailId,
-            title = $"{item.LocationName} - {string.Join(", ", item.Persons)}",
+            title = $"{item.HospitalName} - {string.Join(", ", item.Persons)}",
             start = date.ToString("yyyy-MM-dd"),
             color = item.Color,
             extendedProps = new
             {
                 productNames = string.Join(", ", productDisplay),
-                locationName = item.LocationName,
-                locationAdress = item.LocationAdress,
+                locationName = item.HospitalName,
+                locationAdress = item.HospitalAddress,
                 mainRepoName = item.MainRepoName,
                 installedDate = date.ToString("dd MMMM yyyy"),
                 note = item.Description ?? "",

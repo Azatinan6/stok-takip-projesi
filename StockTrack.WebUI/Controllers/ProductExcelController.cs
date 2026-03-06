@@ -33,7 +33,7 @@ namespace StockTrack.WebUI.Controllers
             var data = (from rf in _appDbContext.RequestForms
                         join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
                         join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id
-                        join l in _appDbContext.LocationLists on rf.LocationListId equals l.Id
+                        join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id
                         join rp in _appDbContext.RequestProducts on rf.Id equals rp.RequestFormId
                         join p in _appDbContext.Products on rp.ProductId equals p.Id
                         join c in _appDbContext.Categories on p.CategoryId equals c.Id                       
@@ -44,8 +44,8 @@ namespace StockTrack.WebUI.Controllers
                             RequestedBy = rfd.RequestBy,
                             RequestDate = rfd.RequestDate.ToString(),
                             MainDepo = m.Name,
-                            Location = l.Name,
-                            Address = l.Address,
+                            Location = h.Name,
+                            Address = h.Address,
                             ReciverName = rfd.ToPerson,
                             TrackingNumber = rfd.TrackingNumber,
                             CargoCompany = _appDbContext.CargoNames.Where(x => x.Id == rfd.CargoNameId).Select(x => x.Name).FirstOrDefault(),

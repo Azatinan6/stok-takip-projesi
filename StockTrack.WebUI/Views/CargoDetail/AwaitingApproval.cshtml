@@ -128,8 +128,8 @@
 
                  
 
-                    <td>@item.LocationName</td>
-                    <td>@item.LocationAdress</td>
+                    <td>@item.HospitalName</td>
+                    <td>@item.HospitalAddress</td>
                     <td>@item.ReceiverFullName</td>
                     <td>@item.Phone</td>
                     <td>
@@ -144,12 +144,12 @@
                                 data-bs-toggle="modal"
                                 data-bs-target="#cargoStatusModal"
                                 data-cargodetail-id="@item.Id"
-                                data-location="@item.LocationName"
+                                data-location="@item.HospitalName"
                                 data-category="@string.Join(", ", item.Products.Select(p => p.CategoryName))"
                                 data-product="@string.Join(", ", item.Products.Select(p => p.ProductName))"
                                 data-quantity="@string.Join(", ", item.Products.Select(p => p.Quantity))"
                                 data-receiver="@item.ReceiverFullName"
-                                data-address="@item.LocationAdress">
+                                data-address="@item.HospitalAddress">
                             <i class="mdi mdi-truck-outline"></i> Kargo Durumunu Değiştir
                         </button>
                     </td>
