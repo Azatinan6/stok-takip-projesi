@@ -7,7 +7,7 @@
 <div class="card shadow-sm border-0">
     <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
         <h5 class="mb-0 text-dark"><i class="mdi mdi-layers-triple text-primary me-2"></i> Set Tanımları</h5>
-        <a href="/Set/Create" class="btn btn-primary shadow-sm">
+        <a href="~/Set/Create" class="btn btn-primary shadow-sm">
             <i class="mdi mdi-plus"></i> Yeni Set Ekle
         </a>
     </div>
@@ -49,13 +49,13 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="btn-group">
-                                        <a href="/Set/Edit/@item.Id" class="btn btn-sm btn-outline-primary" title="Düzenle">
+                                        <a href="~/Set/Edit/@item.Id" class="btn btn-sm btn-outline-primary" title="Düzenle">
                                             <i class="mdi mdi-pencil"></i>
                                         </a>
-                                        <a href="/Set/ToggleStatus/@item.Id" class="btn btn-sm btn-outline-warning" title="Aktif/Pasif Yap">
+                                        <a href="~/Set/ToggleStatus/@item.Id" class="btn btn-sm btn-outline-warning" title="Aktif/Pasif Yap">
                                             <i class="mdi mdi-swap-horizontal"></i>
                                         </a>
-                                        <a href="/Set/Delete/@item.Id" class="btn btn-sm btn-outline-danger" title="Sil" onclick="return confirm('Bu seti silmek istediğinize emin misiniz?');">
+                                        <a href="~/Set/Delete/@item.Id" class="btn btn-sm btn-outline-danger" title="Sil" onclick="return confirm('Bu seti silmek istediğinize emin misiniz?');">
                                             <i class="mdi mdi-trash-can"></i>
                                         </a>
                                     </div>

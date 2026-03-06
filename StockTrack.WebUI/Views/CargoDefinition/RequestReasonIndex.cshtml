@@ -32,7 +32,7 @@
                     <span class="col-7 fw-bold text-dark">@item.Name</span>
                     <span class="col-3 text-end">
                         <button type="button" class="btn btn-warning btn-sm shadow-sm" onclick="openEditReasonModal(@item.Id, '@item.Name')">Düzenle</button>
-                        <a href="/CargoDefinition/DeleteRequestReason/@item.Id" class="btn btn-danger btn-sm shadow-sm" onclick="return confirm('Bu nedeni silmek istediğinize emin misiniz?');">Sil</a>
+                        <a href="~/CargoDefinition/DeleteRequestReason/@item.Id" class="btn btn-danger btn-sm shadow-sm" onclick="return confirm('Bu nedeni silmek istediğinize emin misiniz?');">Sil</a>
                     </span>
                 </div>
             }

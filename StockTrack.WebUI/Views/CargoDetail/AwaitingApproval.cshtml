@@ -7,23 +7,23 @@
 }
 
 <div class="d-flex flex-wrap gap-3 mb-4">
-    <a href="/CargoDetail/Index?status=all" class="btn rounded-pill px-4 shadow-sm border" style="background-color: #f8f9fa; color: #495057;">
+    <a href="~/CargoDetail/Index?status=all" class="btn rounded-pill px-4 shadow-sm border" style="background-color: #f8f9fa; color: #495057;">
         Tümü (@ViewBag.AllCount)
     </a>
 
-    <a href="/CargoDetail/Index?status=pending" class="btn rounded-pill px-4 shadow-sm" style="background-color: #ffeaea; color: #dc3545; border: 1px solid #ffc2c2;">
+    <a href="~/CargoDetail/Index?status=pending" class="btn rounded-pill px-4 shadow-sm" style="background-color: #ffeaea; color: #dc3545; border: 1px solid #ffc2c2;">
         Onay Bekliyor (@ViewBag.PendingCount)
     </a>
 
-    <a href="/CargoDetail/Index?status=packaged" class="btn rounded-pill px-4 shadow-sm" style="background-color: #fff3cd; color: #ffc107; border: 1px solid #ffecb5;">
+    <a href="~/CargoDetail/Index?status=packaged" class="btn rounded-pill px-4 shadow-sm" style="background-color: #fff3cd; color: #ffc107; border: 1px solid #ffecb5;">
         Paketlendi (@ViewBag.PackagedCount)
     </a>
 
-    <a href="/CargoDetail/Index?status=incargo" class="btn rounded-pill px-4 shadow-sm" style="background-color: #cff4fc; color: #0dcaf0; border: 1px solid #b6effb;">
+    <a href="~/CargoDetail/Index?status=incargo" class="btn rounded-pill px-4 shadow-sm" style="background-color: #cff4fc; color: #0dcaf0; border: 1px solid #b6effb;">
         Kargoda (@ViewBag.InCargoCount)
     </a>
 
-    <a href="/CargoDetail/Index?status=delivered" class="btn rounded-pill px-4 shadow-sm" style="background-color: #d1e7dd; color: #198754; border: 1px solid #badbcc;">
+    <a href="~/CargoDetail/Index?status=delivered" class="btn rounded-pill px-4 shadow-sm" style="background-color: #d1e7dd; color: #198754; border: 1px solid #badbcc;">
         Teslim Edildi (@ViewBag.DeliveredCount)
     </a>
 </div>
