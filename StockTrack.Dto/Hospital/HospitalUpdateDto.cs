@@ -18,7 +18,7 @@ namespace StockTrack.Dto.Hospital
         public string Phone { get; set; }
         public string? HbysName { get; set; }
         public string? HbysVersion { get; set; }
-        public bool? IsActive { get; set; }
+        public bool IsActive { get; set; }
 
         public DateTime? UpdatedDate { get; set; }
         public string? SnUsername { get; set; }

@@ -52,7 +52,7 @@
                 <h5 class="modal-title">Yeni @(isDispatch ? "Gönderim" : "İade") Nedeni</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form action="/CargoDefinition/CreateRequestReason" method="post">
+            <form action="~/CargoDefinition/CreateRequestReason" method="post">
                 <div class="modal-body p-4">
                     <input type="hidden" name="DefinitionType" value="@ViewBag.ReasonType" />
 
@@ -76,7 +76,7 @@
                 <h5 class="modal-title">Nedeni Düzenle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="/CargoDefinition/EditRequestReason" method="post">
+            <form action="~/CargoDefinition/EditRequestReason" method="post">
                 <div class="modal-body p-4">
                     <input type="hidden" id="editReasonId" name="Id" />
                     <label class="form-label fw-bold">Neden Adı</label>

@@ -199,7 +199,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="formInbound" action="/Inventory/AddStock" method="post">
+                <form id="formInbound" action="~/Inventory/AddStock" method="post">
                     <input type="hidden" name="ProductId" value="@Model.ProductId" />
 
                     <div class="mb-3">
@@ -247,7 +247,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="formOutbound" action="/Inventory/RemoveStock" method="post">
+                <form id="formOutbound" action="~/Inventory/RemoveStock" method="post">
                     <input type="hidden" name="ProductId" value="@Model.ProductId" />
 
                     <div class="mb-3">

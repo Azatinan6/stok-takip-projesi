@@ -90,7 +90,7 @@ namespace StockTrack.WebUI.Controllers
                 hospital.SnUsername = hospitalUpdateDto.SnUsername;
                 hospital.SnPassword = hospitalUpdateDto.SnPassword;
 
-                hospital.IsActive = hospitalUpdateDto.IsActive ?? hospital.IsActive; // Null gelirse mevcut değeri koru
+                hospital.IsActive = hospitalUpdateDto.IsActive;
 
                 await _hospitalService.TUpdateAsync(hospital);
 

@@ -87,7 +87,7 @@
                     <td>
                         @if (!string.IsNullOrEmpty(p.PhotoUrl))
                         {
-                            <img src="/productimages/@p.PhotoUrl"
+                            <img src="~/productimages/@p.PhotoUrl"
                                  alt="@p.Name"
                                  class="img-fluid img-thumbnail"
                                  style="max-height:80px; cursor:pointer; width: 50px;height: 50px; object-fit: cover;border-radius: 4px;"
@@ -589,7 +589,7 @@
             $tableBody.html('<tr><td colspan="4" class="text-center text-muted">Veriler yükleniyor...</td></tr>');
 
             $.ajax({
-                url: '/Product/GetProductStockDetails',
+                url: '@Url.Action("GetProductStockDetails", "Product")',
                 type: 'GET',
                 dataType: 'json',
                 data: { productId: productId },

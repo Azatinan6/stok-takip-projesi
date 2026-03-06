@@ -70,7 +70,7 @@
                 <h5 class="modal-title">Yeni Kargo Firması Ekle</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="/CargoName/Create" method="post">
+            <form asp-controller="CargoName" asp-action="Create" method="post">
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Firma Adı</label>
@@ -93,7 +93,7 @@
                 <h5 class="modal-title">Kargo Firmasını Düzenle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="/CargoName/Edit" method="post">
+            <form asp-controller="CargoName" asp-action="Edit" method="post">
                 <div class="modal-body p-4">
                     <input type="hidden" id="editCargoId" name="Id" />
                     <div class="mb-3">

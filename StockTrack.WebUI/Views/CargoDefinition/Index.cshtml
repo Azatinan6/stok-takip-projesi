@@ -46,7 +46,7 @@
                 <h5 class="modal-title">Yeni Kontrol Sonucu Ekle</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form action="/CargoDefinition/Create" method="post">
+            <form asp-controller="CargoDefinition" asp-action="Create" method="post">
                 <div class="modal-body p-4">
                     <label class="form-label fw-bold">Tanım Adı</label>
                     <input type="text" class="form-control" name="Name" required placeholder="Örn: Kutu Hasarlı, Teslim Alınmadı" />
@@ -66,7 +66,7 @@
                 <h5 class="modal-title">Tanımı Düzenle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="/CargoDefinition/Edit" method="post">
+            <form asp-controller="CargoDefinition" asp-action="Edit" method="post">
                 <div class="modal-body p-4">
                     <input type="hidden" id="editDefId" name="Id" />
                     <label class="form-label fw-bold">Tanım Adı</label>
