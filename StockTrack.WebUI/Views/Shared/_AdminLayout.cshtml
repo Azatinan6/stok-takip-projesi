@@ -135,16 +135,11 @@
                         </li>
 
                         <li>
-                            <a href="javascript:void(0);" class="has-arrow">
+                            <a a asp-controller="Inventory" asp-action="Stock">
                                 <i class="mdi mdi-warehouse icon nav-icon"></i>
                                 <span class="menu-item" data-key="t-inventory">Depo / Stok</span>
                             </a>
-                            <ul class="sub-menu" aria-expanded="false">
-                                <li><a asp-controller="MainRepoLocation" asp-action="ProductList"><i class="mdi mdi-view-list me-1"></i> Depo Ürün Listesi</a></li>
-                                <li><a asp-controller="Inventory" asp-action="Stock">Stok</a></li>
-                                <li><a asp-controller="Inventory" asp-action="Inbound">Giriş Hareketleri</a></li>
-                                <li><a asp-controller="Inventory" asp-action="Outbound">Çıkış Hareketleri</a></li>
-                            </ul>
+                            
                         </li>
 
                         @await Component.InvokeAsync("RequestFormMenu")

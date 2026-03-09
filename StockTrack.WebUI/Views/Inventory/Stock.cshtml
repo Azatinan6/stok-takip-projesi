@@ -6,17 +6,25 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="card shadow-sm border-0">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
-        <h5 class="mb-0 text-dark"><i class="mdi mdi-warehouse text-primary me-2"></i> Güncel Stok Durumu</h5>
+
+
+<div class="d-flex justify-content-between alig-item-center ">
+    <h4 class="mb-3">Güncel Stok Durumu</h4>
+    <div>
+        <a href="~/Inventory/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
+            <i class="mdi mdi-delete-restore me-1"></i> Silinenler
+        </a>
         <a href="~/Inventory/AddProduct" class="btn btn-primary shadow-sm">
             <i class="mdi mdi-plus"></i> Yeni Ürün Girişi
         </a>
     </div>
+</div>
+
+<hr>
 
     <div class="card-body">
         <div class="table-responsive">
-            <table id="DataTables" class="table table-hover table-bordered align-middle" style="width:100%">
+        <table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
                 <thead class="table-light">
                     <tr>
                         <th>#ID</th>
@@ -105,4 +113,3 @@
             </table>
         </div>
     </div>
-</div>

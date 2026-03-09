@@ -102,8 +102,37 @@ namespace StockTrack.Controllers
             _context.ProductMainRepoLocations.Add(newStock);
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Ürün depoya başarıyla eklendi!";
+            // 4. ARC BOX İÇİN BOŞ SATIRLARI ÜRET!
+            // İsterler Belgesi Kuralı: "Arc Box adeti girildikten sonra eklenen sayı kadar satır oluşacak."
+            bool isArcBox = newProduct.Name != null && newProduct.Name.Contains("Arc Box");
 
+            if (isArcBox)
+            {
+                // Kaç adet girildiyse o kadar dönecek bir döngü kuruyoruz
+                for (int i = 0; i < dto.StockQuantity; i++)
+                {
+                    var emptySerialRecord = new ProductSerialNumber
+                    {
+                        ProductId = newProduct.Id,
+
+                        // YENİ EKLENEN KISIM: Depo ve Durum bilgileri Entity'de var olduğu için dolduruyoruz
+                        MainRepoLocationId = dto.WarehouseId,
+                        ProductStatusId = dto.ProductStatusId,
+
+                        SerialNumber = "-", // Başlangıçta boş
+                        EthMac = "-",
+                        WlanMac = "-",
+                        Description = dto.Description, // Formda girilen açıklama varsa onu da atalım
+                        CreatedDate = DateTime.Now,
+                        IsActive = true,
+                        IsDeleted = false
+                    };
+                    _context.ProductSerialNumbers.Add(emptySerialRecord);
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["SuccessMessage"] = "Ürün depoya başarıyla eklendi!";
             return RedirectToAction("Stock");
         }
 
@@ -139,22 +168,42 @@ namespace StockTrack.Controllers
             var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
             if (product == null) return NotFound();
 
-            var stockInfo = await _context.ProductMainRepoLocations.FirstOrDefaultAsync(x => x.ProductId == id);
+            var stockInfo = await _context.ProductMainRepoLocations
+                .Include(x => x.MainRepoLocation)
+                .FirstOrDefaultAsync(x => x.ProductId == id);
+
             int currentStock = stockInfo != null ? stockInfo.Quantity : 0;
+            string mainWarehouseName = stockInfo != null && stockInfo.MainRepoLocation != null ? stockInfo.MainRepoLocation.Name : "-";
 
             var movements = await _context.StockMovements
+                .Include(x => x.MainRepoLocation)
                 .Where(x => x.ProductId == id && !x.IsDeleted)
                 .OrderByDescending(x => x.CreatedDate)
                 .ToListAsync();
 
             var isArcBox = product.Name != null && product.Name.Contains("Arc Box");
 
-            var serials = new List<ProductSerialNumber>();
+            // Tüm kargo tanımlarını (isimlerini bulmak için) hafızaya alalım
+            var definitions = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted);
+
+            var serials = new List<ArcBoxSerialDto>();
             if (isArcBox)
             {
-                serials = await _context.ProductSerialNumbers
+                var rawSerials = await _context.ProductSerialNumbers
+                    .Include(x => x.MainRepoLocation)
                     .Where(x => x.ProductId == id && !x.IsDeleted)
                     .ToListAsync();
+
+                serials = rawSerials.Select(s => new ArcBoxSerialDto
+                {
+                    Id = s.Id,
+                    SerialNumber = s.SerialNumber,
+                    EthMac = s.EthMac,
+                    WlanMac = s.WlanMac,
+                    WarehouseName = s.MainRepoLocation != null ? s.MainRepoLocation.Name : "-",
+                    StatusName = definitions.FirstOrDefault(d => d.Id == s.ProductStatusId)?.Name ?? "Yeni",
+                    Description = s.Description ?? "-"
+                }).ToList();
             }
 
             var dto = new InventoryDetailDto
@@ -165,20 +214,38 @@ namespace StockTrack.Controllers
                 Model = product.Model,
                 IsArcBox = isArcBox,
                 CurrentStock = currentStock,
+                // DİKKAT: Standart ürünlerin depo tablosu için ana depo adını taşıyacak bir alana ihtiyacımız olabilir
+                // Şimdilik ViewBag ile taşıyalım
 
-                InboundMovements = movements.Where(m => m.MovementType == "IN")
-                    .Select(m => new MovementDto { Date = m.CreatedDate, Quantity = m.MovementQuantity, MovementStatusId = m.MovementStatusId, Description = m.Description }).ToList(),
+                InboundMovements = movements.Where(m => m.MovementType == "IN").Select(m => new MovementDto
+                {
+                    Date = m.CreatedDate,
+                    Quantity = m.MovementQuantity,
+                    OldStock = m.OldStockQuantity,
+                    NewStock = m.NewStockQuantity,
+                    LocationName = m.MainRepoLocation != null ? m.MainRepoLocation.Name : "-",
+                    MovementStatusName = definitions.FirstOrDefault(d => d.Id == m.MovementStatusId)?.Name ?? "-",
+                    Description = m.Description
+                }).ToList(),
 
-                OutboundMovements = movements.Where(m => m.MovementType == "OUT")
-                    .Select(m => new MovementDto { Date = m.CreatedDate, Quantity = m.MovementQuantity, MovementStatusId = m.MovementStatusId, Description = m.Description }).ToList(),
+                OutboundMovements = movements.Where(m => m.MovementType == "OUT").Select(m => new MovementDto
+                {
+                    Date = m.CreatedDate,
+                    Quantity = m.MovementQuantity,
+                    OldStock = m.OldStockQuantity,
+                    NewStock = m.NewStockQuantity,
+                    LocationName = m.MainRepoLocation != null ? m.MainRepoLocation.Name : "-",
+                    MovementStatusName = definitions.FirstOrDefault(d => d.Id == m.MovementStatusId)?.Name ?? "-",
+                    Description = m.Description
+                }).ToList(),
 
-                SerialNumbers = serials.Select(s => new ArcBoxSerialDto { SerialNumber = s.SerialNumber, EthMac = s.EthMac, WlanMac = s.WlanMac }).ToList()
+                SerialNumbers = serials
             };
 
-            // 4. EKLENDİ: Detail sayfasındaki "Stok Ekle/Çıkar" formları için Giriş ve Çıkış durumlarını ViewBag'e dolduruyoruz
-            var inStatuses = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted && x.DefinitionType == 2);
-            var outStatuses = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted && x.DefinitionType == 3);
+            ViewBag.MainWarehouseName = mainWarehouseName;
 
+            var inStatuses = definitions.Where(x => x.DefinitionType == 2).ToList();
+            var outStatuses = definitions.Where(x => x.DefinitionType == 3).ToList();
             ViewBag.InboundStatuses = new SelectList(inStatuses, "Id", "Name");
             ViewBag.OutboundStatuses = new SelectList(outStatuses, "Id", "Name");
 
@@ -375,6 +442,60 @@ namespace StockTrack.Controllers
 
             return RedirectToAction("Stock");
         }
+        [HttpGet]
+        public async Task<IActionResult> Deleted()
+        {
+            // Hem ürün silinmiş olabilir hem de stok kaydı silinmiş olabilir. 
+            // Ürün bazlı listelemek en mantıklısıdır.
+            var deletedProducts = await _context.ProductMainRepoLocations
+                .Include(pm => pm.Product)
+                    .ThenInclude(p => p.Category)
+                .Include(pm => pm.MainRepoLocation)
+                .Where(x => x.IsDeleted || x.Product.IsDeleted) // Herhangi biri silindiyse göster
+                .Select(x => new InventoryListDto
+                {
+                    Id = x.ProductId,
+                    WarehouseName = x.MainRepoLocation.Name,
+                    CategoryName = x.Product.Category != null ? x.Product.Category.Name : "Kategori Yok",
+                    Brand = x.Product.Brand,
+                    Model = x.Product.Model,
+                    ProductName = x.Product.Name,
+                    ImageUrl = x.Product.PhotoUrl,
+                    StockQuantity = x.Quantity,
+                    IsActive = x.IsActive
+                }).ToListAsync();
+
+            return View(deletedProducts);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Restore(int id)
+        {
+            var stockItem = await _context.ProductMainRepoLocations.FirstOrDefaultAsync(x => x.ProductId == id);
+            var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (stockItem != null && product != null)
+            {
+                // Silinme durumlarını geri alıyoruz
+                stockItem.IsDeleted = false;
+                stockItem.DeletedDate = null;
+
+                product.IsDeleted = false;
+                product.DeletedDate = null;
+
+                _context.ProductMainRepoLocations.Update(stockItem);
+                _context.Products.Update(product);
+
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Ürün ve stok kayıtları başarıyla geri yüklendi.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Geri yükleme sırasında bir hata oluştu.";
+            }
+
+            return RedirectToAction("Deleted");
+        }
 
         [HttpGet]
         public async Task<IActionResult> Inbound()
@@ -400,6 +521,29 @@ namespace StockTrack.Controllers
                 .ToListAsync();
 
             return View(outboundList);
+        }
+        [HttpPost]
+        public async Task<IActionResult> UpdateArcBoxDetails(int id, string serialNumber, string ethMac, string wlanMac, string description)
+        {
+            var serialRecord = await _context.ProductSerialNumbers.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (serialRecord != null)
+            {
+                serialRecord.SerialNumber = serialNumber;
+                serialRecord.EthMac = ethMac;
+                serialRecord.WlanMac = wlanMac;
+                serialRecord.Description = description;
+                serialRecord.ModifiedDate = DateTime.Now;
+
+                _context.ProductSerialNumbers.Update(serialRecord);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Cihaz bilgileri başarıyla güncellendi.";
+                return RedirectToAction("Detail", new { id = serialRecord.ProductId });
+            }
+
+            TempData["ErrorMessage"] = "Kayıt bulunamadı!";
+            return RedirectToAction("Stock");
         }
     }
 }

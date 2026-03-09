@@ -12,10 +12,11 @@
             <h4 class="mb-1 text-white">@Model.Brand @Model.Model</h4>
             <p class="mb-0 opacity-75">Ürün Adı: @Model.ProductName</p>
         </div>
-        <div>
+        <div class="text-end">
+            <h3 class="mb-1 text-white">@Model.CurrentStock Adet</h3>
             @if (Model.IsArcBox)
             {
-                <span class="badge bg-warning text-dark fs-6"><i class="mdi mdi-star"></i> Özel Seri No Takipli (Arc Box)</span>
+                <span class="badge bg-warning text-dark fs-6 mt-1 shadow-sm"><i class="mdi mdi-star"></i> Seri No Takipli (Arc Box)</span>
             }
         </div>
     </div>
@@ -26,26 +27,23 @@
 
         <ul class="nav nav-tabs nav-tabs-custom nav-justified" role="tablist">
             <li class="nav-item">
-                <a class="nav-link active" data-bs-toggle="tab" href="#tab-stock" role="tab">
-                    <span class="d-block d-sm-none"><i class="fas fa-home"></i></span>
-                    <span class="d-none d-sm-block"><i class="mdi mdi-cube-outline me-1"></i> Stok Durumu</span>
+                <a class="nav-link active fw-bold" data-bs-toggle="tab" href="#tab-stock" role="tab">
+                    <i class="mdi mdi-cube-outline me-1"></i> Stok Durumu
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#tab-inbound" role="tab">
-                    <span class="d-block d-sm-none"><i class="far fa-user"></i></span>
-                    <span class="d-none d-sm-block text-success"><i class="mdi mdi-arrow-bottom-left-bold-outline me-1"></i> Giriş Hareketleri</span>
+                <a class="nav-link fw-bold text-success" data-bs-toggle="tab" href="#tab-inbound" role="tab">
+                    <i class="mdi mdi-arrow-bottom-left-bold-outline me-1"></i> Giriş Hareketleri
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#tab-outbound" role="tab">
-                    <span class="d-block d-sm-none"><i class="far fa-envelope"></i></span>
-                    <span class="d-none d-sm-block text-danger"><i class="mdi mdi-arrow-top-right-bold-outline me-1"></i> Çıkış Hareketleri</span>
+                <a class="nav-link fw-bold text-danger" data-bs-toggle="tab" href="#tab-outbound" role="tab">
+                    <i class="mdi mdi-arrow-top-right-bold-outline me-1"></i> Çıkış Hareketleri
                 </a>
             </li>
         </ul>
 
-        <div class="tab-content p-3 text-muted">
+        <div class="tab-content p-3 text-muted mt-2">
 
             <div class="tab-pane active" id="tab-stock" role="tabpanel">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -55,140 +53,207 @@
                 @if (Model.IsArcBox)
                 {
                     <div class="alert alert-info border-0 shadow-sm">
-                        <i class="mdi mdi-information me-2"></i> Bu ürün bir <strong>Arc Box</strong> olduğu için her bir cihazın Seri Numarası (SN) ve MAC adresi ayrı satırlarda takip edilmektedir.
+                        <i class="mdi mdi-information me-2"></i> Bu ürün bir <strong>Arc Box</strong> olduğu için her bir cihazın Seri Numarası (SN) ve MAC adresi ayrı satırlarda takip edilmektedir. Toplam: @Model.CurrentStock Adet
                     </div>
-                    <p><em>(Arc Box Seri No Tablosu Buraya Gelecek...)</em></p>
+
+                    <div class="table-responsive">
+                        <table id="DataTables" class="table table-bordered table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Depo</th>
+                                    <th>Seri Numarası (SN)</th>
+                                    <th>ETH MAC</th>
+                                    <th>WLAN MAC</th>
+                                    <th>Ürün Durumu</th>
+                                    <th>Açıklama</th>
+                                    <th>İşlem</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    int counter = 1;
+                                }
+                                @foreach (var item in Model.SerialNumbers)
+                                {
+                                    <tr>
+                                        <td>@(counter++)</td>
+                                        <td>@item.WarehouseName</td>
+                                        <td class="fw-bold text-primary">@item.SerialNumber</td>
+                                        <td>@item.EthMac</td>
+                                        <td>@item.WlanMac</td>
+                                        <td><span class="badge bg-secondary">@item.StatusName</span></td>
+                                        <td>@(string.IsNullOrEmpty(item.Description) ? "-" : item.Description)</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning shadow-sm"
+                                                    onclick="openArcBoxModal(@item.Id, '@item.SerialNumber', '@item.EthMac', '@item.WlanMac', '@item.Description')">
+                                                <i class="mdi mdi-pencil"></i> MAC Gir
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                                @if (!Model.SerialNumbers.Any())
+                                {
+                                    <tr><td colspan="8" class="text-center text-muted">Henüz seri numarası eklenmemiş.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                 }
                 else
                 {
-                    <p><em>(Normal Ürün Depo Dağılım Tablosu Buraya Gelecek...)</em></p>
+                    <div class="table-responsive">
+                        <table id="DataTables" class="table table-bordered table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Depo</th>
+                                    <th>Stok Adeti</th>
+                                    <th>Ürün Durumu</th>
+                                    <th>Açıklama</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>@(ViewBag.MainWarehouseName ?? "-")</td>
+                                    <td><span class="badge bg-primary fs-6">@Model.CurrentStock</span></td>
+                                    <td><span class="badge bg-secondary">Yeni</span></td>
+                                    <td>@Model.ProductName standart ürün deposu</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 }
             </div>
 
-            <div class="tab-content p-3 text-muted">
-
-                <div class="tab-pane active" id="tab-stock" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="text-dark">Güncel Stok Durumu</h5>
-                    </div>
-
-                    @if (Model.IsArcBox)
-                    {
-                        <div class="alert alert-info border-0 shadow-sm">
-                            <i class="mdi mdi-information me-2"></i> Bu ürün bir <strong>Arc Box</strong> olduğu için her bir cihazın Seri Numarası (SN) ve MAC adresi takip edilmektedir. Toplam: @Model.CurrentStock Adet
-                        </div>
-
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover mt-3">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Seri Numarası (SN)</th>
-                                        <th>ETH MAC</th>
-                                        <th>WLAN MAC</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var item in Model.SerialNumbers)
-                                    {
-                                        <tr>
-                                            <td class="fw-bold text-primary">@item.SerialNumber</td>
-                                            <td>@item.EthMac</td>
-                                            <td>@item.WlanMac</td>
-                                        </tr>
-                                    }
-                                    @if (!Model.SerialNumbers.Any())
-                                    {
-                                        <tr><td colspan="3" class="text-center text-muted">Henüz seri numarası eklenmemiş.</td></tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="text-center py-5">
-                            <i class="mdi mdi-cube text-primary" style="font-size: 4rem;"></i>
-                            <h2 class="display-4 fw-bold text-dark mt-2">@Model.CurrentStock</h2>
-                            <p class="text-muted fs-5">Depoda Bulunan Toplam Adet</p>
-                        </div>
-                    }
+            <div class="tab-pane" id="tab-inbound" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="text-dark">Stok Giriş Geçmişi</h5>
+                    <button class="btn btn-success btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#modalInbound">
+                        <i class="mdi mdi-plus"></i> Stok Arttır (Giriş Yap)
+                    </button>
                 </div>
 
-                <div class="tab-pane" id="tab-inbound" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="text-dark">Stok Giriş Geçmişi</h5>
-                        <button class="btn btn-success btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#modalInbound">
-                            <i class="mdi mdi-plus"></i> Stok Arttır (Giriş Yap)
-                        </button>
-                    </div>
+                <div class="table-responsive">
+                    <table id="DataTables" class="table table-striped table-hover align-middle">
+                        <thead class="bg-success text-white">
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Lokasyon</th>
+                                <th>Eski Stok</th>
+                                <th class="text-center">İşlem</th>
+                                <th>Yeni Stok</th>
 
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead class="bg-success text-white">
+                                @if (Model.IsArcBox)
+                                {
+                                    <th>Seri No</th>
+                                    <th>MAC Adresleri</th>
+                                }
+
+                                <th>Ürün Durumu</th>
+                                <th>Giriş Durumu</th>
+                                <th>Açıklama</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.InboundMovements)
+                            {
                                 <tr>
-                                    <th>Tarih</th>
-                                    <th>İşlem Türü ID</th>
-                                    <th>Adet</th>
-                                    <th>Açıklama</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.InboundMovements)
-                                {
-                                    <tr>
-                                        <td>@item.Date.ToString("dd.MM.yyyy HH:mm")</td>
-                                        <td>@item.MovementStatusId</td>
-                                        <td class="text-success fw-bold">+@item.Quantity</td>
-                                        <td>@item.Description</td>
-                                    </tr>
-                                }
-                                @if (!Model.InboundMovements.Any())
-                                {
-                                    <tr><td colspan="4" class="text-center">Kayıtlı giriş hareketi bulunamadı.</td></tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                    <td>@item.Date.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>@item.LocationName</td>
+                                    <td>@item.OldStock</td>
+                                    <td class="text-success fw-bold text-center">+@item.Quantity</td>
+                                    <td>@item.NewStock</td>
 
-                <div class="tab-pane" id="tab-outbound" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="text-dark">Stok Çıkış Geçmişi</h5>
-                        <button class="btn btn-danger btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#modalOutbound">
-                            <i class="mdi mdi-minus"></i> Stok Azalt (Çıkış Yap)
-                        </button>
-                    </div>
+                                    @if (Model.IsArcBox)
+                                    {
+                                        <td><span class="badge bg-light text-dark border">-</span></td>
+                                        <td><span class="text-muted" style="font-size:11px;">Toplu İşlem</span></td>
+                                    }
 
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead class="bg-danger text-white">
-                                <tr>
-                                    <th>Tarih</th>
-                                    <th>İşlem Türü ID</th>
-                                    <th>Adet</th>
-                                    <th>Açıklama</th>
+                                    <td><span class="badge bg-secondary">Yeni</span></td>
+                                    <td><span class="badge bg-success bg-opacity-25 text-success">@item.MovementStatusName</span></td>
+                                    <td>@(string.IsNullOrEmpty(item.Description) ? "-" : item.Description)</td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in Model.OutboundMovements)
-                                {
-                                    <tr>
-                                        <td>@item.Date.ToString("dd.MM.yyyy HH:mm")</td>
-                                        <td>@item.MovementStatusId</td>
-                                        <td class="text-danger fw-bold">-@item.Quantity</td>
-                                        <td>@item.Description</td>
-                                    </tr>
-                                }
-                                @if (!Model.OutboundMovements.Any())
-                                {
-                                    <tr><td colspan="4" class="text-center">Kayıtlı çıkış hareketi bulunamadı.</td></tr>
-                                }
-                            </tbody>
-                        </table>
+                            }
+                            @if (!Model.InboundMovements.Any())
+                            {
+                                <tr><td colspan="@(Model.IsArcBox ? 10 : 8)" class="text-center">Kayıtlı giriş hareketi bulunamadı.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="mt-4">
+                        <a asp-controller="Inventory" asp-action="Inbound" class="btn btn-secondary">
+                            <i class="fa fa-arrow-left"></i> Stok Giriş Geçmişi
+                        </a>
                     </div>
                 </div>
             </div>
 
+            <div class="tab-pane" id="tab-outbound" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="text-dark">Stok Çıkış Geçmişi</h5>
+                    <button class="btn btn-danger btn-sm shadow-sm" data-bs-toggle="modal" data-bs-target="#modalOutbound">
+                        <i class="mdi mdi-minus"></i> Stok Azalt (Çıkış Yap)
+                    </button>
+                </div>
+
+                <div class="table-responsive">
+                    <table id="DataTables" class="table table-striped table-hover align-middle">
+                        <thead class="bg-danger text-white">
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Lokasyon</th>
+                                <th>Eski Stok</th>
+                                <th class="text-center">İşlem</th>
+                                <th>Yeni Stok</th>
+
+                                @if (Model.IsArcBox)
+                                {
+                                    <th>Seri No</th>
+                                    <th>MAC Adresleri</th>
+                                }
+
+                                <th>Ürün Durumu</th>
+                                <th>Çıkış Durumu</th>
+                                <th>Açıklama</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OutboundMovements)
+                            {
+                                <tr>
+                                    <td>@item.Date.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>@item.LocationName</td>
+                                    <td>@item.OldStock</td>
+                                    <td class="text-danger fw-bold text-center">-@item.Quantity</td>
+                                    <td>@item.NewStock</td>
+
+                                    @if (Model.IsArcBox)
+                                    {
+                                        <td><span class="badge bg-light text-dark border">-</span></td>
+                                        <td><span class="text-muted" style="font-size:11px;">Toplu İşlem</span></td>
+                                    }
+
+                                    <td><span class="badge bg-secondary">Yeni</span></td>
+                                    <td><span class="badge bg-danger bg-opacity-25 text-danger">@item.MovementStatusName</span></td>
+                                    <td>@(string.IsNullOrEmpty(item.Description) ? "-" : item.Description)</td>
+                                </tr>
+                            }
+                            @if (!Model.OutboundMovements.Any())
+                            {
+                                <tr><td colspan="@(Model.IsArcBox ? 10 : 8)" class="text-center">Kayıtlı çıkış hareketi bulunamadı.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="mt-4">
+                        <a asp-controller="Inventory" asp-action="Outbound" class="btn btn-secondary">
+                            <i class="fa fa-arrow-left"></i> Stok Çıkış Geçmişi
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
 </div>
 <div class="modal fade" id="modalInbound" tabindex="-1" aria-hidden="true">
@@ -217,10 +282,10 @@
                             <input type="number" class="form-control text-success fw-bold" name="Quantity" min="1" value="1" required />
                         </div>
                         <div class="col-6">
-                                <label class="form-label fw-bold">Ürün Durumu</label>
-                                <select class="form-select" name="ProductStatusId" asp-items="ViewBag.InboundStatuses" required>
-                                    <option value="">-- Durum Seçin --</option>
-                                </select>
+                            <label class="form-label fw-bold">Ürün Durumu</label>
+                            <select class="form-select" name="ProductStatusId" asp-items="ViewBag.InboundStatuses" required>
+                                <option value="">-- Durum Seçin --</option>
+                            </select>
                         </div>
                     </div>
 
@@ -260,18 +325,18 @@
                         </select>
                     </div>
 
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <label class="form-label fw-bold text-danger">Düşülecek Adet</label>
-                                <input type="number" class="form-control text-danger fw-bold" name="Quantity" min="1" value="1" required />
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label fw-bold">Ürün Durumu</label>
-                                <select class="form-select" name="ProductStatusId" asp-items="ViewBag.OutboundStatuses" required>
-                                    <option value="">-- Çıkış Durumu Seçin --</option>
-                                </select>
-                            </div>
+                    <div class="row mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold text-danger">Düşülecek Adet</label>
+                            <input type="number" class="form-control text-danger fw-bold" name="Quantity" min="1" value="1" required />
                         </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold">Ürün Durumu</label>
+                            <select class="form-select" name="ProductStatusId" asp-items="ViewBag.OutboundStatuses" required>
+                                <option value="">-- Çıkış Durumu Seçin --</option>
+                            </select>
+                        </div>
+                    </div>
 
                     <div class="mb-3">
                         <label class="form-label fw-bold">Açıklama / Not</label>
@@ -287,3 +352,56 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="modalArcBox" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="mdi mdi-barcode-scan me-2"></i> Cihaz Bilgilerini Güncelle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="~/Inventory/UpdateArcBoxDetails" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="id" id="editArcBoxId" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Seri Numarası (SN)</label>
+                        <input type="text" name="serialNumber" id="editSerialNumber" class="form-control" required />
+                    </div>
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-bold">ETH MAC</label>
+                            <input type="text" name="ethMac" id="editEthMac" class="form-control" placeholder="00:00..." />
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-bold">WLAN MAC</label>
+                            <input type="text" name="wlanMac" id="editWlanMac" class="form-control" placeholder="00:00..." />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Açıklama</label>
+                        <textarea name="description" id="editDescription" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Kapat</button>
+                    <button type="submit" class="btn btn-warning fw-bold">Bilgileri Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openArcBoxModal(id, sn, eth, wlan, desc) {
+        document.getElementById('editArcBoxId').value = id;
+        document.getElementById('editSerialNumber').value = (sn === '-' ? '' : sn);
+        document.getElementById('editEthMac').value = (eth === '-' ? '' : eth);
+        document.getElementById('editWlanMac').value = (wlan === '-' ? '' : wlan);
+        document.getElementById('editDescription').value = (desc === '-' ? '' : desc);
+
+        var myModal = new bootstrap.Modal(document.getElementById('modalArcBox'));
+        myModal.show();
+    }
+</script>

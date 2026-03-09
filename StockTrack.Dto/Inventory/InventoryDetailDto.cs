@@ -26,12 +26,24 @@ namespace StockTrack.Dto.Inventory
         public int Quantity { get; set; }
         public int MovementStatusId { get; set; }
         public string? Description { get; set; }
+
+        // YENİ EKLENEN ALANLAR: Tablodaki eksik kolonlar için
+        public string? LocationName { get; set; }
+        public int OldStock { get; set; }
+        public int NewStock { get; set; }
+        public string? MovementStatusName { get; set; } // Örn: "Kurulum", "Hastaneye Kargo"
     }
 
     public class ArcBoxSerialDto
     {
+        public int Id { get; set; } // MAC girmek için lazım olacak
         public string SerialNumber { get; set; }
         public string? EthMac { get; set; }
         public string? WlanMac { get; set; }
+
+        // YENİ EKLENEN ALANLAR
+        public string? WarehouseName { get; set; }
+        public string? StatusName { get; set; } // Örn: "Yeni", "Kullanılmış"
+        public string? Description { get; set; }
     }
 }

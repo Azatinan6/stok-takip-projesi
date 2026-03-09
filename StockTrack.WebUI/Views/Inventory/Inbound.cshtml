@@ -9,7 +9,12 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
             <h4 class="mb-0 text-dark fw-bold"><i class="mdi mdi-arrow-bottom-left text-muted me-2"></i>Stok Giriş Geçmişi</h4>
-            <span class="text-muted small">Toplam Kayıt: @Model.Count()</span>
+            <div>
+                <a asp-controller="Inventory" asp-action="Stock" class="btn btn-sm btn-outline-secondary shadow-sm me-2">
+                    <i class="mdi mdi-arrow-left"></i> Stok Listesine Dön
+                </a>
+                <span class="text-muted small">Toplam Kayıt: @Model.Count()</span>
+            </div>
         </div>
     </div>
 </div>
@@ -37,16 +42,23 @@ else
                         <div class="text-muted small">@item.Product?.Brand @item.Product?.Model</div>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <span class="text-secondary"><i class="mdi mdi-warehouse me-1"></i> @item.MainRepoLocation?.Name</span>
                     </div>
 
-                    <div class="col-md-2">
-                        <span class="badge bg-light text-secondary border">İşlem ID: @item.MovementStatusId</span>
+                    <div class="col-md-2 text-center">
+                        @* HER SATIRA ÖZEL DETAY BUTONU *@
+                        <a asp-controller="Inventory" asp-action="Detail" asp-route-id="@item.ProductId" class="btn btn-sm btn-link text-primary p-0">
+                            <i class="mdi mdi-magnify"></i> Ürünü İncele
+                        </a>
+                    </div>
+
+                    <div class="col-md-1">
+                        <span class="badge bg-light text-secondary border">ID: @item.MovementStatusId</span>
                     </div>
 
                     <div class="col-md-2 text-end">
-                        <span class="fw-bold text-dark fs-5">+@item.MovementQuantity</span>
+                        <span class="fw-bold text-success fs-5">+@item.MovementQuantity</span>
                     </div>
                 </div>
 
