@@ -7,8 +7,6 @@
     var count = 1;
 }
 
-<h4 class="mb-3">Depo Yönetimi</h4>
-
 @if (TempData["SuccessMessage"] != null)
 {
     <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -26,13 +24,19 @@
 }
 
 <!-- Yeni Lokasyon Ekle Butonu -->
-<div class="d-flex justify-content-end align-items-center mt-4">
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createLocationModal">
-        <i class="mdi mdi-plus-circle"></i> Yeni Depo Ekle
-    </button>
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <h4 class="mb-0 text-dark fw-bold"><i class="mdi mdi-hospital-building me-2 text-muted"></i>Depo Yönetimi</h4>
+    <div>
+        <a href="~/MainRepoLocation/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
+            <i class="mdi mdi-delete-restore me-1"></i> Silinenler
+        </a>
+        <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createLocationModal">
+            <i class="mdi mdi-plus"></i> Yeni Depo Ekle
+        </button>
+    </div>
 </div>
 
-<table id="DataTables" class="display" style="width:100%">
+<table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
     <thead>
         <tr>
             <th>#</th>

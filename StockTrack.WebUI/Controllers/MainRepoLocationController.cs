@@ -526,6 +526,28 @@ namespace StockTrack.WebUI.Controllers
 
             return Json(resultList);
         }
+        [HttpPost]
+        public async Task<IActionResult> Restore(int id)
+        {
+            var depo = await _mainRepoLocationService.TGetByIdAsync(id);
+
+            if(depo != null)
+            {
+                depo.IsDeleted = false; // Silinme durumunu kaldır
+                depo.IsActive = true;    // Geri yükleyince otomatik aktif yap
+                depo.DeletedDate = null; // Silinme tarihini temizle
+
+                await _mainRepoLocationService.TUpdateAsync(depo);
+
+                TempData["SuccessMessage"] = "Depo başarıyla geri yüklendi.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Depo bulunamadı.";
+            }
+
+            return RedirectToAction("Deleted");
+        }
 
     }
 

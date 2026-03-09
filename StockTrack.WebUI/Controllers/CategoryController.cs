@@ -243,6 +243,7 @@ namespace StockTrack.WebUI.Controllers
                 return Challenge();
 
             category.IsDeleted = true;
+            category.IsActive = false;
             category.DeletedDate = DateTime.Now;
             category.DeletedBy = currentUser.NameSurname;
             await _categoryService.TUpdateAsync(category);
@@ -268,6 +269,27 @@ namespace StockTrack.WebUI.Controllers
                 IsActive = x.IsActive
             });
             return View(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Restore(int id)
+        {
+            var category = await _categoryService.TGetByIdAsync(id);
+            if(category != null)
+            {
+                category.IsDeleted = false;
+                category.IsActive = true;
+                category.DeletedDate = null;
+
+                await _categoryService.TUpdateAsync(category);
+
+                TempData["SuccessMessage"] = "Kategori başarıyla geri yüklendi.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Kategori bulunamadı.";
+            }
+            return RedirectToAction("Deleted");
         }
 
     }

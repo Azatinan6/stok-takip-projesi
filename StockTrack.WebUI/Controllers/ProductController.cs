@@ -366,5 +366,26 @@ namespace StockTrack.WebUI.Controllers
             return Json(productStock);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Restore(int id)
+        {
+            var product = await _productService.TGetByIdAsync(id);
+
+            if(product != null)
+            {
+                product.IsDeleted = false;
+                product.IsActive = true;
+                product.DeletedDate = null;
+
+                await _productService.TUpdateAsync(product);
+                TempData["SuccessMessage"] = "Ürün başarıyla geri yüklendi.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Ürün bulunamadı.";
+
+            }
+            return RedirectToAction("Deleted");
+        }
     }
 }

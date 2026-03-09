@@ -7,7 +7,7 @@
 <h4>Silinen Ürünler</h4>
 <hr />
 
-<table id="DataTables" class="display" style="width:100%">
+<table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
     <thead>
         <tr>
             <th>#</th>
@@ -20,22 +20,10 @@
             <th>Aktif mi?</th>
             <th>Silinme Tarihi</th>
             <th>Silen Kullanıcı</th>
+            <th>İşlemler</th>
         </tr>
     </thead>
-    <tfoot>
-        <tr>
-            <th>#</th>
-            <th>Kategori</th>
-            <th>Model</th>
-            <th>Ad</th>
-            <th>Resim</th>
-            <th>Açıklama</th>
-            <th>Oluşturulma Tarihi</th>
-            <th>Aktif mi?</th>
-            <th>Silinme Tarihi</th>
-            <th>Silen Kullanıcı</th>
-        </tr>
-    </tfoot>
+ 
     <tbody>
         @{
             int count = 1;
@@ -69,6 +57,13 @@
                 </td>
                 <td>@(product.DeletedDate?.ToString("dd MMMM yyyy") ?? "")</td>
                 <td>@product.DeletedBy</td>
+                <td>
+                    <form asp-controller="Product" asp-action="Restore" asp-route-id="@product.Id" method="post" onsubmit="return confirm('Bu ürünü geri yüklemek istediğinize emin misiniz?');">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="mdi mdi-restore me-1"></i> Geri Yükle
+                        </button>
+                    </form>
+                </td>
             </tr>
         }
     </tbody>

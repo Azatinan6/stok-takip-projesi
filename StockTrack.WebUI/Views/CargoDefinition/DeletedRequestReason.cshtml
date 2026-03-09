@@ -1,0 +1,62 @@
+﻿@using StockTrack.Dto.CargoDefinition
+@model IEnumerable<CargoDefinitionDeletedDto>
+
+@{
+    // Sayfanın Tip 4 (Gönderim) mü yoksa Tip 5 (İade) mi olduğunu anlıyoruz:
+    int reasonType = ViewBag.ReasonType ?? 4;
+    string pageTitle = reasonType == 4 ? "Gönderim Nedenleri" : "İade Nedenleri";
+
+    ViewData["Title"] = $"Silinen {pageTitle}";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h4>Silinen @pageTitle</h4>
+<hr />
+
+<table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>@pageTitle Adı</th>
+            <th>Silinme Tarihi</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int count = 1;
+        }
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@(count++)</td>
+                    <td class="fw-bold">@item.Name</td>
+                    <td>@(item.DeletedDate?.ToString("dd MMMM yyyy HH:mm") ?? "-")</td>
+                    <td>
+                        <form asp-controller="CargoDefinition" asp-action="Restore" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bu nedeni geri yüklemek istediğinize emin misiniz?');">
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="mdi mdi-restore me-1"></i> Geri Yükle
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" class="text-center text-muted py-4">
+                    Çöp kutusunda kayıt bulunmamaktadır.
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="mt-4">
+    <a asp-controller="CargoDefinition" asp-action="RequestReasonIndex" asp-route-id="@reasonType" class="btn btn-secondary">
+        <i class="mdi mdi-arrow-left me-1"></i> Aktif @pageTitle Listesine Dön
+    </a>
+</div>

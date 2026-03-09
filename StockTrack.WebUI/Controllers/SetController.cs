@@ -201,5 +201,67 @@ namespace StockTrack.WebUI.Controllers
             TempData["SuccessMessage"] = "Set başarıyla güncellendi.";
             return RedirectToAction("Index");
         }
+        [HttpGet]
+        public async Task<IActionResult> Deleted()
+        {
+            var deletedSet = await _context.ProductSets
+                .Include(s => s.ProductSetItems)
+                    .ThenInclude(psi => psi.Product)
+                .Where(s => s.IsDeleted)
+                .ToListAsync();
+
+            var result = deletedSet.Select(s => new SetDeletedDto
+            {
+                Id = s.Id,
+                Name = s.Name,
+                IsActive = s.IsActive,
+                DeletedDate = s.DeletedDate,
+
+                // DÜZELTİLEN KISIM BURASI: !x.IsDeleted şartını kaldırdık!
+                ProductNames = s.ProductSetItems
+                                .Where(x => x.Product != null)
+                                .Select(x => x.Product.Name)
+                                .ToList()
+            }).ToList();
+
+            return View(result);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Restore(int id)
+        {
+            // 1. DİKKAT: İçindeki ürün bağlantılarını (ProductSetItems) da dahil ediyoruz ki onları da kurtarabilelim!
+            var set = await _context.ProductSets
+                .Include(x => x.ProductSetItems)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (set != null)
+            {
+                // A) Ana Seti Kurtar
+                set.IsDeleted = false;
+                set.IsActive = true;
+                set.DeletedDate = null;
+
+                // B) Setin içindeki silinmiş ürün bağlantılarını da çöpten çıkar
+                foreach (var item in set.ProductSetItems)
+                {
+                    item.IsDeleted = false;
+                    item.DeletedDate = null;
+                    item.IsActive = true;
+                }
+
+                // C) Eksik olan o sihirli satırlar: EF Core'a kaydetmesini söyle!
+                _context.ProductSets.Update(set);
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Set ve içindeki ürünler başarıyla geri yüklendi.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Geri yüklenecek set bulunamadı.";
+            }
+
+            return RedirectToAction("Deleted");
+        }
     }
 }

@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using StockTrack.Business.Abstract;
+using StockTrack.Dto.CargoName;
 using StockTrack.Entity.Enitities;
 using StockTrack.WebUI.Consts;
 using System;
@@ -89,5 +93,40 @@ namespace StockTrack.WebUI.Controllers
 
             return RedirectToAction("Index");
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Deleted()
+        {
+            var deletedCargo = await _cargoNameService.TGetFilteredListAsync(c => c.IsDeleted);
+
+            var result = deletedCargo.Select(c => new CargoNameDeletedDto
+            {
+                Id = c.Id,
+                Name = c.Name,
+                DeletedDate = c.DeletedDate
+            }).ToList();
+
+            return View("Deleted", result);
+        }
+        [HttpPost]
+        public async Task<IActionResult> Restore(int id)
+        {
+            var cargo = await _cargoNameService.TGetByIdAsync(id);
+            if(cargo != null)
+            {
+                cargo.IsDeleted = false;
+                cargo.DeletedDate = null;
+
+                await _cargoNameService.TUpdateAsync(cargo);
+                TempData["SuccessMessage"] = "Kargo başarıyla geri yüklendi.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Kargo bulunamadı";
+            }
+
+            return RedirectToAction("Deleted");
+        }
+
     }
 }

@@ -4,16 +4,23 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between align-items-center">
-        <h6 class="m-0 font-weight-bold text-primary">🚚 Kargo Firmaları</h6>
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <h6 class="m-0 font-weight-bold text-primary">🚚 Kargo Firmaları</h6>
+    <div>
+        <a href="~/CargoName/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
+            <i class="mdi mdi-delete-restore me-1"></i> Silinenler
+        </a>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCargoModal">
             <i class="fa fa-plus"></i> Yeni Firma Ekle
         </button>
     </div>
+    
+</div>
+
     <div class="card-body">
         <div class="table-responsive">
-            <table id="DataTables" class="table table-bordered align-middle">
+        <table id="DataTables" class="table table-hover align-middle mb-0">
                 <thead>
                     <tr>
                         <th width="10%">#</th>
@@ -61,7 +68,7 @@
             </table>
         </div>
     </div>
-</div>
+
 
 <div class="modal fade" id="createCargoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

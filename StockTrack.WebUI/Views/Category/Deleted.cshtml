@@ -7,7 +7,7 @@
 <h4>Silinen Kategoriler</h4>
 <hr />
 
-<table id="DataTables" class="display" style="width:100%">
+<table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
     <thead>
         <tr>
             <th>#</th>
@@ -15,17 +15,9 @@
             <th>Aktif mi?</th>
             <th>Silinme Tarihi</th>
             <th>Silen Kullanıcı</th>
+            <th>İşlemler</th>
         </tr>
     </thead>
-    <tfoot>
-        <tr>
-            <th>#</th>
-            <th>Ad</th>
-            <th>Aktif mi?</th>
-            <th>Silinme Tarihi</th>
-            <th>Silen Kullanıcı</th>
-        </tr>
-    </tfoot>
     <tbody>
         @{
             int count = 1;
@@ -42,6 +34,13 @@
                 </td>
                 <td>@category.DeletedDate?.ToString("dd MMMM yyyy HH:mm")</td>
                 <td>@category.DeletedBy</td>
+                <td>
+                    <form asp-controller="Category" asp-action="Restore" asp-route-id="@category.Id" method="post" onsubmit="return confirm('Bu katagoriyi geri yüklemek istediğinize emin misiniz?');">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="mdi mdi-restore me-1"></i> Geri Yükle
+                        </button>
+                    </form>
+                </td>
             </tr>
         }
     </tbody>
