@@ -70,56 +70,40 @@
 
                         <li class="menu-title" data-key="t-definitions-title">TANIMLAR</li>
 
-                        <li>
-                            <a asp-controller="Hospital" asp-action="Index" class="waves-effect">
-                                <i class="mdi mdi-hospital-building icon nav-icon"></i>
-                                <span class="menu-item" data-key="t-def-hospitals">Hastaneler</span>
-                            </a>
-                        </li>
+                       <li>
+    <a href="javascript:void(0);" class="has-arrow waves-effect">
+        <i class="mdi mdi-layers-outline icon nav-icon"></i>
+        <span class="menu-item" data-key="t-definitions">Genel Tanımlar</span>
+    </a>
+    
+    <ul class="sub-menu" aria-expanded="false">
+        
+        <li><a asp-controller="Hospital" asp-action="Index">Hastaneler</a></li>
+        <li><a href="~/MainRepoLocation/Index">Depo Tanımı</a></li>
+        <li><a asp-controller="Category" asp-action="Index">Kategoriler</a></li>
+        <li><a asp-controller="Product" asp-action="Index">Ürünler</a></li>
+        <li><a asp-controller="Set" asp-action="Index">Setler</a></li>
+        <li><a asp-controller="Rule" asp-action="Index">Kurallar</a></li>
 
-                        <li>
-                            <a href="javascript:void(0);" class="has-arrow">
-                                <i class="mdi mdi-layers-outline icon nav-icon"></i>
-                                <span class="menu-item" data-key="t-definitions">Ürün Tanımları</span>
-                            </a>
-                            <ul class="sub-menu" aria-expanded="false">
-                                <li><a asp-controller="Category" asp-action="Index">Kategoriler</a></li>
-                                <li><a asp-controller="Product" asp-action="Index">Ürünler</a></li>
-                                <li><a asp-controller="Set" asp-action="Index">Setler</a></li>
-                                <li><a asp-controller="Rule" asp-action="Index">Kurallar</a></li>
-                            </ul>
-                        </li>
+        <li>
+            <a href="javascript:void(0);" class="has-arrow">Kargo</a>
+            <ul class="sub-menu" aria-expanded="false">
+                <li><a asp-controller="CargoName" asp-action="Index">Kargo Firmaları</a></li>
+                <li><a asp-controller="CargoDefinition" asp-action="Index">Kontrol Sonucu (+Diğer)</a></li>
+                <li><a asp-controller="CargoDefinition" asp-action="ProductStatusIndex">Ürün Durumu</a></li>
+            </ul>
+        </li>
 
-                        <li>
-                            <a href="~/MainRepoLocation/Index">
-                                <i class="mdi mdi-warehouse icon nav-icon"></i>
-                                <span class="menu-item" data-key="t-def-warehouse">Depo Tanımı</span>
-                            </a>                        
-                        </li>
-
-                        <li>
-                            <a href="javascript:void(0);" class="has-arrow">
-                                <i class="mdi mdi-truck-outline icon nav-icon"></i>
-                                <span class="menu-item" data-key="t-def-cargo">Kargo (Tanımlamalar)</span>
-                            </a>
-                            <ul class="sub-menu" aria-expanded="false">
-                                <li><a asp-controller="CargoName" asp-action="Index">Kargo Firmaları</a></li>
-                                <li><a asp-controller="CargoDefinition" asp-action="Index">Kontrol Sonucu (+Diğer)</a></li>
-                                <li><a asp-controller="CargoDefinition" asp-action="ProductStatusIndex">Ürün Durumu</a></li>
-                            </ul>
-                        </li>
-
-                        
-                        <li>
-                            <a href="javascript:void(0);" class="has-arrow waves-effect">
-                                <i class="mdi mdi-clipboard-text-outline icon nav-icon"></i>
-                                <span class="menu-item" data-key="t-def-demand">Talep Tanımları</span>
-                            </a>
-                            <ul class="sub-menu" aria-expanded="false">
-                                <li><a asp-controller="CargoDefinition" asp-action="RequestReasonIndex" asp-route-id="4">Gönderim Nedenleri</a></li>
-                                <li><a asp-controller="CargoDefinition" asp-action="RequestReasonIndex" asp-route-id="5">İade Nedenleri</a></li>
-                            </ul>
-                        </li>
+        <li>
+            <a href="javascript:void(0);" class="has-arrow">Talep Tanımları</a>
+            <ul class="sub-menu" aria-expanded="false">
+                <li><a asp-controller="CargoDefinition" asp-action="RequestReasonIndex" asp-route-id="4">Gönderim Nedenleri</a></li>
+                <li><a asp-controller="CargoDefinition" asp-action="RequestReasonIndex" asp-route-id="5">İade Nedenleri</a></li>
+            </ul>
+        </li>
+        
+    </ul>
+</li>
                         
 
                         <li class="menu-title" data-key="t-hospital-title">OPERASYON</li>
