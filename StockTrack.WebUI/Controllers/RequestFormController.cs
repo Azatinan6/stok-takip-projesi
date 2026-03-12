@@ -1,4 +1,5 @@
 ﻿using Azure.Core;
+using DocumentFormat.OpenXml.InkML;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -19,29 +20,26 @@ namespace StockTrack.WebUI.Controllers
     {
         private readonly AppDbContext _appDbContext;
         private readonly ICategoryService _categoryService;
+        private readonly ICargoDefinitionService _cargoDefinitionService;
         private readonly IMainRepoLocationService _mainRepoLocationService;
         private readonly IProductService _productService;
         private readonly IHospitalService _hospitalService;
         private readonly UserManager<AppUser> _userManager;
 
-        public RequestFormController(AppDbContext appDbContext, ICategoryService categoryService, IMainRepoLocationService mainRepoLocationService, IProductService productService, IHospitalService hospitalService, UserManager<AppUser> userManager)
+        public RequestFormController(AppDbContext appDbContext, ICategoryService categoryService, IMainRepoLocationService mainRepoLocationService, IProductService productService, IHospitalService hospitalService, ICargoDefinitionService cargoDefinitionService, UserManager<AppUser> userManager)
         {
             _appDbContext = appDbContext;
             _categoryService = categoryService;
             _mainRepoLocationService = mainRepoLocationService;
             _productService = productService;
             _hospitalService = hospitalService;
+            _cargoDefinitionService = cargoDefinitionService;
             _userManager = userManager;
         }
 
         [HttpGet]
         public async Task<IActionResult> Create()
         {
-            //var locations = await _appDbContext.LocationLists.AsNoTracking()
-            //    .Where(x => !x.IsDeleted && x.IsActive)
-            //    .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name })
-            //    .ToListAsync();
-
             var hospitals = await _appDbContext.Hospitals.AsNoTracking()
                 .Where(x => !x.IsDeleted && x.IsActive)
                 .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name })
@@ -57,7 +55,14 @@ namespace StockTrack.WebUI.Controllers
                 .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.NameSurname })
                 .ToListAsync();
 
-            //ViewBag.Locations = locations;
+            var definitions = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted && x.IsActive);
+
+            // Giriş (İade) Nedenleri -> DefinitionType = 3 (Veritabanındaki ID'sine göre kontrol et)
+            ViewBag.InboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 3), "Id", "Name");
+
+            // Çıkış (Gönderim) Nedenleri -> DefinitionType = 4 (Veritabanındaki ID'sine göre kontrol et)
+            ViewBag.OutboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 4), "Id", "Name");
+
             ViewBag.Locations = hospitals;
             ViewBag.MainRepos = repos;
             ViewBag.Persons = persons;
@@ -105,6 +110,13 @@ namespace StockTrack.WebUI.Controllers
                 .Where(x => x.IsActive && !x.IsDeleted)
                 .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.NameSurname })
                 .ToListAsync();
+
+            var definitions = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted && x.IsActive);
+            // Giriş (İade) Nedenleri -> DefinitionType = 3 (Veritabanındaki ID'sine göre kontrol et)
+            ViewBag.InboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 3), "Id", "Name");
+
+            // Çıkış (Gönderim) Nedenleri -> DefinitionType = 4 (Veritabanındaki ID'sine göre kontrol et)
+            ViewBag.OutboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 4), "Id", "Name");
 
             // ADIM 3) Sunucu Tarafı Doğrulamaları
             if (dto.MainRepoId <= 0) ModelState.AddModelError("", "Depo seçimi zorunludur.");

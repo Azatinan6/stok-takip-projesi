@@ -122,13 +122,17 @@
                                 </div>
 
                                 <div class="row">
-                                    <div class="col-6 mb-3">
-                                        <label for="ReasonId" class="form-label">Neden <span class="text-danger">*</span></label>
-                                        <select id="ReasonId" class="form-select">
-                                            <option value="">Seçiniz</option>
-                                            <option value="Arıza / Bozuk">Arıza / Bozuk</option>
-                                            <option value="Yeni Kurulum">Yeni Kurulum</option>
-                                            <option value="Yedek Parça">Yedek Parça</option>
+                                    <div class="col-6 mb-3" id="boxSendReason">
+                                        <label class="form-label text-success">Gönderim Nedeni <span class="text-danger">*</span></label>
+                                        <select id="SendReasonId" class="form-select" asp-items="ViewBag.OutboundReasons">
+                                            <option value="">-- Gönderim Nedeni --</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-6 mb-3 d-none" id="boxReturnReason">
+                                        <label class="form-label text-danger">İade Nedeni <span class="text-danger">*</span></label>
+                                        <select id="ReturnReasonId" class="form-select" asp-items="ViewBag.InboundReasons">
+                                            <option value="">-- İade Nedeni --</option>
                                         </select>
                                     </div>
                                     <div class="col-6 mb-3">
@@ -169,9 +173,9 @@
                                                 <thead class="table-light text-muted small" style="position: sticky; top: 0; z-index: 1;">
                                                     <tr>
                                                         <th>Ürün</th>
-                                                        <th>Kat.</th>
+                                                        <th>Kategori</th>
                                                         <th>Adet</th>
-                                                        <th>Neden</th>
+                                                        <th>Gönderim Nedeni</th>
                                                         <th>Etiket</th>
                                                         <th></th>
                                                     </tr>
@@ -192,9 +196,9 @@
                                                 <thead class="table-light text-muted small" style="position: sticky; top: 0; z-index: 1;">
                                                     <tr>
                                                         <th>Ürün</th>
-                                                        <th>Kat.</th>
+                                                        <th>Kategori</th>
                                                         <th>Adet</th>
-                                                        <th>Neden</th>
+                                                        <th>Gönderim Nedeni</th>
                                                         <th>Etiket</th>
                                                         <th></th>
                                                     </tr>
@@ -630,11 +634,13 @@
             tempArcBoxConfig = null; // Configi sıfırla
 
             // Ürün adı "Arc Box" ise Config butonunu göster
-            if (ptext.toLowerCase().includes("digitus")) {
-                $('#btnConfigArcBox').removeClass('d-none');
+            var isArcBox = ptext.replace(/\s+/g, '').toLowerCase().includes("arcbox");
+
+            if (isArcBox) {
+                $('#btnConfigArcBox').removeClass('d-none'); // Sarı config butonunu göster!
                 $('#LabelInput').val("-").prop('disabled', true);
             } else {
-                $('#btnConfigArcBox').addClass('d-none');
+                $('#btnConfigArcBox').addClass('d-none'); // Arc Box değilse gizle
                 $('#LabelInput').val("").prop('disabled', false);
             }
 
@@ -693,8 +699,15 @@
             const productName = getSelText('#ProductId');
             const remaining = parseInt($('#RemainingStock').text());
             const qty = parseInt($('#AddQty').val());
-            const reason = getSelText('#ReasonId');
-            const reasonId = $('#ReasonId').val(); // Backend'e ID olarak da gidebilir
+            let reason = "";
+            let reasonId = "";
+            if (opType === 1) { // Gönderim
+                reason = getSelText('#SendReasonId');
+                reasonId = $('#SendReasonId').val();
+            } else { // İade
+                reason = getSelText('#ReturnReasonId');
+                reasonId = $('#ReturnReasonId').val();
+            }// Backend'e ID olarak da gidebilir
             const label = $('#LabelInput').val();
 
             if (!categoryId || !productId || !reasonId) {
@@ -820,6 +833,22 @@
 
             serializeItems();
             serializePersonsToInputs();
+        });
+                // İşlem Türü (Radyo Buton) değiştiğinde Neden kutularını ayarla
+        $('input[name="OperationType"]').on('change', function () {
+            const opType = parseInt($(this).val());
+
+            if (opType === 1) {
+                // 1: Gönderilecek Seçildi -> Çıkış Nedenlerini Göster
+                $('#boxSendReason').removeClass('d-none');
+                $('#boxReturnReason').addClass('d-none');
+                $('#ReturnReasonId').val(''); // Gizlenenin içini temizle
+            } else {
+                // 2: İade Seçildi -> Giriş Nedenlerini Göster
+                $('#boxSendReason').addClass('d-none');
+                $('#boxReturnReason').removeClass('d-none');
+                $('#SendReasonId').val(''); // Gizlenenin içini temizle
+            }
         });
 
         // init
