@@ -8,7 +8,7 @@
 
 
 
-<div class="d-flex justify-content-between alig-item-center ">
+<div class="d-flex justify-content-between alig-items-center ">
     <h4 class="mb-3">Güncel Stok Durumu</h4>
     <div>
         <a href="~/Inventory/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
@@ -24,17 +24,20 @@
 
     <div class="card-body">
         <div class="table-responsive">
-        <table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
-                <thead class="table-light">
+        <table id="DataTables" class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
                     <tr>
-                        <th>#ID</th>
-                        <th>Görsel</th>
-                        <th>Depo</th>
+                        <th>ID</th>
+                        
+                        <th>Depo Adı</th>
                         <th>Kategori</th>
+                        <th>Marka</th>
+                        <th>Model</th>
                         <th>Ürün Adı</th>
-                        <th>Marka/Model</th>
-                        <th>Güncel Stok</th>
-                        <th>Durum</th>
+                        <th>Görsel</th>
+                        <th>Güncel Stok Adeti</th>
+                        <th>Stok Uyarı Seviyesi</th>
+                        <th>Aktif mi ?</th>
                         <th class="text-center">İşlemler</th>
                     </tr>
                 </thead>
@@ -46,15 +49,27 @@
                             <tr>
                                 <td>@item.Id</td>
                                 <td>
-                                    <button class="btn btn-sm btn-light border" title="Görseli Gör">
-                                        <i class="mdi mdi-image-outline text-info fs-5"></i>
-                                    </button>
+                                    <span class="badge bg-dark-subtle text-dark">@item.WarehouseName</span>
                                 </td>
-                                <td><span class="badge bg-secondary">@item.WarehouseName</span></td>
                                 <td>@item.CategoryName</td>
+                                <td>@item.Brand</td>
+                                <td>@item.Model</td>
                                 <td class="fw-bold text-dark">@item.ProductName</td>
-                                <td>@item.Brand / @item.Model</td>
+                                <td class="text-center">
+                                @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                    <a href="@item.ImageUrl" target="_blank" class="btn btn-sm btn-light border shadow-sm" title="Görseli büyük aç">
+                                        <i class="mdi mdi-image-outline text-info fs-5"></i>
+                                    </a>
+                                }
+                                else
+                                {
+                                    <button class="btn btn-sm btn-light border opacity-50" title="Görsel Yüklenmemiş" disabled>
+                                        <i class="mdi mdi-image-off-outline text-muted fs-5"></i>
+                                    </button>
+                                }
 
+                                </td>
                                 <td>
                                     @if (item.StockQuantity <= item.StockWarningLevel)
                                     {
@@ -65,7 +80,9 @@
                                         <span class="badge bg-success fs-6">@item.StockQuantity</span>
                                     }
                                 </td>
-
+                                <td>
+                                <span class="badge bg-success fs-6">@item.StockWarningLevel</span>
+                                </td>
                                 <td>
                                     @if (item.IsActive)
                                     {
@@ -97,19 +114,6 @@
                         }
                     }
                 </tbody>
-                <tfoot>
-                    <tr>
-                        <th>ID</th>
-                        <th></th>
-                        <th>Depo</th>
-                        <th>Kategori</th>
-                        <th>Ürün Adı</th>
-                        <th>Marka/Model</th>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                    </tr>
-                </tfoot>
             </table>
         </div>
     </div>

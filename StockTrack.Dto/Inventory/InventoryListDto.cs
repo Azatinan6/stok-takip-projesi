@@ -1,4 +1,6 @@
-﻿namespace StockTrack.Dto.Inventory
+﻿using Microsoft.AspNetCore.Http;
+
+namespace StockTrack.Dto.Inventory
 {
     public class InventoryListDto
     {
