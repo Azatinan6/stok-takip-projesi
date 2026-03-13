@@ -174,6 +174,7 @@
                                                     <tr>
                                                         <th>Ürün</th>
                                                         <th>Kategori</th>
+                                                        <th>Güncel Stok</th>
                                                         <th>Miktar</th>
                                                         <th>Gönderim Nedeni</th>
                                                         <th>Etiket</th>
@@ -197,6 +198,7 @@
                                                     <tr>
                                                         <th>Ürün</th>
                                                         <th>Kategori</th>
+                                                        <th>Güncel Stok</th>
                                                         <th>Miktar</th>
                                                         <th>Gönderim Nedeni</th>
                                                         <th>Etiket</th>
@@ -429,7 +431,32 @@
                 $('#finishBtn').addClass('d-none');
             }
         }
+        function updateRemainingStockUI(){
+            const pid = $('#ProductId').val();
+            if (!pid) return;
 
+            const baseRem = parseInt($('#RemainingStock').attr('data-base') || 0);
+
+            let cartDelta = 0;
+
+            items.forEach(item => {
+                if(item.productId == parseInt(pid)){
+                    if(item.operationType == 1) {
+                        cartDelta -= item.quantity //Gönderim ise
+                    }
+                    if(item.operationType == 2) {
+                        cartDelta += item.quantity //İade ise
+                    }
+                }
+            });
+        
+
+            const currentAvailable = baseRem + cartDelta;
+
+            // Ekrana yeni limiti bas ve inputun Max değerini güncelle
+            $('#RemainingStock').text(currentAvailable);
+            $('#AddQty').attr('max', currentAvailable > 0 ? currentAvailable : 1);
+        }
         // --- Validations ---
         function step1Valid() {
             const locOk = !!$('#LocationId').val();
@@ -500,6 +527,7 @@
                 let rowHtml = `<tr data-idx="${idx}">
                         <td>${it.productName} ${configIcon}</td>
                         <td>${it.categoryName}</td>
+                        <td class="text-info fw-bold">${it.currentStock}</td>
                         <td class="fw-bold">${it.quantity}</td>
                         <td><small class="text-muted">${it.reason}</small></td>
                         <td><small>${labelText}</small></td>
@@ -649,8 +677,8 @@
             $.getJSON('@Url.Action("GetProductRemainingStock", "RequestForm")', { productId: pid, mainRepoId: repoId })
                 .done(function (d) {
                     const rem = parseInt(d?.remaining ?? 0);
-                    $('#RemainingStock').text(rem);
-                    $('#AddQty').attr('max', rem > 0 ? rem : 1);
+                    $('#RemainingStock').attr('data-base', rem);
+                    updateRemainingStockUI();
                 });
         });
 
@@ -731,13 +759,16 @@
             if (!$('#btnConfigArcBox').hasClass('d-none') && !tempArcBoxConfig) {
                 setWarn('#addWarn', 'Lütfen Arc Box için sarı renkli Config butonundan ayarları giriniz.'); return;
             }
-
+                let stockAfterOperation = remaining;
+            if (opType === 1) stockAfterOperation -= qty; // Gönderimse gideni düş
+            if (opType === 2) stockAfterOperation += qty; // İadeyse geleni ekle
             items.push({
                 operationType: opType,
                 productId: parseInt(productId),
                 productName: productName,
                 categoryId: parseInt(categoryId),
                 categoryName: categoryName,
+                currentStock: stockAfterOperation,
                 quantity: qty,
                 reason: reason,
                 label: label,
@@ -745,14 +776,25 @@
             });
 
             renderItemsTable();
+            updateRemainingStockUI();
             setWarn('#addWarn', null);
             $('#AddQty, #ReasonId').val('');
             if(!$('#LabelInput').prop('disabled')) $('#LabelInput').val('');
 
             // Reset
             tempArcBoxConfig = null;
-            $('#btnConfigArcBox').addClass('d-none');
-            $('#LabelInput').prop('disabled', false);
+            const currentProductName = getSelText('#ProductId') || "";
+            const isStillArcBox = currentProductName.replace(/\s+/g, '').toLowerCase().includes("arcbox");
+
+            if(isStillArcBox){
+                // Eğer hala Arc Box seçiliyse butonu GİZLEME, Label'ı da kapalı tut.
+                $('#btnConfigArcBox').removeClass('d-none');
+                $('#LabelInput').val("-").prop('disabled', true);
+            }
+            else{
+                $('#btnConfigArcBox').addClass('d-none');
+                $('#LabelInput').val("").prop('disabled', false);
+            }
         });
 
         // Tablodan Ürün Silme
@@ -761,6 +803,7 @@
             const idx = parseInt($tr.data('idx'));
             items.splice(idx, 1);
             renderItemsTable();
+            updateRemainingStockUI(); // SİLİNCE STOK OTOMATİK GERİ GELSİN!
         });
 
 
