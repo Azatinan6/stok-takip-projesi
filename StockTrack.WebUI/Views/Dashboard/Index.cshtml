@@ -454,7 +454,7 @@
 
       let raw=[];
       try{
-        const res = await fetch('/Dashboard/GetProductStockData');
+        const res = await fetch('@Url.Action("GetProductStockData", "Dashboard")');
         raw = await res.json();
       }catch{
         el.replaceWith(Object.assign(document.createElement('div'),{innerText:'Grafik yüklenirken hata oluştu.'}));
@@ -520,7 +520,7 @@
     })();
 
 
-    const ENDPOINT = '/Dashboard/GetCriticalStockData';
+    const ENDPOINT = '@Url.Action("GetCriticalStockData", "Dashboard")';
     const refreshMs = 30_000; // oto yenileme (30 sn)
 
     const elCount   = document.getElementById('criticalCount');
@@ -560,15 +560,12 @@
               </div>
             </div>
           </td>
-          <td class="text-end">
-            <span class="badge" ${badgeStyle(item.color)}>${(item.stockStatus)}</span>
-            <div class="text-muted small">Stok: ${Number(item.currentStock)}</div>
-          </td>
-          <div class="text-muted small">
-          Uyarı seviyesi: ${item.threshold}
-
-        </div>
-        </tr>
+    <td class="text-end">
+    <span class="badge mb-1" ${badgeStyle(item.color)}>${(item.stockStatus)}</span>
+    <div class="text-muted small fw-bold">Stok: ${Number(item.currentStock)}</div>
+    <div class="text-muted small" style="font-size: 0.75rem;">Uyarı Limiti: ${item.threshold}</div>
+    </td>
+    </tr>
       `).join('');
     }
 

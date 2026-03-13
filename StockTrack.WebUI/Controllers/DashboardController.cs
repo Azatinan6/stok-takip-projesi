@@ -66,7 +66,7 @@ namespace StockTrack.WebUI.Controllers
         [HttpGet]
         public IActionResult GetProductStockData()
         {
-            var data = _appDbContext.Products
+            var data =  _appDbContext.Products
                 .Where(p => !p.IsDeleted)
                 .Select(p => new
                 {
