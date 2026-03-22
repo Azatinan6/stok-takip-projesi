@@ -16,11 +16,13 @@
 
         //Kargo işlemleri
         public string? TrackingNumber { get; set; }//Kargo numarası
-        public string? Adress { get; set; }//Adres
+        public string? Address { get; set; }//Adres
         public string? ToPerson { get; set; }//Alıcı bilgisi
         public string? Phone { get; set; }//Alıcı Numarası
         public DateTime? PackingDate { get; set; }//Hazırlanma tarihi
         public DateTime? CargoGivenDate { get; set; }//Kargoya verildi  Tarihi
+        public string? ReceiverDepartment { get; set; }
+        
 
         public int? CargoNameId { get; set; }
 

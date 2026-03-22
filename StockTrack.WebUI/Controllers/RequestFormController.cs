@@ -213,7 +213,10 @@ namespace StockTrack.WebUI.Controllers
                         ConnectionType = x.ArcBoxConfig?.ConnectionType,
                         ConfigUrl = x.ArcBoxConfig?.ConfigUrl,
                         DhcpdConf = x.ArcBoxConfig?.DhcpdConf,
-                        WpaSupplicantConf = x.ArcBoxConfig?.WpaSupplicantConf
+                        WpaSupplicantConf = x.ArcBoxConfig?.WpaSupplicantConf,
+                        IpAddress = x.ArcBoxConfig?.IpAddress,
+                        EthMacAddress = x.ArcBoxConfig?.EthMacAddress,
+                        WlanMacAddress = x.ArcBoxConfig?.WlanMacAddress
                     }).ToList();
 
                 if (rpList.Count > 0)
@@ -236,7 +239,7 @@ namespace StockTrack.WebUI.Controllers
                     RequestDate = now
                 };
 
-                if (dto.TypeId == (int)EnumRequestType.Kurulum || dto.TypeId == (int)EnumRequestType.Servis)
+                if (dto.TypeId == (int)EnumRequestType.Kurulum || dto.TypeId == (int)EnumRequestType.Servis || dto.TypeId == (int)EnumRequestType.EkKurulum)
                 {
                     if (dto.TypeId == (int)EnumRequestType.Servis)
                     {
@@ -266,6 +269,13 @@ namespace StockTrack.WebUI.Controllers
                 {
                     requestFormDetail.ToPerson = dto.ReceiverFullName;
                     requestFormDetail.Phone = dto.Phone;
+                    requestFormDetail.ReceiverDepartment = dto.ReceiverDepartment;
+
+                    // UI'daki 'Açık Adres' kutusunu Entity'deki 'CargoAddress' kolonuna yazıyoruz
+                    requestFormDetail.Address = dto.CargoAddress;
+
+                    // Kargo notunu da Description alanına kaydedebilirsin (veya yeni bir kolon açtıysan ona)
+                    requestFormDetail.Description = dto.Note;
 
                     await _appDbContext.RequestFormDetails.AddAsync(requestFormDetail);
                     await _appDbContext.SaveChangesAsync();

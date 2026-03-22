@@ -22,5 +22,9 @@
         public string? ConfigUrl { get; set; }
         public string? DhcpdConf { get; set; }
         public string? WpaSupplicantConf { get; set; }
+
+        public string? IpAddress { get; set; }
+        public string? EthMacAddress { get; set; }
+        public string? WlanMacAddress { get; set; }
     }
 }

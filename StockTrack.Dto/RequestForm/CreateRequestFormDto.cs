@@ -17,6 +17,8 @@
         public string? ReceiverFullName { get; set; }
         public string? Phone { get; set; }
 
+        public string? ReceiverDepartment { get; set; }
+        public string? CargoAddress { get; set; }
         // --- PDF'TE İSTENEN YENİ EK SEÇENEKLER ---
         public bool IsShipAfterReturn { get; set; } // İade Ürünler Geldiği Zaman Kargolanacak
         public bool IsOfficeDelivery { get; set; }  // Ofisten Teslim Edilecek
@@ -42,9 +44,16 @@
     // Arc Box modalından gelen verileri karşılayacak özel sınıf
     public class ArcBoxConfigDto
     {
+        // Ortak Alan
         public string? ConnectionType { get; set; }
+        //Gönderim
         public string? ConfigUrl { get; set; }
         public string? DhcpdConf { get; set; }
         public string? WpaSupplicantConf { get; set; }
+        //İade
+        public string? IpAddress { get; set; }
+        public string? EthMacAddress { get; set; }
+        public string? WlanMacAddress { get; set; }
+
     }
 }

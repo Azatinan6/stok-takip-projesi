@@ -124,16 +124,25 @@
                             
                         </li>
 
-                        @await Component.InvokeAsync("RequestFormMenu")
+                        @* @await Component.InvokeAsync("RequestFormMenu")
                         @await Component.InvokeAsync("CargoMenu")
-                        @await Component.InvokeAsync("InstallationMenu")
+                        @await Component.InvokeAsync("InstallationMenu") *@
 
                         <li>
+                            <a asp-controller="RequestForm" asp-action="Create" class="waves-effect">
+                            <i class="mdi mdi-clipboard-text-outline icon nav-icon"></i>
+                            <span class="menu-item" data-key="t-requests">Talep</span>
+                            </a>
+                        </li>
+
+                        @await Component.InvokeAsync("CargoMenu")
+
+                        @* <li>
                             <a asp-controller="Installation" asp-action="ServicesPage" class="waves-effect">
                                 <i class="mdi mdi-tools icon nav-icon"></i>
                                 <span class="menu-item">Servis İşlemleri</span>
                             </a>
-                        </li>
+                        </li> *@
 
                         <li class="menu-title" data-key="t-filter-title">ARAÇLAR</li>
 

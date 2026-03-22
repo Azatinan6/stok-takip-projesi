@@ -22,6 +22,9 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
     </div>
 }
+<div class="text-start mb-3">
+    <a href="@Url.Action("RequestFormList", "RequestForm")" class="btn btn-outline-secondary shadow-sm"><i class="mdi mdi-check"></i> Talep Listesine Dön</a>
+</div>
 
 <div class="row">
     <div class="col-lg-12">
@@ -156,7 +159,7 @@
                                         <i class="mdi mdi-plus"></i> Ekle
                                     </button>
 
-                                    <button type="button" id="btnConfigArcBox" class="btn btn-warning shadow-sm d-none" data-bs-toggle="modal" data-bs-target="#arcBoxConfigModal">
+                                    <button type="button" id="btnConfigArcBox" class="btn btn-warning shadow-sm d-none">
                                         <i class="mdi mdi-cog-outline"></i> Config Gir (Arc Box)
                                     </button>
                                 </div>
@@ -170,7 +173,7 @@
                                     <div class="card-body p-0">
                                         <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
                                             <table class="table table-sm table-hover mb-0" id="sendItemsTable">
-                                                <thead class="table-light text-muted small" style="position: sticky; top: 0; z-index: 1;">
+                                                <thead class="table-light text-muted small text-nowrap" style="position: sticky; top: 0; z-index: 1;">
                                                     <tr>
                                                         <th>Ürün</th>
                                                         <th>Kategori</th>
@@ -194,13 +197,13 @@
                                     <div class="card-body p-0">
                                         <div class="table-responsive" style="max-height: 200px; overflow-y: auto;">
                                             <table class="table table-sm table-hover mb-0" id="returnItemsTable">
-                                                <thead class="table-light text-muted small" style="position: sticky; top: 0; z-index: 1;">
+                                                <thead class="table-light text-muted small text-nowrap" style="position: sticky; top: 0; z-index: 1;">
                                                     <tr>
                                                         <th>Ürün</th>
                                                         <th>Kategori</th>
                                                         <th>Güncel Stok</th>
                                                         <th>Miktar</th>
-                                                        <th>Gönderim Nedeni</th>
+                                                        <th>İade Nedeni</th>
                                                         <th>Etiket</th>
                                                         <th></th>
                                                     </tr>
@@ -228,10 +231,12 @@
                                     <div class="card-header bg-light"><strong><i class="mdi mdi-map-marker me-1"></i> Hastane & Depo</strong></div>
                                     <div class="card-body">
                                         <div class="mb-1"><strong>Hastane:</strong> <span id="sumLocation">-</span></div>
-                                        <div><strong>Depo:</strong> <span id="sumRepo">-</span></div>
+                                        <div class="mb-1"><strong>Depo:</strong> <span id="sumRepo">-</span></div>
+                                        <div id="sumAddressDiv" class="d-none"><strong>Teslimat Adresi:</strong> <span id="sumAddressText" class="text-primary italic">-</span></div>
                                     </div>
                                 </div>
                             </div>
+
                             <div class="col-lg-6">
                                 <div class="card border shadow-sm">
                                     <div class="card-header bg-light"><strong><i class="mdi mdi-package-variant-closed me-1"></i> Ürün Özeti</strong></div>
@@ -244,6 +249,9 @@
                                                         <th>Ürün</th>
                                                         <th>Kategori</th>
                                                         <th class="text-end">Miktar</th>
+                                                        <th>Güncel Stok</th>
+                                                        <th>Gönderim/İade Nedeni</th>
+                                                        <th>Etiket</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody></tbody>
@@ -252,6 +260,7 @@
                                     </div>
                                 </div>
                             </div>
+
                         </div>
 
                         <fieldset class="mb-4 border p-3 rounded bg-light">
@@ -265,12 +274,17 @@
                                 <label class="form-check-label" for="typeKurulum">Kurulum</label>
                             </div>
                             <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="TypeId" id="typeEkKurulum" value="@((int)EnumRequestType.EkKurulum)">
+                                <label class="form-check-label" for="typeEkKurulum">Ek Kurulum</label>
+                            </div>
+                            <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="radio" name="TypeId" id="typeServis" value="@((int)EnumRequestType.Servis)">
                                 <label class="form-check-label" for="typeServis">Servis</label>
                             </div>
                         </fieldset>
 
-                        <div id="cargoFields" class="d-none">
+                        <div id="cargoFields" class="d-none border p-3 rounded mb-3 bg-white shadow-sm">
+                            <h6 class="text-primary border-bottom pb-2 mb-3"><i class="mdi mdi-truck-delivery"></i> Kargo Detayları</h6>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="ReceiverFullName" class="form-label">Alıcı Adı Soyadı <span class="text-danger">*</span></label>
@@ -279,6 +293,18 @@
                                 <div class="col-md-6 mb-3">
                                     <label for="ReceiverPhone" class="form-label">Telefon Numarası <span class="text-danger">*</span></label>
                                     <input type="tel" id="ReceiverPhone" name="Phone" class="form-control" placeholder="05xx xxx xx xx" pattern="^0[5-9][0-9]{9}$" maxlength="11">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="ReceiverDepartment" class="form-label">Birimi</label>
+                                    <input type="text" id="ReceiverDepartment" name="ReceiverDepartment" class="form-control" placeholder="Örn: IT Departmanı, Satın Alma...">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="Note" class="form-label">Not</label>
+                                    <textarea id="Note" name="Note" class="form-control" rows="2"></textarea>
+                                </div>
+                                <div class="col-12 mb-2" id="addressFieldContainer">
+                                    <label for="CargoAddress" class="form-label">Açık Adres <span class="text-danger">*</span></label>
+                                    <textarea id="CargoAddress" name="CargoAddress" class="form-control" rows="2" placeholder="Kargo teslimat adresi..."></textarea>
                                 </div>
                             </div>
                         </div>
@@ -320,10 +346,7 @@
                                     <div id="userListWarn" class="alert alert-warning d-none py-1 px-2 small"><span></span></div>
                                 </div>
                             </div>
-                            <div class="mb-3 mt-3">
-                                <label for="Note" class="form-label">Not</label>
-                                <textarea id="Note" name="Note" class="form-control" rows="2"></textarea>
-                            </div>
+                            
                         </div>
 
                         <div class="border p-3 rounded mt-3 bg-light">
@@ -344,7 +367,11 @@
                     <div class="d-flex align-items-center mt-4 pt-3 border-top">
                         <button type="button" class="btn btn-secondary w-sm shadow-sm" id="prevBtn"><i class="mdi mdi-arrow-left"></i> Geri</button>
                         <button type="button" class="btn btn-primary w-sm ms-auto shadow-sm" id="nextBtn">İleri <i class="mdi mdi-arrow-right"></i></button>
-                        <button type="submit" class="btn btn-success w-sm ms-auto d-none shadow-sm" id="finishBtn"><i class="mdi mdi-check-all"></i> Talebi Tamamla</button>
+    
+                        <div class="ms-auto d-none d-flex gap-2" id="finishActionGroup">
+                            <a href="@Url.Action("RequestFormList", "RequestForm")" class="btn btn-outline-danger shadow-sm"><i class="mdi mdi-close"></i> İptal</a>
+                            <button type="submit" class="btn btn-success w-sm shadow-sm" id="finishBtn"><i class="mdi mdi-check-all"></i> Talebi Tamamla</button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -355,8 +382,8 @@
 <div class="modal fade" id="arcBoxConfigModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-warning">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title text-dark"><i class="mdi mdi-cog"></i> Arc Box Configürasyonu</h5>
+            <div class="modal-header bg-warning">    
+                <h5 class="modal-title text-dark" id="configModalTitle"><i class="mdi mdi-cog"></i> Arc Box Configürasyonu</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
             </div>
             <div class="modal-body">
@@ -374,21 +401,75 @@
                         <option value="WIFI DHCP">WIFI DHCP</option>
                     </select>
                 </div>
+                
+                <!-- GÖNDERİM AYARLARI -->
+                <div id="shippingConfigFields">
+                    
+                    <hr class="text-muted"/>
+                    <h6 class="text-primary mb-3">
+                        <i class="mdi mdi-truck-delivery"></i> Gönderim Ayarları
+                    </h6>
 
-                <div class="mb-3">
-                    <label class="form-label">Config URL <span class="text-danger">*</span></label>
-                    <input type="text" id="ConfigUrl" class="form-control" placeholder="https://...">
-                </div>
+                    <div class="mb-3">
+                        <label class="form-label">Config URL <span class="text-danger">*</span></label>
+                        <input type="text" id="ConfigUrl" class="form-control" placeholder="https://...">
+                    </div>
 
-                <div class="mb-3" id="divDhcpd">
-                    <label class="form-label">dhcpd.conf <span class="text-danger" id="reqDhcpd" style="display:none;">*</span></label>
-                    <textarea id="ConfigDhcpd" class="form-control" rows="2" placeholder="Statik IP ayarları..."></textarea>
-                </div>
+                    <div class="mb-3" id="divDhcpd">
+                        <label class="form-label">dhcpd.conf <span class="text-danger" id="reqDhcpd" style="display:none;">*</span></label>
+                        <textarea id="ConfigDhcpd" class="form-control" rows="2" placeholder="Statik IP ayarları..."></textarea>
+                    </div>
 
-                <div class="mb-3" id="divWpa">
-                    <label class="form-label">wpa_supplicant.conf <span class="text-danger" id="reqWpa" style="display:none;">*</span></label>
-                    <textarea id="ConfigWpa" class="form-control" rows="2" placeholder="Wifi SSID / Şifre..."></textarea>
+                    <div class="mb-3" id="divWpa">
+                        <label class="form-label">wpa_supplicant.conf <span class="text-danger" id="reqWpa" style="display:none;">*</span></label>
+                        <textarea id="ConfigWpa" class="form-control" rows="2" placeholder="Wifi SSID / Şifre..."></textarea>
+                    </div>
                 </div>
+                <!-- İade AYARLARI (Başta Gizli) -->
+                <div id="returnConfigFields" style="display:none;">
+
+                    <hr class="text-muted"/>
+                    <h6 class="text-danger mb-3">
+                        <i class="mdi mdi-keyboard-return"></i> İade Kimlik Bilgileri
+                    </h6>
+
+                    <!-- IP adresi -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            IP Adresi <span class="text-danger">*</span>
+                        </label>
+
+                        <input type="text"
+                               id="ReturnIpAddress"
+                               class="form-control"
+                               placeholder="Örn: 192.168.1.50">
+                    </div>
+
+                    <!-- Ethernet MAC -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            ETH MAC Adresi <span class="text-danger">*</span>
+                        </label>
+
+                        <input type="text"
+                               id="ReturnEthMac"
+                               class="form-control"
+                               placeholder="Örn: 00:1A:2B:3C:4D:5E">
+                    </div>
+
+                    <!-- Wifi MAC -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            WLAN MAC Adresi <span class="text-danger">*</span>
+                        </label>
+
+                        <input type="text"
+                               id="ReturnWlanMac"
+                               class="form-control"
+                               placeholder="Örn: 00:1A:2B:3C:4D:5F">
+                    </div>
+                </div>
+                
             </div>
             <div class="modal-footer bg-light">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
@@ -405,6 +486,7 @@
         const items = [];
         const persons = [];
         let tempArcBoxConfig = null;
+        let editingConfigIndex = -1;
 
         // --- Helpers ---
         function setWarn(divSel, msg) {
@@ -425,10 +507,10 @@
             $('#prevBtn').prop('disabled', currentStep === 1);
             if (currentStep === 3) {
                 $('#nextBtn').addClass('d-none');
-                $('#finishBtn').removeClass('d-none');
+                $('#finishActionGroup').removeClass('d-none');
             } else {
                 $('#nextBtn').removeClass('d-none');
-                $('#finishBtn').addClass('d-none');
+                $('#finishActionGroup').addClass('d-none');
             }
         }
         function updateRemainingStockUI(){
@@ -476,26 +558,78 @@
             return true;
         }
 
-        // --- 3. Aşama Özet Tablosu Doldurma ---
+        // --- 3. Aşama Özet Tablosu Doldurma (Tek Tablo - Kompakt Görünüm) ---
         function step3BindSummary() {
             $('#sumLocation').text(getSelText('#LocationId') ?? '-');
             $('#sumRepo').text(getSelText('#MainRepoId') ?? '-');
+
+            // Özet ekranında adres gösterimi için küçük bir zeka (İsteğe bağlı):
+            let finalAddress = $('#IsOfficeDelivery').is(':checked') ? "--- Ofisten Teslim ---" : $('#CargoAddress').val();
+            
             const $tb = $('#sumItemsTable tbody');
             $tb.empty();
+            
+            if (items.length === 0) {
+                $tb.append('<tr><td colspan="7" class="text-center text-muted small py-3">Seçilen ürün bulunmuyor.</td></tr>');
+                return;
+            }
+
             items.forEach(it => {
                 let badge = it.operationType === 1
                     ? '<span class="badge bg-success">Gönderim</span>'
                     : '<span class="badge bg-danger">İade</span>';
 
+                // --- TOOLTIP DETAY METNİNİ HAZIRLAMA ---
+                let tooltipHtml = "";
+                if (it.arcBoxConfig) {
+                        if (it.operationType === 1) {
+                             // Gönderim detayları (Tüm Config bilgileri eklendi)
+                            tooltipHtml = `<b>Bağlantı:</b> ${it.arcBoxConfig.connectionType || '-'}<br>
+                                           <b>URL:</b> ${it.arcBoxConfig.configUrl || '-'}<br>
+                                           <b>DHCPD:</b> ${it.arcBoxConfig.dhcpdConf || '-'}<br>
+                                           <b>WPA:</b> ${it.arcBoxConfig.wpaSupplicantConf || '-'}`;
+                        }else if (it.operationType === 2) {
+                            // İade detayları (Zaten eksiksiz, sadece boş gelme ihtimaline karşı zırhlandı)
+                            tooltipHtml = `<b>Bağlantı:</b> ${it.arcBoxConfig.connectionType || '-'}<br>
+                                           <b>IP:</b> ${it.arcBoxConfig.ipAddress || '-'}<br>
+                                           <b>ETH MAC:</b> ${it.arcBoxConfig.ethMacAddress || '-'}<br>
+                                           <b>WLAN MAC:</b> ${it.arcBoxConfig.wlanMacAddress || '-'}`;
+                        }
+                }
+
+                // İkona data-bs-html="true" ekledik ki <br> ve <b> etiketleri çalışsın!
+                let configIcon = it.arcBoxConfig
+                    ? `<i class="mdi mdi-cog text-warning ms-1" data-bs-html="true" title="${tooltipHtml}" data-bs-toggle="tooltip" style="cursor:help;"></i>`
+                    : '';
+                
+                let labelText = it.label ? it.label : "-";
+
+                // Tabloya satırı çakıyoruz
                 $tb.append(
                     `<tr>
                         <td>${badge}</td>
-                        <td>${it.productName}</td>
+                        <td>${it.productName} ${configIcon}</td>
                         <td>${it.categoryName}</td>
                         <td class="text-end fw-bold">${it.quantity}</td>
+                        <td class="fw-bold text-info">${it.currentStock}</td>
+                        <td><small class="text-muted">${it.reason}</small></td>
+                        <td><small>${labelText}</small></td>
                     </tr>`
                 );
             });
+
+            // Modern Tooltip Tetikleyici
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('#sumItemsTable [data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            if ($('input[name="TypeId"]:checked').val() == '@((int)EnumRequestType.Kargo)') {
+            $('#sumAddressDiv').removeClass('d-none');
+            $('#sumAddressText').text(finalAddress);
+            } else {
+            $('#sumAddressDiv').addClass('d-none');
+            }
         }
 
         function serializeItems() {
@@ -521,7 +655,10 @@
             let returnCount = 0;
 
             items.forEach((it, idx) => {
-                let configIcon = it.arcBoxConfig ? '<i class="mdi mdi-cog text-warning ms-1" title="Config Girildi" data-bs-toggle="tooltip"></i>' : '';
+                let configIcon = it.arcBoxConfig
+                ? `<button type="button" class="btn btn-sm btn-outline-warning ms-2 py-0 px-2 btn-edit-config" title="Config Düzenle" data-bs-toggle="tooltip">
+                    <i class="mdi mdi-cog text-warning ms-1"></i> Düzenle</button>`
+                : '';
                 let labelText = it.label ? it.label : "-";
 
                 let rowHtml = `<tr data-idx="${idx}">
@@ -532,7 +669,7 @@
                         <td><small class="text-muted">${it.reason}</small></td>
                         <td><small>${labelText}</small></td>
                         <td class="text-end">
-                            <button type="button" class="btn btn-sm text-danger btn-remove p-0" title="Sil"><i class="mdi mdi-trash-can-outline font-size-18"></i></button>
+                            <button type="button" class="btn btn-sm text-danger btn-remove p-0" title="Sil" data-bs-toggle="tooltip"><i class="mdi mdi-trash-can-outline font-size-18"></i></button>
                         </td>
                     </tr>`;
 
@@ -545,11 +682,15 @@
                 }
             });
 
-            if(sendCount === 0) $sendTb.append('<tr><td colspan="6" class="text-center text-muted small py-3">Gönderilecek ürün eklenmedi.</td></tr>');
-            if(returnCount === 0) $returnTb.append('<tr><td colspan="6" class="text-center text-muted small py-3">İade beklenecek ürün eklenmedi.</td></tr>');
+            if(sendCount === 0) $sendTb.append('<tr><td colspan="7" class="text-center text-muted small py-3">Gönderilecek ürün eklenmedi.</td></tr>');
+            if(returnCount === 0) $returnTb.append('<tr><td colspan="7" class="text-center text-muted small py-3">İade beklenecek ürün eklenmedi.</td></tr>');
 
-            // Tooltipleri yenile
-            $('[data-bs-toggle="tooltip"]').tooltip();
+            // Modern Tooltip Tetikleyici
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('#sendItemsTable [data-bs-toggle="tooltip"], #returnItemsTable [data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+            
             serializeItems();
         }
 
@@ -694,28 +835,85 @@
             } else { $('#reqWpa').hide(); }
         });
 
-        // Config Kaydet Butonu
+        // 1. Yeni Ürün İçin Config Butonu (Aşağıdaki Sarı Buton)
+        $('#btnConfigArcBox').on('click',function(e){
+            e.preventDefault();
+
+            editingConfigIndex = -1; // "Yeni kayıt açıyorum" diye hafızaya kazı!
+            $('#ConfigConnectionType, #ConfigUrl, #ConfigDhcpd, #ConfigWpa, #ReturnIpAddress, #ReturnEthMac, #ReturnWlanMac').val(''); // İçini temizle
+            $('#ConfigConnectionType').trigger('change');
+
+            let opType = $('input[name="OperationType"]:checked').val();
+            if(!opType){ alert("Önce işlem türü seçin!"); return; }
+
+            if(opType == 1){
+                $('#shippingConfigFields').show();
+                $('#returnConfigFields').hide();
+                $('#configModalTitle').html('<i class="mdi mdi-cog"></i> Gönderim Configürasyonu');
+            }
+            else if(opType == 2){
+                $('#shippingConfigFields').hide();
+                $('#returnConfigFields').show();
+                $('#configModalTitle').html('<i class="mdi mdi-keyboard-return"></i> İade Configürasyonu');
+            }
+            $('#arcBoxConfigModal').modal('show');
+        });
+
+        // 2. Modaldaki Yeşil "Config Kaydet" Butonu
         $('#btnSaveConfig').on('click', function() {
+            // Düzenleme mi yoksa Yeni mi? Oku!
+            let opType = (editingConfigIndex !== -1) ? items[editingConfigIndex].operationType : $('input[name="OperationType"]:checked').val();
+            
             const connType = $('#ConfigConnectionType').val();
-            const url = $('#ConfigUrl').val();
-            const dhcpd = $('#ConfigDhcpd').val();
-            const wpa = $('#ConfigWpa').val();
+            let url = "", dhcpd = "", wpa = "", ip = "", ethMac = "", wlanMac = "";
 
-            if(!connType || !url) {
-                alert("Bağlantı Türü ve Config URL zorunludur!"); return;
+            if(!connType) { alert("Bağlantı Türü zorunludur!"); return; }
+
+            // Gönderim Kontrolleri
+            if (opType == 1) {
+                url = $('#ConfigUrl').val();
+                dhcpd = $('#ConfigDhcpd').val();
+                wpa = $('#ConfigWpa').val();
+
+                if(!url) { alert("Config URL zorunludur!"); return; }
+                if ((connType === "Ethernet Statik" || connType === "WIFI Statik") && !dhcpd) {
+                    alert("Statik bağlantılarda dhcpd.conf alanı zorunludur!"); return;
+                }
+                if ((connType === "WIFI Statik" || connType === "WIFI DHCP") && !wpa) {
+                    alert("WIFI bağlantılarında wpa_supplicant.conf alanı zorunludur!"); return;
+                }
             }
-            if ((connType === "Ethernet Statik" || connType === "WIFI Statik") && !dhcpd) {
-                alert("Statik bağlantılarda dhcpd.conf alanı zorunludur!"); return;
-            }
-            if ((connType === "WIFI Statik" || connType === "WIFI DHCP") && !wpa) {
-                alert("WIFI bağlantılarında wpa_supplicant.conf alanı zorunludur!"); return;
+            // İade Kontrolleri
+            else if (opType == 2) {
+                ip = $('#ReturnIpAddress').val();
+                ethMac = $('#ReturnEthMac').val();
+                wlanMac = $('#ReturnWlanMac').val();
+
+                if(!ip || !ethMac || !wlanMac){ alert("İade işlemi için IP, ETH MAC ve WLAN MAC adreslerinin tümü zorunludur!"); return; }
             }
 
-            tempArcBoxConfig = { connectionType: connType, configUrl: url, dhcpdConf: dhcpd, wpaSupplicantConf: wpa };
+            // Yeni Config Objesi
+            const newConfig = {
+                connectionType: connType, configUrl: url, dhcpdConf: dhcpd, wpaSupplicantConf: wpa,
+                ipAddress: ip, ethMacAddress: ethMac, wlanMacAddress: wlanMac
+            };
+
+            // DÜZENLEME Mİ YENİ Mİ?
+            if (editingConfigIndex !== -1) {
+                // Eski satırı güncelle ve tabloyu yenile!
+                items[editingConfigIndex].arcBoxConfig = newConfig;
+                renderItemsTable();
+            } else {
+                // Yeni ürün ekleniyorsa sepete at
+                tempArcBoxConfig = newConfig;
+            }
+
             $('#arcBoxConfigModal').modal('hide');
 
-            // Alanları temizle
-            $('#ConfigConnectionType, #ConfigUrl, #ConfigDhcpd, #ConfigWpa').val('');
+            // Temizlik ve Sıfırlama
+            $('#ConfigConnectionType, #ConfigUrl, #ConfigDhcpd, #ConfigWpa, #ReturnIpAddress, #ReturnEthMac, #ReturnWlanMac').val('');
+            $('#ConfigConnectionType').trigger('change');
+            editingConfigIndex = -1; // İşlem bitti, hafızayı sıfırla
         });
 
         // Ürün Ekle Butonu
@@ -805,25 +1003,59 @@
             renderItemsTable();
             updateRemainingStockUI(); // SİLİNCE STOK OTOMATİK GERİ GELSİN!
         });
+        // Tablodan Config Düzenleme (Kalem İkonuna Tıklayınca)
+        $(document).on('click', '.btn-edit-config', function () {
+            const $tr = $(this).closest('tr');
+            const idx = parseInt($tr.data('idx'));
+            const item = items[idx]; // Hangi ürüne tıkladık?
 
+            editingConfigIndex = idx; // Hafızaya yazıyoruz: "Şu an bu satırı düzenliyorum!"
+
+            const opType = item.operationType; // 1: Gönderim, 2: İade
+
+            // Modaldaki kutuları o anki ürünün config bilgileriyle doldur
+            $('#ConfigConnectionType').val(item.arcBoxConfig.connectionType || '').trigger('change');
+
+            if (opType === 1) { // Gönderim
+                $('#shippingConfigFields').show();
+                $('#returnConfigFields').hide();
+                $('#configModalTitle').html('<i class="mdi mdi-pencil"></i> Gönderim Configürasyonu (Düzenle)');
+
+                $('#ConfigUrl').val(item.arcBoxConfig.configUrl || '');
+                $('#ConfigDhcpd').val(item.arcBoxConfig.dhcpdConf || '');
+                $('#ConfigWpa').val(item.arcBoxConfig.wpaSupplicantConf || '');
+            }
+            else if (opType === 2) { // İade
+                $('#shippingConfigFields').hide();
+                $('#returnConfigFields').show();
+                $('#configModalTitle').html('<i class="mdi mdi-pencil"></i> İade Configürasyonu (Düzenle)');
+
+                $('#ReturnIpAddress').val(item.arcBoxConfig.ipAddress || '');
+                $('#ReturnEthMac').val(item.arcBoxConfig.ethMacAddress || '');
+                $('#ReturnWlanMac').val(item.arcBoxConfig.wlanMacAddress || '');
+            }
+
+            // Her şey doldu, modalı aç!
+            $('#arcBoxConfigModal').modal('show');
+        });
 
         // --- Step 3 Events ---
-        $('input[name="TypeId"]').on('change', function () {
-            var selectedVal = $(this).val();
+         $('input[name="TypeId"]').on('change', function () {
+             var selectedVal = $(this).val();
 
-            if (selectedVal == '@((int)EnumRequestType.Kurulum)' || selectedVal == '@((int)EnumRequestType.Servis)') {
-                $('#installationFields').removeClass('d-none');
-                $('#cargoFields').addClass('d-none');
-                $('#ReceiverFullName').val('');
-            } else if (selectedVal == '@((int)EnumRequestType.Kargo)') {
-                $('#cargoFields').removeClass('d-none');
-                $('#installationFields').addClass('d-none');
-                $('#InstallationDate').val('');
-                $('#Note').val('');
-                clearPersonsUI();
-            }
-            setWarn('#step3Warn', null);
-        });
+             // Ek Kurulum da eklendi!
+             if (selectedVal == '@((int)EnumRequestType.Kurulum)' || selectedVal == '@((int)EnumRequestType.Servis)' || selectedVal == '@((int)EnumRequestType.EkKurulum)') {
+                 $('#installationFields').removeClass('d-none');
+                 $('#cargoFields').addClass('d-none');
+                 $('#ReceiverFullName').val('');
+             } else if (selectedVal == '@((int)EnumRequestType.Kargo)') {
+                 $('#cargoFields').removeClass('d-none');
+                 $('#installationFields').addClass('d-none');
+                 $('#InstallationDate').val('');
+                 clearPersonsUI();
+             }
+             setWarn('#step3Warn', null);
+         });
 
         $('#btnAddPerson').on('click', function () {
             const pid = $('#PersonId').val();
@@ -843,6 +1075,17 @@
             persons.splice(idx, 1);
             renderUsersTable();
             serializePersonsToInputs();
+        });
+        // Ofisten Teslim Edilecek seçilirse Adresi Gizle / Göster
+        $('#IsOfficeDelivery').on('change', function () {
+            if ($(this).is(':checked')) {
+                // Tikliyse Adresi kaydırarak gizle ve içini temizle (Hata vermesin)
+                $('#addressFieldContainer').slideUp(200);
+                $('#CargoAddress').val('');
+            } else {
+                // Tik kaldırılırsa Adresi geri getir
+                $('#addressFieldContainer').slideDown(200);
+            }
         });
 
         // --- Submit ---
@@ -864,14 +1107,19 @@
             if (typeVal == @((int)EnumRequestType.Kargo)) {
                 if (!$('#ReceiverFullName').val()) { e.preventDefault(); setWarn('#step3Warn', 'Kargo için alıcı adı zorunludur.'); return; }
                 if (!$('#ReceiverPhone').val()) { e.preventDefault(); setWarn('#step3Warn', 'Kargo için telefon numarası zorunludur.'); return; }
+                if (!$('#IsOfficeDelivery').is(':checked') && !$('#CargoAddress').val()) {
+                    e.preventDefault(); setWarn('#step3Warn', 'Kargo için teslimat adresi zorunludur.'); return;
+                }
             }
 
-            if ((typeVal == @((int)EnumRequestType.Kurulum) || typeVal == @((int)EnumRequestType.Servis)) && !$('#InstallationDate').val()) {
-                e.preventDefault(); setWarn('#step3Warn', 'Kurulum/Servis için tarih zorunludur.'); return;
+            // Kurulum, Servis VEYA Ek Kurulum seçildiyse tarih kontrolü:
+            if ((typeVal == @((int)EnumRequestType.Kurulum) || typeVal == @((int)EnumRequestType.Servis) || typeVal == @((int)EnumRequestType.EkKurulum)) && !$('#InstallationDate').val()) {
+                e.preventDefault(); setWarn('#step3Warn', 'Kurulum/Servis/Ek Kurulum için tarih zorunludur.'); return;
             }
 
-            if ((typeVal == @((int)EnumRequestType.Kurulum) || typeVal == @((int)EnumRequestType.Servis)) && persons.length === 0) {
-                e.preventDefault(); setWarn('#step3Warn', 'Kurulum/Servis için en az bir personel eklemelisiniz.'); return;
+            // Kurulum, Servis VEYA Ek Kurulum seçildiyse personel kontrolü:
+            if ((typeVal == @((int)EnumRequestType.Kurulum) || typeVal == @((int)EnumRequestType.Servis) || typeVal == @((int)EnumRequestType.EkKurulum)) && persons.length === 0) {
+                e.preventDefault(); setWarn('#step3Warn', 'Kurulum/Servis/Ek Kurulum için en az bir personel eklemelisiniz.'); return;
             }
 
             serializeItems();

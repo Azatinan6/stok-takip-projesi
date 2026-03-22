@@ -12,7 +12,11 @@ namespace StockTrack.WebUI.Enums
         Kurulum = 2,
 
         [Display(Name = "Servis")]
-        Servis = 3
+        Servis = 3,
+
+        [Display(Name = "EkKurulum")]
+        EkKurulum = 4
+
     }
 
     public static class EnumExtensions
