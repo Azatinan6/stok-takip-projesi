@@ -1,0 +1,129 @@
+﻿@model List<StockTrack.Entity.Enitities.CargoName>
+@{
+    ViewData["Title"] = "Kargo Tanımları";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <h6 class="m-0 font-weight-bold text-primary">🚚 Kargo Firmaları</h6>
+    <div>
+        <a href="~/CargoName/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
+            <i class="mdi mdi-delete-restore me-1"></i> Silinenler
+        </a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCargoModal">
+            <i class="fa fa-plus"></i> Yeni Firma Ekle
+        </button>
+    </div>
+    
+</div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+        <table id="DataTables" class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th width="10%">#</th>
+                        <th width="50%">Firma Adı</th>
+                        <th width="20%">Durum</th>
+                        <th width="20%" class="text-center">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-muted">@item.Id</td>
+                            <td class="fw-bold text-dark">@item.Name</td>
+
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success">Aktif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-subtle text-danger border border-danger">Pasif</span>
+                                }
+                            </td>
+
+                            <td class="text-center">
+                                <div class="btn-group shadow-sm">
+                                    <button type="button" class="btn btn-outline-primary btn-sm" title="Düzenle" onclick="openEditModal(@item.Id, '@item.Name')">
+                                        <i class="fa fa-edit"></i>
+                                    </button>
+
+                                    <a href="~/CargoName/ToggleStatus/@item.Id" class="btn btn-outline-warning btn-sm" title="Aktif/Pasif Yap">
+                                        <i class="fa fa-exchange-alt"></i>
+                                    </a>
+
+                                    <a href="~/CargoName/Delete/@item.Id" class="btn btn-outline-danger btn-sm" title="Sil" onclick="return confirm('@item.Name firmasını silmek istediğinize emin misiniz?');">
+                                        <i class="fa fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+<div class="modal fade" id="createCargoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Yeni Kargo Firması Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="CargoName" asp-action="Create" method="post">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Firma Adı</label>
+                        <input type="text" class="form-control" name="Name" required placeholder="Örn: Aras Kargo" />
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editCargoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Kargo Firmasını Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-controller="CargoName" asp-action="Edit" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editCargoId" name="Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Firma Adı</label>
+                        <input type="text" class="form-control" id="editCargoName" name="Name" required />
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-warning">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openEditModal(id, name) {
+        // Modal içindeki inputların ID'lerine göre değerleri ata
+        $('#editCargoId').val(id);
+        $('#editCargoName').val(name);
+        // Modalı aç
+        var myModal = new bootstrap.Modal(document.getElementById('editCargoModal'));
+        myModal.show();
+    }
+</script>

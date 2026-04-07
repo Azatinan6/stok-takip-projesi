@@ -1,0 +1,80 @@
+﻿@using StockTrack.Dto.CargoDefinition
+@model IEnumerable<CargoDefinitionDeletedDto>
+
+@{
+    ViewData["Title"] = "Silinen Ürün Durumları";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h4>Silinen Ürün Durumları</h4>
+<hr />
+
+<table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Ürün Durumu Adı</th>
+            <th>İşlem Yönü</th>
+            <th>Silinme Tarihi</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int count = 1;
+        }
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@(count++)</td>
+                    <td class="fw-bold">@item.Name</td>
+
+                    <td>
+                        @if (item.DefinitionType == 2)
+                        {
+                            <span class="badge bg-success bg-opacity-10 text-success border border-success">
+                                <i class="mdi mdi-arrow-bottom-left me-1"></i> Giriş İşlemi
+                            </span>
+                        }
+                        else if (item.DefinitionType == 3)
+                        {
+                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">
+                                <i class="mdi mdi-arrow-top-right me-1"></i> Çıkış İşlemi
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">-</span>
+                        }
+                    </td>
+
+                    <td>@(item.DeletedDate?.ToString("dd MMMM yyyy HH:mm") ?? "-")</td>
+
+                    <td>
+                        <form asp-controller="CargoDefinition" asp-action="Restore" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bu ürün durumunu geri yüklemek istediğinize emin misiniz?');">
+                            <button type="submit" class="btn btn-success btn-sm">
+                                <i class="mdi mdi-restore me-1"></i> Geri Yükle
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                    Çöp kutusunda ürün durumu bulunmamaktadır.
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="mt-4">
+    <a asp-controller="CargoDefinition" asp-action="ProductStatusIndex" class="btn btn-secondary">
+        <i class="mdi mdi-arrow-left me-1"></i>Ürün Durumu Listesine Dön
+    </a>
+</div>

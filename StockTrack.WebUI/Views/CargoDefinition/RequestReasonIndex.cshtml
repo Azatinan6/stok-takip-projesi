@@ -1,0 +1,105 @@
+﻿@model List<StockTrack.Entity.Enitities.CargoDefinition>
+@{
+    // Controller'dan gelen tipe göre sayfanın Gönderim mi İade mi olduğunu anlıyoruz
+    bool isDispatch = ViewBag.ReasonType == 4;
+
+    ViewData["Title"] = isDispatch ? "Gönderim Nedenleri" : "İade Nedenleri";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <h6 class="m-0 font-weight-bold @(isDispatch ? "text-info" : "text-warning")">
+        📑 @(isDispatch ? "Gönderim Nedenleri" : "İade Nedenleri") Tanımları
+    </h6>
+    <div>
+        <a asp-controller="CargoDefinition" asp-action="DeletedRequestReason" asp-route-id="@ViewBag.ReasonType" class="btn btn-outline-danger me-2 shadow-sm">
+            <i class="mdi mdi-delete-restore me-1"></i> Silinenler
+        </a>
+
+        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createReasonModal">
+            <i class="fa fa-plus"></i> Yeni @(isDispatch ? "Gönderim" : "İade") Nedeni Ekle
+        </button>
+    </div>
+</div>
+
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            <div class="list-group-item bg-light text-muted fw-bold d-flex justify-content-between px-4 py-3">
+                <span class="col-2">#ID</span>
+                <span class="col-7">Neden Adı</span>
+                <span class="col-3 text-end">İşlemler</span>
+            </div>
+
+            @foreach (var item in Model)
+            {
+                <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3 hover-shadow">
+                    <span class="col-2 text-muted">@item.Id</span>
+                    <span class="col-7 fw-bold text-dark">@item.Name</span>
+                    <span class="col-3 text-end">
+                        <button type="button" class="btn btn-warning btn-sm shadow-sm" onclick="openEditReasonModal(@item.Id, '@item.Name')">Düzenle</button>
+                        <a href="~/CargoDefinition/DeleteRequestReason/@item.Id" class="btn btn-danger btn-sm shadow-sm" onclick="return confirm('Bu nedeni silmek istediğinize emin misiniz?');">Sil</a>
+                    </span>
+                </div>
+            }
+
+            @if (!Model.Any())
+            {
+                <div class="p-4 text-center text-muted">Henüz bu kategoriye ait bir neden eklenmemiş.</div>
+            }
+        </div>
+    </div>
+
+
+<div class="modal fade" id="createReasonModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Yeni @(isDispatch ? "Gönderim" : "İade") Nedeni</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="~/CargoDefinition/CreateRequestReason" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="DefinitionType" value="@ViewBag.ReasonType" />
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Neden Adı</label>
+                        <input type="text" class="form-control" name="Name" required placeholder="Örn: @(isDispatch ? "Yeni Kurulum" : "Proje İptali")" />
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-primary w-100">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editReasonModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Nedeni Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="~/CargoDefinition/EditRequestReason" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editReasonId" name="Id" />
+                    <label class="form-label fw-bold">Neden Adı</label>
+                    <input type="text" class="form-control" id="editReasonName" name="Name" required />
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-warning w-100">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openEditReasonModal(id, name) {
+        document.getElementById('editReasonId').value = id;
+        document.getElementById('editReasonName').value = name;
+        var myModal = new bootstrap.Modal(document.getElementById('editReasonModal'));
+        myModal.show();
+    }
+</script>

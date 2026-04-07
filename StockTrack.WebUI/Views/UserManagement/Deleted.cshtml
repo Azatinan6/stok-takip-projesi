@@ -1,0 +1,61 @@
+﻿@model List<DeleteUserDto>
+@{
+    ViewData["Title"] = "Silinen Kullanıcılar";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    int count = 1;
+
+}
+
+<h4>Silinen Kullanıcılar</h4>
+<hr />
+<table id="DataTables" class="display" style="width:100%">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Rol</th>
+            <th>Ad Soyad</th>
+            <th>Email</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Silinme Tarihi</th>
+            <th>Silen Kullanıcı</th>
+            <th>Durum</th>
+
+        </tr>
+    </thead>
+    <tfoot>
+        <tr>
+            <th>#</th>
+            <th>Rol</th>
+            <th>Ad Soyad</th>
+            <th>Email</th>
+            <th>Oluşturulma Tarihi</th>
+            <th>Silinme Tarihi</th>
+            <th>Silen Kullanıcı</th>
+            <th>Durum</th>
+
+        </tr>
+    </tfoot>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr>
+                <td>@(count++)</td>
+                <td>@(string.IsNullOrWhiteSpace(user.RoleName) ? "Rol ataması yapılmadı" : user.RoleName)</td>
+
+                <td>@user.NameSurname</td>
+                <td>@user.Email</td>
+                <td>@user.CreatedDate.ToString("dd MMMM yyyy")</td>
+                <td>@(user.DeletedDate?.ToString("dd MMMM yyyy") ?? "-")</td>
+                <td>@(string.IsNullOrWhiteSpace(user.DeletedBy) ? "-" : user.DeletedBy)</td>
+                <td>
+                    <div class="@(user.IsActive ? "text-success" : "text-danger")">
+                        @(user.IsActive ? "Evet" : "Hayır")
+                    </div>
+                </td>
+
+
+            </tr>
+        }
+    </tbody>
+</table>
+

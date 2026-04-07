@@ -1,0 +1,196 @@
+@using StockTrack.Dto.CargoDetail
+@using StockTrack.WebUI.Enums
+@model List<StockTrack.Dto.CargoDetail.ResultAwitingApprovalDto>
+
+@{
+    ViewData["Title"] = "Tüm Kargolar";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex flex-wrap gap-3 mb-4">
+
+    <!-- Tümü -->
+    <a href="~/CargoDetail/Index"
+           class="btn rounded-pill px-4 shadow-sm border"
+           style="background-color: #f1f3f5; color: #495057;">
+        Tümü (@ViewBag.AllCount)
+    </a>
+
+    <!-- Onay Bekliyor -->
+    <a href="~/CargoDetail/AwaitingApproval"
+           class="btn rounded-pill px-4 shadow-sm"
+           style="background-color: #fde2e1; color: #d62828; border: 1px solid #f5c2c0;">
+        Onay Bekliyor (@ViewBag.PendingCount)
+    </a>
+
+    <!-- Paketlendi -->
+    <a href="~/CargoDetail/ReadyForCargo"
+           class="btn rounded-pill px-4 shadow-sm"
+           style="background-color: #fff4cc; color: #e0a800; border: 1px solid #ffe69c;">
+        Paketlendi (@ViewBag.PackagedCount)
+    </a>
+
+    <!-- Kargoda -->
+    <a href="~/CargoDetail/CargoInDelivery"
+           class="btn rounded-pill px-4 shadow-sm"
+           style="background-color: #d0ebff; color: #1971c2; border: 1px solid #a5d8ff;">
+        Kargoda (@ViewBag.InCargoCount)
+    </a>
+
+    <!-- Teslim Edildi -->
+    <a href="~/CargoDetail/Delivered"
+           class="btn rounded-pill px-4 shadow-sm"
+           style="background-color: #d3f9d8; color: #2b8a3e; border: 1px solid #b2f2bb;">
+        Teslim Edildi (@ViewBag.DeliveredCount)
+    </a>
+
+    <!-- İptal -->
+    <a href="~/CargoDetail/Cancelled"
+           class="btn rounded-pill px-4 shadow-sm"
+           style="background-color: #ffe3e3; color: #c92a2a; border: 1px solid #ffc9c9;">
+        İptal Edilenler (@ViewBag.CancelledCount)
+    </a>
+
+    <!-- Silinen -->
+    <a href="~/CargoDetail/Deleted"
+           class="btn rounded-pill px-4 shadow-sm"
+           style="background-color: #e9ecef; color: #6c757d; border: 1px solid #dee2e6;">
+        Silinenler (@ViewBag.DeletedCount)
+    </a>
+
+</div>
+
+<div class="card shadow mb-4 border-0">
+    <div class="card-body p-0">
+    </div>
+</div>
+
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+    <h4>Tüm Kargolar</h4>
+</div>
+<hr />
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+<table class="table table-hover table-bordered table-striped" id="cargoTable">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Durum</th>
+            <th>Tarih</th>
+            <th>Kullanıcı</th>
+            <th>Depo</th>
+            <th>Ürün (Kategori : Miktar)</th>
+            <th>Lokasyon</th>
+            <th>Kargo Verilme Tarihi</th>
+            <th>Kargo Takip No</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <!-- ID -->
+                <td>@item.Id</td>
+                <!-- DURUM -->
+                <td>
+                    <span class="badge @(item.StatusId == 1 ? "bg-danger" 
+                                          : item.StatusId == 2 ? "bg-warning" 
+                                          : "bg-primary")">
+                        @item.StatusName
+                    </span>
+                </td>
+                <!-- TARİH -->
+                <td>
+                    @item.RequestFormRequestedDate?.ToString("dd.MM.yyyy")
+                </td>
+                <!-- KULLANICI -->
+                <td>@item.RequestFormRequestedBy</td>
+                <!-- DEPO -->
+                <td>@item.MainRepoName</td>
+                <!-- ÜRÜNLER -->
+                <td>
+                    @foreach (var product in item.Products)
+                    {
+                        <div>
+                            @product.ProductName (@product.CategoryName : @product.Quantity Adet)
+                        </div>
+                    }
+                </td>
+                <!-- LOKASYON -->
+                <td>
+                    @if (item.IsOfficeDelivery)
+                    {
+                        <span class="text-muted">Ofisten Teslim / Belirtilmemiş</span>
+                    }
+                    else
+                    {
+                        @item.HospitalName
+                    }
+                </td>
+                <!-- KARGO VERİLME TARİHİ -->
+                <td>
+                    @(item.CargoGivenDate.HasValue 
+                        ? item.CargoGivenDate.Value.ToString("dd.MM.yyyy") 
+                        : "-")
+                </td>
+                <!-- KARGO TAKİP NO -->
+                <td>
+                    @if (item.IsOfficeDelivery &&
+                        (item.StatusId == (int)StockTrack.WebUI.Enums.EnumStatusType.Kargoda ||
+                         item.StatusId == (int)StockTrack.WebUI.Enums.EnumStatusType.Tamamlandı))
+                    {
+                        <span class="badge bg-secondary">Ofisten Teslim Edildi</span>
+                    }
+                    else if (string.IsNullOrEmpty(item.TrackingNumber) &&
+                            (item.StatusId == (int)StockTrack.WebUI.Enums.EnumStatusType.Kargoda ||
+                             item.StatusId == (int)StockTrack.WebUI.Enums.EnumStatusType.Tamamlandı))
+                    {
+                        <span class="text-danger fw-bold">Takip No Giriniz !</span>
+                    }
+                    else
+                    {
+                        @(string.IsNullOrEmpty(item.TrackingNumber) 
+                            ? "-" 
+                            : item.TrackingNumber)
+                    }
+                </td>
+                <!-- İŞLEMLER -->
+                <td>
+                    <button type="button"       
+                            class="btn btn-sm btn-primary"
+                            style="white-space:nowrap !important;
+                            onclick="openCargoModal(@item.Id)">
+                        <i class="fas fa-cog"></i> İşlem Yap
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        // İleride Modal'ı açmak için kullanacağımız boş fonksiyon (Hazırlık)
+        function openCargoModal(id) {
+            console.log("Modal açılacak, Kargo ID: " + id);
+            // Burada AJAX ile Modal'ın içini dolduracağız...
+        }
+    </script>
+}

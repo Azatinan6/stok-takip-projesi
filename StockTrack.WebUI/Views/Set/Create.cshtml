@@ -1,0 +1,105 @@
+﻿@model StockTrack.Dto.Set.SetCreateDto
+@{
+    ViewData["Title"] = "Yeni Set Oluştur";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="mb-0 text-white"><i class="mdi mdi-plus-box me-2"></i> Yeni Set Tanımla</h5>
+            </div>
+
+            <div class="card-body p-4">
+                <form asp-controller="Set" asp-action="Create" method="post">
+
+                    <div class="row mb-4">
+                        <div class="col-md-9">
+                            <label class="form-label fw-bold">Set Adı</label>
+                            <input type="text" class="form-control" name="Name" required placeholder="Örn: Kamera Kurulum Seti" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Durum</label>
+                            <select class="form-select" name="IsActive">
+                                <option value="true" selected>Aktif</option>
+                                <option value="false">Pasif</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted opacity-25" />
+
+                    <h6 class="text-muted mb-3"><i class="mdi mdi-link-variant"></i> Set İçeriği (Ürünler)</h6>
+
+                    <div id="dynamic-product-list">
+                        <div class="row mb-3 product-row align-items-end">
+                            <div class="col-md-10">
+                                <label class="form-label text-secondary small">1. Ürün Seçin</label>
+                                <select class="form-select bg-light border-0" name="ProductIds" asp-items="@ViewBag.Products" required>
+                                    <option value="">-- Ürün Seçiniz --</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2 text-end">
+                                <button type="button" class="btn btn-secondary disabled" title="İlk ürün silinemez"><i class="mdi mdi-minus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <button type="button" id="btnAddProduct" class="btn btn-outline-success border-dashed w-100 py-2">
+                            <i class="mdi mdi-plus fw-bold fs-5"></i> Yeni Ürün Ekle
+                        </button>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="~/Set/Index" class="btn btn-light border me-2 px-4">İptal</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="mdi mdi-content-save"></i> Seti Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let productCount = 1;
+
+            // "+" Butonuna tıklandığında
+            $("#btnAddProduct").click(function () {
+                productCount++;
+
+                // Var olan ilk satırı (HTML'i) kopyala
+                let newRow = $(".product-row").first().clone();
+
+                // Yeni satırdaki label'ı güncelle (Örn: 2. Ürün Seçin)
+                newRow.find("label").text(productCount + ". Ürün Seçin");
+
+                // Seçili değeri sıfırla
+                newRow.find("select").val("");
+
+                // Kopyalanan satırdaki butonu Kırmızı (Sil) butonuna çevir
+                let removeBtn = newRow.find("button");
+                removeBtn.removeClass("btn-secondary disabled").addClass("btn-danger btn-remove-product");
+                removeBtn.attr("title", "Bu ürünü sil");
+
+                // Yeni satırı listeye ekle
+                $("#dynamic-product-list").append(newRow);
+            });
+
+            // "Sil (-)" Butonuna tıklandığında (Dinamik eklenen elementler için on() kullanıyoruz)
+            $(document).on("click", ".btn-remove-product", function () {
+                $(this).closest(".product-row").remove();
+
+                // Sıra numaralarını yeniden düzenle (Opsiyonel ama şık durur)
+                productCount = 0;
+                $(".product-row").each(function () {
+                    productCount++;
+                    $(this).find("label").text(productCount + ". Ürün Seçin");
+                });
+            });
+        });
+    </script>
+}
