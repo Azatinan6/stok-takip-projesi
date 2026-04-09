@@ -2,94 +2,36 @@
 @model List<ResultCargoDeliveredDto>
 
 @{
-    ViewData["Title"] = "Siparişi tamamlaman kargolar";
+    ViewData["Title"] = "Teslim Edilen Kargolar";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
+
+<!-- Üst Menü Linkleri (Aynı Kalıyor) -->
 <div class="d-flex flex-wrap gap-3 mb-4">
-
-    <!-- Tümü -->
-    <a href="~/CargoDetail/Index"
-           class="btn rounded-pill px-4 shadow-sm border"
-           style="background-color: #f1f3f5; color: #495057;">
-        Tümü (@ViewBag.AllCount)
-    </a>
-
-    <!-- Onay Bekliyor -->
-    <a href="~/CargoDetail/AwaitingApproval"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #fde2e1; color: #d62828; border: 1px solid #f5c2c0;">
-        Onay Bekliyor (@ViewBag.PendingCount)
-    </a>
-
-    <!-- Paketlendi -->
-    <a href="~/CargoDetail/ReadyForCargo"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #fff4cc; color: #e0a800; border: 1px solid #ffe69c;">
-        Paketlendi (@ViewBag.PackagedCount)
-    </a>
-
-    <!-- Kargoda -->
-    <a href="~/CargoDetail/CargoInDelivery"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #d0ebff; color: #1971c2; border: 1px solid #a5d8ff;">
-        Kargoda (@ViewBag.InCargoCount)
-    </a>
-
-    <!-- Teslim Edildi -->
-    <a href="~/CargoDetail/Delivered"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #d3f9d8; color: #2b8a3e; border: 1px solid #b2f2bb;">
-        Teslim Edildi (@ViewBag.DeliveredCount)
-    </a>
-
-    <!-- İptal -->
-    <a href="~/CargoDetail/Cancelled"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #ffe3e3; color: #c92a2a; border: 1px solid #ffc9c9;">
-        İptal Edilenler (@ViewBag.CancelledCount)
-    </a>
-
-    <!-- Silinen -->
-    <a href="~/CargoDetail/Deleted"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #e9ecef; color: #6c757d; border: 1px solid #dee2e6;">
-        Silinenler (@ViewBag.DeletedCount)
-    </a>
-
+    <a href="~/CargoDetail/Index" class="btn rounded-pill px-4 shadow-sm border" style="background-color: #f1f3f5; color: #495057;">Tümü (@ViewBag.AllCount)</a>
+    <a href="~/CargoDetail/AwaitingApproval" class="btn rounded-pill px-4 shadow-sm" style="background-color: #fde2e1; color: #d62828; border: 1px solid #f5c2c0;">Onay Bekliyor (@ViewBag.PendingCount)</a>
+    <a href="~/CargoDetail/ReadyForCargo" class="btn rounded-pill px-4 shadow-sm" style="background-color: #fff4cc; color: #e0a800; border: 1px solid #ffe69c;">Paketlendi (@ViewBag.PackagedCount)</a>
+    <a href="~/CargoDetail/CargoInDelivery" class="btn rounded-pill px-4 shadow-sm" style="background-color: #d0ebff; color: #1971c2; border: 1px solid #a5d8ff;">Kargoda (@ViewBag.InCargoCount)</a>
+    <a href="~/CargoDetail/Delivered" class="btn rounded-pill px-4 shadow-sm" style="background-color: #d3f9d8; color: #2b8a3e; border: 1px solid #b2f2bb;">Teslim Edildi (@ViewBag.DeliveredCount)</a>
+    <a href="~/CargoDetail/Cancelled" class="btn rounded-pill px-4 shadow-sm" style="background-color: #ffe3e3; color: #c92a2a; border: 1px solid #ffc9c9;">İptal Edilenler (@ViewBag.CancelledCount)</a>
 </div>
-
 
 <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
     <h4>Teslimatı Tamamlanan Kargolar</h4>
 </div>
+<hr />
 
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
-    </div>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
-    </div>
-}
 <table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
     <thead>
         <tr>
-            <th>ID</th> <!-- PDF: ID -->
-            <th>Durum</th> <!-- PDF: Durum -->
-            <th>Tarih</th> <!-- PDF: Tarih -->
-            <th>Kullanıcı</th> <!-- PDF: Kullanıcı -->
-            <th>Depo</th> <!-- PDF: Depo -->
-            <th>Ürün (Kategori : Miktar)</th> <!-- PDF: Ürün -->
-            <th>Lokasyon</th> <!-- PDF: Lokasyon -->
-            <th>Kargo Verilme Tarihi</th> <!-- PDF: Yeni Kolon -->
-            <th>Kargo Takip No</th> <!-- PDF: Kritik Zeka Kolonu -->
-            <th>İşlemler</th>
+            <th>ID</th>
+            <th>Durum</th>
+            <th>Teslim Tarihi</th>
+            <th>Alıcı</th>
+            <th>Kargo Firması</th>
+            <th>Ürünler</th>
+            <th>Kargo Takip No</th>
+            <th>İşlem</th>
         </tr>
     </thead>
     <tbody>
@@ -97,53 +39,38 @@
         {
             <tr>
                 <td>@item.Id</td>
+                <td><span class="badge bg-success">@item.StatusName</span></td>
+                <td>@(item.CompletedCargoDate?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td>
+                <td>@item.ReceiverFullName</td>
+                <td>@item.CargoCompany</td>
                 <td>
-                    <span class="badge @(item.StatusId == 4 ? "bg-info" : "bg-primary")">
-                        @item.StatusName
-                    </span>
-                </td>
-                <td>@item.RequestFormRequestedDate?.ToString("dd.MM.yyyy")</td>
-                <td>@(item.RequestFormRequestedBy ?? "-")</td>
-                <td>@item.MainRepoName</td>
-                <td>
-                    <!-- PDF Formatı: Kategori : Miktar -->
                     @foreach (var p in item.Products)
                     {
-                        <div>@p.CategoryName : @p.Quantity Adet</div>
+                        <div class="small">@p.CategoryName : @p.Quantity Adet</div>
                     }
                 </td>
-                <td>@item.HospitalName</td>
-                
-                <!-- Kargo Verilme Tarihi -->
-                <td>@(item.CargoGivenDate?.ToString("dd.MM.yyyy") ?? "-")</td>
-
-                <!-- TAKİP NO ZEKASI -->
                 <td>
-                    @if (item.IsOfficeDelivery && (item.StatusId == (int)EnumStatusType.Kargoda || item.StatusId == (int)EnumStatusType.Tamamlandı))
+                    @if (item.IsOfficeDelivery)
                     {
-                        <!-- PDF Kuralı: Ofisten teslimse ve süreç tamamlanmışsa bu yazacak -->
-                        <span class="badge bg-secondary">Ofisten Teslim Edildi</span>
-                    }
-                    else if (string.IsNullOrEmpty(item.TrackingNumber) && (item.StatusId == (int)EnumStatusType.Kargoda || item.StatusId == (int)EnumStatusType.Tamamlandı))
-                    {
-                        <!-- PDF Kuralı: Kargoya verildi/Teslim edildi ama numara yoksa kırmızı fontla uyar -->
-                        <span class="text-danger fw-bold">Takip No Giriniz !</span>
+                        <span class="badge bg-secondary">Ofisten Teslim</span>
                     }
                     else
                     {
-                        <!-- Normal şartlarda takip numarasını yaz -->
-                        @(string.IsNullOrEmpty(item.TrackingNumber) ? "-" : item.TrackingNumber)
+                        <span class="fw-bold text-primary">@(item.TrackingNumber ?? "-")</span>
                     }
                 </td>
-
                 <td>
-                    <!-- Senin modal butonun aynen kalıyor, sadece "İşlem Yap" diyoruz -->
-                    <button type="button" class="btn btn-sm btn-primary change-status-btn"
-                            data-bs-toggle="modal" 
-                            style="white-space:nowrap !important;"
-                            data-bs-target="#cargoStatusModal"
-                            data-cargodetail-id="@item.Id">
-                        <i class="mdi mdi-cog"></i> İşlem Yap
+                    <!-- Detay Butonu: Hiçbir input yok, sadece bilgi taşır -->
+                    <button type="button" class="btn btn-sm btn-info detail-btn"
+                            data-bs-toggle="modal" data-bs-target="#cargoDetailModal"
+                            data-location="@item.HospitalName"
+                            data-company="@item.CargoCompany"
+                            data-tracking="@item.TrackingNumber"
+                            data-completed="@item.CompletedCargoDate?.ToString("dd.MM.yyyy HH:mm")"
+                            data-given="@item.CargoGivenDate?.ToString("dd.MM.yyyy")"
+                            data-receiver="@item.ReceiverFullName"
+                            data-products="@(string.Join(", ", item.Products.Select(x => x.CategoryName + " x" + x.Quantity)))">
+                        <i class="mdi mdi-eye"></i> Detay
                     </button>
                 </td>
             </tr>
@@ -151,12 +78,44 @@
     </tbody>
 </table>
 
-<!-- Resim Önizleme Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-body text-center">
-                <img id="modalImage" src="" alt="" class="img-fluid rounded" style="max-height:70vh;">
+<!-- Kargo Detay Modal (Dropdown YOK, Sadece Bilgi) -->
+<div class="modal fade" id="cargoDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-top border-success border-4">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-success"><i class="mdi mdi-check-decagram"></i> Teslimat Detayları</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Teslimat Tarihi:</span>
+                        <span class="fw-bold" id="detCompleted">-</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Kargo Firması:</span>
+                        <span class="fw-bold" id="detCompany">-</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Takip Numarası:</span>
+                        <span class="fw-bold text-primary" id="detTracking">-</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Alıcı:</span>
+                        <span class="fw-bold" id="detReceiver">-</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <span class="text-muted">Kargoya Verilme:</span>
+                        <span class="fw-bold" id="detGiven">-</span>
+                    </div>
+                    <div class="list-group-item">
+                        <span class="text-muted d-block mb-1">Ürün Detayı:</span>
+                        <span class="small fw-bold" id="detProducts">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Kapat</button>
             </div>
         </div>
     </div>
@@ -164,12 +123,15 @@
 
 @section Scripts {
     <script>
-        // Foto önizleme
-        $(document).on("click", ".preview-img", function () {
-            const imgSrc = $(this).data("img");
-            const imgAlt = $(this).data("alt") || "";
-            $("#modalImage").attr("src", imgSrc).attr("alt", imgAlt);
-            $("#imageModal").modal("show");
+        $(document).on("click", ".detail-btn", function () {
+            const d = $(this).data();
+            
+            $("#detCompleted").text(d.completed || "-");
+            $("#detCompany").text(d.company || "-");
+            $("#detTracking").text(d.tracking || "Ofisten Teslim");
+            $("#detReceiver").text(d.receiver || "-");
+            $("#detGiven").text(d.given || "-");
+            $("#detProducts").text(d.products || "-");
         });
     </script>
 }

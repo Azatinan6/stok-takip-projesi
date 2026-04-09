@@ -1,94 +1,35 @@
-﻿@model List<ResultCargoCanceledDto>
+﻿@using StockTrack.Dto.CargoDetail
+@model List<ResultCargoCanceledDto>
 
 @{
     ViewData["Title"] = "İptal Edilmiş Kargolar";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
+
+<!-- Üst Sekmeler -->
 <div class="d-flex flex-wrap gap-3 mb-4">
-
-    <!-- Tümü -->
-    <a href="~/CargoDetail/Index"
-           class="btn rounded-pill px-4 shadow-sm border"
-           style="background-color: #f1f3f5; color: #495057;">
-        Tümü (@ViewBag.AllCount)
-    </a>
-
-    <!-- Onay Bekliyor -->
-    <a href="~/CargoDetail/AwaitingApproval"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #fde2e1; color: #d62828; border: 1px solid #f5c2c0;">
-        Onay Bekliyor (@ViewBag.PendingCount)
-    </a>
-
-    <!-- Paketlendi -->
-    <a href="~/CargoDetail/ReadyForCargo"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #fff4cc; color: #e0a800; border: 1px solid #ffe69c;">
-        Paketlendi (@ViewBag.PackagedCount)
-    </a>
-
-    <!-- Kargoda -->
-    <a href="~/CargoDetail/CargoInDelivery"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #d0ebff; color: #1971c2; border: 1px solid #a5d8ff;">
-        Kargoda (@ViewBag.InCargoCount)
-    </a>
-
-    <!-- Teslim Edildi -->
-    <a href="~/CargoDetail/Delivered"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #d3f9d8; color: #2b8a3e; border: 1px solid #b2f2bb;">
-        Teslim Edildi (@ViewBag.DeliveredCount)
-    </a>
-
-    <!-- İptal -->
-    <a href="~/CargoDetail/Cancelled"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #ffe3e3; color: #c92a2a; border: 1px solid #ffc9c9;">
-        İptal Edilenler (@ViewBag.CancelledCount)
-    </a>
-
-    <!-- Silinen -->
-    <a href="~/CargoDetail/Deleted"
-           class="btn rounded-pill px-4 shadow-sm"
-           style="background-color: #e9ecef; color: #6c757d; border: 1px solid #dee2e6;">
-        Silinenler (@ViewBag.DeletedCount)
-    </a>
-
+    <a href="~/CargoDetail/Index" class="btn rounded-pill px-4 shadow-sm border" style="background-color: #f1f3f5; color: #495057;">Tümü (@ViewBag.AllCount)</a>
+    <a href="~/CargoDetail/AwaitingApproval" class="btn rounded-pill px-4 shadow-sm" style="background-color: #fde2e1; color: #d62828; border: 1px solid #f5c2c0;">Onay Bekliyor (@ViewBag.PendingCount)</a>
+    <a href="~/CargoDetail/ReadyForCargo" class="btn rounded-pill px-4 shadow-sm" style="background-color: #fff4cc; color: #e0a800; border: 1px solid #ffe69c;">Paketlendi (@ViewBag.PackagedCount)</a>
+    <a href="~/CargoDetail/CargoInDelivery" class="btn rounded-pill px-4 shadow-sm" style="background-color: #d0ebff; color: #1971c2; border: 1px solid #a5d8ff;">Kargoda (@ViewBag.InCargoCount)</a>
+    <a href="~/CargoDetail/Delivered" class="btn rounded-pill px-4 shadow-sm" style="background-color: #d3f9d8; color: #2b8a3e; border: 1px solid #b2f2bb;">Teslim Edildi (@ViewBag.DeliveredCount)</a>
+    <a href="~/CargoDetail/Cancelled" class="btn rounded-pill px-4 shadow-sm" style="background-color: #ffe3e3; color: #c92a2a; border: 1px solid #ffc9c9;">İptal Edilenler (@ViewBag.CancelledCount)</a>
 </div>
-
 
 <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
-    <h4>İptal Edilmiş Kargolar</h4>
+    <h4 class="text-danger"><i class="mdi mdi-cancel"></i> İptal Edilmiş Kargolar</h4>
 </div>
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        @TempData["SuccessMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
-    </div>
-}
-@if (TempData["ErrorMessage"] != null)
-{
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        @TempData["ErrorMessage"]
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
-    </div>
-}
+<hr />
 
 <table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
     <thead>
         <tr>
-            <th>ID</th> <!-- PDF: ID -->
-            <th>Durum</th> <!-- PDF: Durum -->
-            <th>Tarih</th> <!-- PDF: Tarih -->
-            <th>Kullanıcı</th> <!-- PDF: Kullanıcı -->
-            <th>Depo</th> <!-- PDF: Depo -->
-            <th>Ürün (Kategori : Miktar)</th> <!-- PDF: Ürün -->
-            <th>Lokasyon</th> <!-- PDF: Lokasyon -->
-            <th>Kargo Verilme Tarihi</th> <!-- PDF: Yeni Kolon -->
-            <th>Kargo Takip No</th> <!-- PDF: Kritik Zeka Kolonu -->
+            <th>ID</th>
+            <th>Durum</th>
+            <th>İptal Eden</th>
+            <th>Alıcı</th>
+            <th>Depo</th>
+            <th>Ürünler</th>
             <th>İşlemler</th>
         </tr>
     </thead>
@@ -97,52 +38,25 @@
         {
             <tr>
                 <td>@item.Id</td>
-                <td>
-                    <span class="badge @(item.StatusId == 4 ? "bg-info" : "bg-primary")">
-                        @item.StatusName
-                    </span>
-                </td>
-                <td>@item.RequestFormRequestedDate?.ToString("dd.MM.yyyy")</td>
-                <td>@(item.RequestFormRequestedBy ?? "-")</td>
+                <td><span class="badge bg-danger">@item.StatusName</span></td>
+                <td>@(item.CancaledBy ?? "-")</td>
+                <td>@item.ReceiverFullName</td>
                 <td>@item.MainRepoName</td>
                 <td>
-                    <!-- PDF Formatı: Kategori : Miktar -->
                     @foreach (var p in item.Products)
                     {
-                        <div>@p.CategoryName : @p.Quantity Adet</div>
+                        <div class="small">@p.CategoryName : @p.Quantity Adet</div>
                     }
                 </td>
-                <td>@item.HospitalName</td>
-                
-                <!-- Kargo Verilme Tarihi -->
-                <td>@(item.CargoGivenDate?.ToString("dd.MM.yyyy") ?? "-")</td>
-
-                <!-- TAKİP NO ZEKASI -->
                 <td>
-                    @if (item.IsOfficeDelivery && (item.StatusId == (int)EnumStatusType.Kargoda || item.StatusId == (int)EnumStatusType.Tamamlandı))
-                    {
-                        <!-- PDF Kuralı: Ofisten teslimse ve süreç tamamlanmışsa bu yazacak -->
-                        <span class="badge bg-secondary">Ofisten Teslim Edildi</span>
-                    }
-                    else if (string.IsNullOrEmpty(item.TrackingNumber) && (item.StatusId == (int)EnumStatusType.Kargoda || item.StatusId == (int)EnumStatusType.Tamamlandı))
-                    {
-                        <!-- PDF Kuralı: Kargoya verildi/Teslim edildi ama numara yoksa kırmızı fontla uyar -->
-                        <span class="text-danger fw-bold">Takip No Giriniz !</span>
-                    }
-                    else
-                    {
-                        <!-- Normal şartlarda takip numarasını yaz -->
-                        @(string.IsNullOrEmpty(item.TrackingNumber) ? "-" : item.TrackingNumber)
-                    }
-                </td>
-
-                <td>
-                    <!-- Senin modal butonun aynen kalıyor, sadece "İşlem Yap" diyoruz -->
-                    <button type="button" class="btn btn-sm btn-primary change-status-btn"
-                            style="white-space:nowrap !important;
-                            data-bs-toggle="modal" data-bs-target="#cargoStatusModal"
-                            data-cargodetail-id="@item.Id">
-                        <i class="mdi mdi-cog"></i> İşlem Yap
+                    <button type="button" class="btn btn-sm btn-outline-danger cancel-detail-btn"
+                            data-bs-toggle="modal" data-bs-target="#cancelDetailModal"
+                            data-id="@item.Id"
+                            data-by="@item.CancaledBy"
+                            data-desc="@item.CanceledDesc"
+                            data-receiver="@item.ReceiverFullName"
+                            data-products="@(string.Join(", ", item.Products.Select(x => x.CategoryName + " x" + x.Quantity)))">
+                        <i class="mdi mdi-alert-circle-outline"></i> Sebebi Gör
                     </button>
                 </td>
             </tr>
@@ -150,24 +64,51 @@
     </tbody>
 </table>
 
-<!-- Resim Önizleme Modal -->
-<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-body text-center">
-                <img id="modalImage" src="" alt="" class="img-fluid rounded" style="max-height:70vh;">
+<!-- İptal Detay Modal -->
+<div class="modal fade" id="cancelDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-top border-danger border-4">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-danger fw-bold"><i class="mdi mdi-close-octagon"></i> İptal Gerekçesi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-4 text-center">
+                    <i class="mdi mdi-comment-remove-outline text-danger" style="font-size: 3rem;"></i>
+                    <p class="text-muted small mt-2">ID: #<span id="detId"></span> numaralı talebin iptal açıklaması aşağıdadır.</p>
+                </div>
+                
+                <div class="bg-light p-3 rounded border border-danger mb-3">
+                    <label class="text-muted small d-block mb-1">İptal Sebebi:</label>
+                    <p class="fw-bold text-dark mb-0" id="detDesc" style="white-space: pre-wrap;">-</p>
+                </div>
+
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="text-muted small d-block">İptal Eden:</label>
+                        <span class="fw-bold" id="detBy">-</span>
+                    </div>
+                    <div class="col-6 text-end">
+                        <label class="text-muted small d-block">Alıcı:</label>
+                        <span class="fw-bold" id="detReceiver">-</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Kapat</button>
             </div>
         </div>
     </div>
 </div>
+
 @section Scripts {
     <script>
-            // Resim önizleme
-            $(document).on("click", ".preview-img", function () {
-                const imgSrc = $(this).data("img");
-                const imgAlt = $(this).data("alt") || "";
-                $("#modalImage").attr({ src: imgSrc, alt: imgAlt });
-                $("#imageModal").modal("show");
+        $(document).on("click", ".cancel-detail-btn", function () {
+            const d = $(this).data();
+            $("#detId").text(d.id);
+            $("#detBy").text(d.by || "Sistem");
+            $("#detDesc").text(d.desc || "Açıklama girilmemiş.");
+            $("#detReceiver").text(d.receiver || "-");
         });
     </script>
 }

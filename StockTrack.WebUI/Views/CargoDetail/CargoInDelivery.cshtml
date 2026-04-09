@@ -104,8 +104,8 @@
                         @item.StatusName
                     </span>
                 </td>
-                <td>@item.RequestFormRequestedDate?.ToString("dd.MM.yyyy")</td>
-                <td>@(item.RequestFormRequestedBy ?? "-")</td>
+                <td>@item.RequestFormDate.ToString("dd.MM.yyyy")</td>
+                <td>@(item.RequestFormBy ?? "-")</td>
                 <td>@item.MainRepoName</td>
                 <td>
                     <!-- PDF Formatı: Kategori : Miktar -->
@@ -139,12 +139,17 @@
                 </td>
 
                 <td>
-                    <!-- Senin modal butonun aynen kalıyor, sadece "İşlem Yap" diyoruz -->
-                    <button type="button" class="btn btn-sm btn-primary change-status-btn"
-                            data-bs-toggle="modal" 
-                            style="white-space:nowrap !important;
-                            data-bs-target="#cargoStatusModal"
-                            data-cargodetail-id="@item.Id">
+                    <button type="button" class="btn btn-sm btn-primary change-status-btn" style="white-space:nowrap !important;"
+                            data-bs-toggle="modal" data-bs-target="#cargoStatusModal"
+                            data-cargodetailid="@item.Id"
+                            data-location="@item.HospitalName"
+                            data-category="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.CategoryName)) : "-")"
+                            data-product="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.ProductName)) : "-")"
+                            data-quantity="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.Quantity)) : "-")"
+                            data-receiver="@item.ReceiverFullName"
+                            data-address="@item.HospitalAddress"
+                            data-tracking="@item.TrackingNumber" 
+                            data-company="@item.CargoNameId">
                         <i class="mdi mdi-cog"></i> İşlem Yap
                     </button>
                 </td>
@@ -153,74 +158,124 @@
     </tbody>
 </table>
 
-<!-- Kargo Durumu Modal -->
-<div class="modal fade" id="cargoStatusModal" tabindex="-1" aria-labelledby="cargoStatusLabel" aria-hidden="true">
+<!-- Resim önizleme -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
-            <form asp-action="SaveCargoInfo" method="post">
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" alt="" class="img-fluid rounded" style="max-height:70vh;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kargo Durumu Modal -->
+<div class="modal fade" id="cargoStatusModal" tabindex="-1" aria-labelledby="cargoStatusLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <form asp-action="SaveCargoInfo" id="cargoOperasyonForm" method="post" novalidate>
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="Id" id="cargoDetailId" />
 
-                <div class="modal-header">
+                <div class="modal-header bg-light">
                     <h5 class="modal-title" id="cargoStatusLabel">Kargo Bilgileri ve Durum Güncelle</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
                 </div>
 
-                <div class="modal-body">
-                    <!-- Satır Özeti -->
-                    <div class="mb-3">
-                        <label class="form-label">Alıcı:</label>
-                        <span id="receiverName" class=" d-inline-block ms-2"></span>
-                    </div>
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <!-- ================= SOL TARAF: GÖNDERİM DETAYI (BİLGİ EKRANI) ================= -->
+                        <div class="col-lg-6 border-end pe-4">
+                            <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">1. GÖNDERİM DETAYI</h6>
 
-                    <div class="mb-3">
-                        <label class="form-label">Takip Numarası:</label>
-                        <span id="trackingNumber" class="d-inline-block ms-2"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Kargo Şirketi:</label>
-                        <span id="cargoCompany" class="d-inline-block ms-2"></span>
-                    </div>
-
-                    <div class="row g-3">
-                        <!-- Kargo Durumu -->
-                        <div class="col-md-6 d-flex align-items-center gap-2">
-                            <label for="status" class="form-label mb-0">Kargo Durumu <span class="text-danger">*</span></label>
-                            <select name="StatusId" id="status" class="form-select" required style="width:200px;top:30px;">
-                                <option value="">-- Seçiniz --</option>
-                                <option value="@((int)EnumStatusType.Tamamlandı)">Tamamlandı</option>
-                                <option value="@((int)EnumStatusType.İptal)">İptal Edildi</option>
-                            </select>
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="text-muted" style="width: 140px;">Lokasyon:</td>
+                                        <td class="fw-bold" id="summaryLocation">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Kategori:</td>
+                                        <td class="fw-bold" id="summaryCategory">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Ürün Adı:</td>
+                                        <td class="fw-bold">
+                                            <span id="summaryProduct">-</span>
+                                            
+                                            <!-- ARC BOX ZEKASI: Ürün Arc Box ise bu ikon görünür olacak -->
+                                            <a href="javascript:void(0);" id="arcBoxConfigIcon" class="text-warning ms-2 d-none"
+                                                   data-bs-toggle="popover" title="Arc Box Config İçeriği"
+                                                   data-bs-content="Seri No: Bekleniyor... | ETH MAC: ... | WLAN MAC: ... | Bağlantı Türü: ... | config_url | dhcpd.conf | wpa_supplicant.conf">
+                                                <i class="mdi mdi-cog fs-5 spin-icon" title="Config Detayları"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Adet:</td>
+                                        <td class="fw-bold" id="summaryQuantity">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Alıcı:</td>
+                                        <td class="fw-bold" id="summaryRecipient">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="text-muted">Adres:</td>
+                                        <td class="fw-bold small text-wrap" id="summaryAddress">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
 
-                        <!-- Teslim tarihi alanı -->
-                        <div id="deliveredDateField" class="row g-3 d-none">
-                            <div class="col-md-6">
-                                <label for="deliveredDate" class="form-label">Teslim Tarihi <span class="text-danger">*</span></label>
-                                <input type="date" name="CargoDeliveredDate" id="deliveredDate" class="form-control" />
+                        <!-- ================= SAĞ TARAF: KARGO DURUM GÜNCELLE (İŞLEM EKRANI) ================= -->
+                        <div class="col-lg-6 ps-4">
+                            <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">2. Kargo Durum Güncelle</h6>
+                            <!-- Kargo Durumu -->
+                            <div class="d-flex flex-column mb-3">
+                                <label class="col-form-label fw-bold">Durumu <span class="text-danger">*</span></label>
+                                <div class="ms-0">
+                                    <select name="StatusId"
+                                    id="cargoStatusSelect"
+                                    class="form-select
+                                    border-primary">
+                                        <option value="">-- Durum Seçiniz --</option>
+                                        <option value="@((int)EnumStatusType.Kargoda)">Takip No / Firma Güncelle</option>
+                                        <option value="@((int)EnumStatusType.Tamamlandı)">Teslim Edildi</option>
+                                        <option value="@((int)EnumStatusType.İptal)">İptal Edildi</option>
+                                    </select> 
+                                </div>
+                            </div>
+
+                            <!-- Kargo Firması ve Takip No -->
+                            <div id="cargoExtraFields" class="row g-3 d-none bg-light p-2 rounded border mt-1">
+                                <div class="col-12">
+                                    <label class="form-label mb-1">Kargo Firması <span class="text-danger">*</span></label>
+                                    <select name="CargoNameId" id="cargoCompany" class="form-select w-100" asp-items="@(ViewBag.CargoNames)">
+                                        <option value="">-- Seçiniz --</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label mb-1">Kargo Takip Numarası <span class="text-danger">*</span></label>
+                                    <input type="text" name="TrackingNumber" id="trackingNumber" class="form-control w-100" placeholder="Örn: 1Z9999999999999999" />
+                                </div>
+                            </div>
+                            <!-- İptal Sebebi -->
+                            <div id="cancelReasonField" class="row mt-3 d-none">
+                                <div class="col-12">
+                                    <label class="form-label text-danger fw-bold mb-1">İptal Sebebi <span class="text-danger">*</span></label>
+                                    <textarea name="CancelDescription" id="cancelReason" class="form-control border-danger w-100" rows="2" placeholder="Neden iptal edildiğini yazın..."></textarea>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- İptal sebebi alanı -->
-                        <div id="cancelReasonField" class="row g-3 d-none">
-                            <div class="col-md-12">
-                                <label class="form-label">İptal Sebebi <span class="text-danger">*</span></label>
-                                <textarea name="CancelDescription" id="cancelReason" class="form-control" rows="3" maxlength="500"></textarea>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
-                <div class="modal-footer d-flex justify-content-end">
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-success">
-                            <i class="mdi mdi-content-save"></i> Kaydet
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
-                            Kapat
-                        </button>
-                    </div>
+                
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>                    
+                    <button type="button" id="btnSaveCargo" class="btn btn-success px-5"><i class="mdi mdi-content-save-check"></i> Kaydet ve Güncelle</button>
                 </div>
             </form>
         </div>
@@ -242,108 +297,105 @@
 
 @section Scripts {
     <script>
-        // Foto önizleme
+        // Resim önizleme
         $(document).on("click", ".preview-img", function () {
             const imgSrc = $(this).data("img");
             const imgAlt = $(this).data("alt") || "";
-            $("#modalImage").attr("src", imgSrc).attr("alt", imgAlt);
+            $("#modalImage").attr({ src: imgSrc, alt: imgAlt });
             $("#imageModal").modal("show");
         });
 
+        const ST_VERILDI     = @((int)EnumStatusType.Kargoda);
+        const ST_IPTALEDILDI = @((int)EnumStatusType.İptal);
 
-          const ST_TESLIM = @((int)EnumStatusType.Tamamlandı);
-        const ST_IPTAL = @((int)EnumStatusType.İptal);
+        // HAFIZA KUTULARI (Robotun eski numaraları unutmaması için)
+        let tempTracking = "";
+        let tempCompany = "";
 
+        // Vitrin düzenleyici robot
         function syncRequired() {
-            const st = parseInt($("#status").val() || 0, 10);
-            const needDelivered = (st === ST_TESLIM);
-            const needCancel = (st === ST_IPTAL);
+            const st = parseInt($("#cargoStatusSelect").val() || 0, 10);
 
-            // Teslim tarihi alanı
-            $("#deliveredDateField").toggleClass("d-none", !needDelivered);
-            $("#deliveredDate").prop("required", needDelivered);
-            if (!needDelivered) $("#deliveredDate").val("");
+            const needCargo  = (st === ST_VERILDI);
+            const needCancel = (st === ST_IPTALEDILDI);
 
-            // İptal sebebi alanı
+            // Kargo kutularını aç/kapat
+            $("#cargoExtraFields").toggleClass("d-none", !needCargo);
+            
+            // İŞTE SENİN ZEKAN BURADA DEVREYE GİRİYOR
+            if (needCargo) {
+                // Eğer Güncelle'yi seçtiyse, hafızadaki eski numaraları kutuya bas!
+                $("#trackingNumber").val(tempTracking);
+                $("#cargoCompany").val(tempCompany);
+            } else {
+                // Seçmediyse kutuları temizle
+                $("#trackingNumber").val("");
+                $("#cargoCompany").val("");
+            }
+
             $("#cancelReasonField").toggleClass("d-none", !needCancel);
-            $("#cancelReason").prop("required", needCancel);
-            if (!needCancel) $("#cancelReason").val("");
+            if (!needCancel) {
+                $("#cancelReason").val("");
+            }
         }
 
-        $("#status").on("change", syncRequired);
+        $("#cargoStatusSelect").on("change", syncRequired);
 
-        // Modal açma: satırdan bilgileri özet alanına bas
+        // Güvenlik görevlisi robot (Kaydetme Kontrolü)
+        $("#btnSaveCargo").on("click", function () {
+            const st = parseInt($("#cargoStatusSelect").val() || 0, 10);
+            const tracking = $("#trackingNumber").val().trim();
+            const company = $("#cargoCompany").val();
+            const cancelReason = $("#cancelReason").val().trim();
+
+            if (st === 0 || isNaN(st)) {
+                Swal.fire('Eksik Bilgi', 'Lütfen Kargo Durumunu seçiniz.', 'warning');
+                return;
+            }
+            if (st === ST_VERILDI && (!company || !tracking)) {
+                Swal.fire('Eksik Bilgi', 'Kargoya verildi durumunda Kargo Firması ve Takip Numarası zorunludur!', 'warning');
+                return;
+            }
+            if (st === ST_IPTALEDILDI && !cancelReason) {
+                Swal.fire('Eksik Bilgi', 'İptal durumunda İptal Sebebi zorunludur!', 'warning');
+                return;
+            }
+
+            $("#cargoOperasyonForm")[0].submit();
+        });
+
+        // Tepsiyi dolduran garson (Modal Açma)
         $(document).on("click", ".change-status-btn", function () {
             const d = $(this).data();
 
-            $("#receiverName").text(d.receiver || "-");
-            $("#trackingNumber").text(d.trackingnumber || "-");
-            $("#cargoCompany").text(d.cargocompany || "-");
-              $("#cargoDetailId").val(d.cargodetailId || "");
+            // 1. O anki kargonun eski bilgilerini HAFIZAYA AL!
+            tempTracking = d.tracking || "";
+            tempCompany = d.company ? d.company.toString() : "";
 
-            // reset
-            $("#status").val("");
-            $("#deliveredDate").val("");
-            $("#cancelReason").val("");
+            // 2. Sol tarafı doldur
+            $("#cargoDetailId").val(d.cargodetailid || "");
+            $("#summaryLocation").text(d.location || "-");
+            $("#summaryCategory").text(d.category || "-");
+            $("#summaryQuantity").text(d.quantity || "-");
+            $("#summaryRecipient").text(d.receiver || "-");
+            $("#summaryAddress").text(d.address || "-");
+    
+            let productName = d.product || "-";
+            $("#summaryProduct").text(productName);
 
-            syncRequired();
+            // ARC BOX ZEKASI
+            if (productName.toLowerCase().includes("arc box")) {
+                $("#arcBoxConfigIcon").removeClass("d-none");
+                var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+                var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                    return new bootstrap.Popover(popoverTriggerEl)
+                });
+            } else {
+                $("#arcBoxConfigIcon").addClass("d-none");
+            }
+
+            // Formu sıfırla ve kutuları gizle
+            $("#cargoStatusSelect").val("").trigger("change");
         });
-
-        //Silme işlemi
-              
-        $('.delete-cargo-btn').on('click', function(e) {
-            e.preventDefault();
-
-            var url = $(this).data('url');
-            var receiver = $(this).data('receiver');
-
-            Swal.fire({
-                title: 'Emin misiniz?',
-                text: receiver + " adlı alıcıya ait kargo silinecek!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Evet, sil!',
-                cancelButtonText: 'İptal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: url,
-                        type: 'POST',
-                        dataType: 'json', // C# tarafında JSON dönüyorsa
-                        success: function(response) {
-                            if (response.success) {
-                                Swal.fire({
-                                    title: 'Silindi!',
-                                    text: receiver + " adlı alıcının kargosu silindi.",
-                                    icon: 'success',
-                                    showConfirmButton: false,
-                                    timer: 2000
-                                });
-
-                                setTimeout(function() {
-                                    location.reload();
-                                }, 2000);
-                            } else {
-                                Swal.fire({
-                                    title: 'Hata!',
-                                    text: response.message,
-                                    icon: 'error'
-                                });
-                            }
-                        },
-                        error: function() {
-                            Swal.fire({
-                                title: 'Hata!',
-                                text: 'Sunucu ile iletişim kurulamadı.',
-                                icon: 'error'
-                            });
-                        }
-                    });
-                }
-            });
-        });
-
     </script>
 }

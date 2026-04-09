@@ -9,9 +9,9 @@
         public DateTime? CargoDeliveredDate { get; set; }
         public DateTime? CargoGivenDate { get; set; }
 
-        public bool IsOfficeDelivery { get; set; }
+        public bool? IsOfficeDelivery { get; set; }
         public string? TrackingNumber { get; set; }
         public string? CancelDescription { get; set; }
-        public string CargoCompany { get; set; }
+        public string? CargoCompany { get; set; }
     }
 }

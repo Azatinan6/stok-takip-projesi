@@ -7,7 +7,7 @@ namespace StockTrack.Dto.CargoDetail
         public int Id { get; set; }
         public List<string> CategoryNames { get; set; }
         public string CargoCompany { get; set; }
-        public string TrakingNumber { get; set; }
+        public int? CargoNameId { get; set; }
         public string ReceiverFullName { get; set; }
         public string Phone { get; set; }
         //public List<string> ProductNames { get; set; }

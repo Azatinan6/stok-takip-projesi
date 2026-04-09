@@ -137,7 +137,7 @@ namespace StockTrack.WebUI.Controllers
                                                            {
                                                                CategoryName = c.Name,
                                                                ProductName = p.Name,
-                                                               ImageUrl = p.PhotoUrl,
+                                                               ImageUrl = p.PhotoUrl, // Fotoğraf yoksa placeholder
                                                                Quantity = rp.Quantity
                                                            }).ToList()
                                            }).ToList();
@@ -165,6 +165,7 @@ namespace StockTrack.WebUI.Controllers
                                            {
                                                Id = rfd.Id,
                                                StatusId = rfd.StatusId,
+                                               StatusName = st.Name,
                                                ReceiverFullName = rfd.ToPerson,
                                                Phone = rfd.Phone,
                                                HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
@@ -196,6 +197,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
             // Kargoya verilmiş yolda olan talepleri kargo firması, takip numarası, konum ve ürün detaylarıyla birlikte listeliyor
+            ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
             var resultCargoInDeliveries = (from rf in _appDbContext.RequestForms
                                            join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
                                            join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id into repoGroup
@@ -210,6 +212,7 @@ namespace StockTrack.WebUI.Controllers
                                            {
                                                Id = rfd.Id,
                                                StatusId = rfd.StatusId,
+                                               StatusName = "Kargoda",
                                                ReceiverFullName = rfd.ToPerson,
                                                Phone = rfd.Phone,
                                                HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
@@ -219,6 +222,7 @@ namespace StockTrack.WebUI.Controllers
                                                MainRepoName = m != null ? m.Name : "Bilinmiyor",
                                                CargoGivenDate = rfd.CargoGivenDate,
                                                IsOfficeDelivery = rf.IsOfficeDelivery,
+                                               CargoNameId = rfd.CargoNameId,
                                                TrackingNumber = rfd.TrackingNumber,
                                                CargoCompany = cn != null ? cn.Name : "Atanmadı",
 
@@ -260,6 +264,7 @@ namespace StockTrack.WebUI.Controllers
                                          {
                                              Id = rfd.Id,
                                              StatusId = rfd.StatusId,
+                                             StatusName = "Teslim Edildi",
                                              ReceiverFullName = rfd.ToPerson,
                                              Phone = rfd.Phone,
                                              HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
@@ -273,7 +278,6 @@ namespace StockTrack.WebUI.Controllers
                                              PackingDate = rfd.PackingDate,
                                              CargoCompany = cn != null ? cn.Name : "Atanmadı",
                                              CompletedCargoDate = rfd.CompletedDate,
-                                             StatusName = s.Name,
                                              IsOfficeDelivery = rf.IsOfficeDelivery,
                                              Products = (from rp in _appDbContext.RequestProducts
                                                          join p in _appDbContext.Products on rp.ProductId equals p.Id
@@ -312,16 +316,16 @@ namespace StockTrack.WebUI.Controllers
                                         {
                                             Id = rfd.Id,
                                             StatusId = rfd.StatusId,
+                                            StatusName = "İptal Edildi", // Sabit isim
+                                            CancaledBy = rfd.CanceledBy,
+                                            CanceledDesc = rfd.CanceledDesc,
                                             ReceiverFullName = rfd.ToPerson,
                                             Phone = rfd.Phone,
                                             HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
                                             HospitalAddress = h != null ? h.Address : "-",
                                             MainRepoName = m != null ? m.Name : "Bilinmiyor",
-                                            CancaledBy = rfd.CanceledBy,
-                                            CanceledDesc = rfd.CanceledDesc,
                                             RequestFormBy = rfd.CreatedBy,
                                             RequestFormDate = rfd.CreatedDate,
-                                            StatusName = s.Name,
                                             CargoCompany = cn != null ? cn.Name : "Atanmadı",
                                             CargoGivenDate = rfd.CargoGivenDate,
                                             IsOfficeDelivery = rf.IsOfficeDelivery,
@@ -346,68 +350,55 @@ namespace StockTrack.WebUI.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         // Kargo işlemlerini (paketleme, kargoya verme, teslim etme, iptal etme) durumuna göre kaydedip ilgili liste sayfasına yönlendiriyor
+        
         public async Task<IActionResult> SaveCargoInfo(SaveCargoInfoDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                TempData["ErrorMessage"] = "Lütfen zorunlu alanları doldurun.";
-                return RedirectToAction("AwaitingApproval");
-            }
+            // 1. MODELSTATE POLİSİNİ KOVDUK! Çünkü kontrolü JS'de biz yapıyoruz.
+            // if (!ModelState.IsValid) { ... } (SİLİNDİ)
 
             var findCargoDetail = _appDbContext.RequestFormDetails.FirstOrDefault(x => x.Id == dto.Id);
 
             if (findCargoDetail == null)
             {
                 TempData["ErrorMessage"] = "Kayıt bulunamadı.";
-                return RedirectToAction("AwaitingApproval");
+                return Redirect(Request.Headers["Referer"].ToString() ?? "/CargoDetail/Index"); // Geldiği sayfaya geri döner
             }
+
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
                 return Challenge();
 
-
             var now = DateTime.Now;
+
             if (dto.StatusId == (int)EnumStatusType.Paketlendi)
             {
                 findCargoDetail.CreatedBy = currentUser.NameSurname;
                 findCargoDetail.IsActive = true;
                 findCargoDetail.IsDeleted = false;
 
-                findCargoDetail.ApprovalDate = now;//Onaylanma tarihi
-                findCargoDetail.ApprovalBy = currentUser.NameSurname;//Onaylayan kişi
-                findCargoDetail.PackingDate = now;//Onaylayan kişi
+                findCargoDetail.ApprovalDate = now; // Onaylanma tarihi
+                findCargoDetail.ApprovalBy = currentUser.NameSurname; // Onaylayan kişi
+                findCargoDetail.PackingDate = now; // Paketlenme tarihi
                 findCargoDetail.StatusId = (int)EnumStatusType.Paketlendi;
 
-                _appDbContext.RequestFormDetails.Update(findCargoDetail);
-                _appDbContext.SaveChanges();
-
                 TempData["SuccessMessage"] = "Kargo paketleme işlemi kaydedildi.";
-                return RedirectToAction("AwaitingApproval");
-
             }
             else if (dto.StatusId == (int)EnumStatusType.Kargoda)
             {
                 findCargoDetail.TrackingNumber = dto.TrackingNumber;
                 findCargoDetail.StatusId = dto.StatusId;
-                findCargoDetail.CargoGivenDate = now;//Kargoya verilme  tarihi
+                findCargoDetail.CargoGivenDate = now; // Kargoya verilme tarihi
                 findCargoDetail.CargoNameId = dto.CargoNameId;
 
-                _appDbContext.RequestFormDetails.Update(findCargoDetail);
-                _appDbContext.SaveChanges();
-
                 TempData["SuccessMessage"] = "Kargo teslimatta işlemi kaydedildi.";
-                return RedirectToAction("ReadyForCargo");
             }
             else if (dto.StatusId == (int)EnumStatusType.Tamamlandı)
             {
-                findCargoDetail.CompletedDate = dto.CargoDeliveredDate;//Teslim edilmiş kargo tarihi
+                // Not: Eğer DTO'da tarih gelmiyorsa direkt now kullanabiliriz.
+                findCargoDetail.CompletedDate = now; // Teslim edilmiş kargo tarihi
                 findCargoDetail.StatusId = (int)EnumStatusType.Tamamlandı;
 
-                _appDbContext.RequestFormDetails.Update(findCargoDetail);
-                _appDbContext.SaveChanges();
-
                 TempData["SuccessMessage"] = "Kargo teslim edildi işlemi kaydedildi.";
-                return RedirectToAction("CargoInDelivery");
             }
             else if (dto.StatusId == (int)EnumStatusType.İptal)
             {
@@ -416,17 +407,16 @@ namespace StockTrack.WebUI.Controllers
                 findCargoDetail.CanceledDesc = dto.CancelDescription;
                 findCargoDetail.StatusId = (int)EnumStatusType.İptal;
 
-                _appDbContext.RequestFormDetails.Update(findCargoDetail);
-                _appDbContext.SaveChanges();
-
                 TempData["SuccessMessage"] = "Kargo iptal edildi.";
-                return RedirectToAction("Cancelled");
             }
 
-            return RedirectToAction("AwaitingApproval");
+            // Tek bir yerden güncelle ve kaydet (Kod tekrarını önledik)
+            _appDbContext.RequestFormDetails.Update(findCargoDetail);
+            _appDbContext.SaveChanges();
 
+            // PRO İPUCU: Kullanıcı Tümü sayfasındaysa Tümü'ne, Onay Bekliyor'daysa Onay Bekliyor'a geri döner.
+            return Redirect(Request.Headers["Referer"].ToString() ?? "/CargoDetail/Index");
         }
-
 
         [HttpPost]
         //Kargo IsDelete işlemi
@@ -483,7 +473,6 @@ namespace StockTrack.WebUI.Controllers
             }
         }
 
-
         [HttpGet]
         //Silinen kargolar
         public async Task<IActionResult> Deleted()
@@ -501,6 +490,7 @@ namespace StockTrack.WebUI.Controllers
                                        select new ResultCargoDeletedDto
                                        {
                                            Id = rfd.Id,
+                                           StatusName = "Silindi",
                                            ReceiverFullName = rfd.ToPerson,
                                            Phone = rfd.Phone,
                                            HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
@@ -510,7 +500,6 @@ namespace StockTrack.WebUI.Controllers
                                            RequestFormBy = rfd.CreatedBy,
                                            RequestFormDate = rfd.CreatedDate,
                                            MainRepoName = m != null ? m.Name : "Bilinmiyor",
-                                           StatusName = s.Name,
                                            CargoGivenDate = rfd.CargoGivenDate,
                                            IsOfficeDelivery = rf.IsOfficeDelivery,
                                            TrackingNumber = rfd.TrackingNumber,
@@ -529,6 +518,9 @@ namespace StockTrack.WebUI.Controllers
             return View(resultCargoDeleteds);
         }
 
+
+
+        
 
 
     }

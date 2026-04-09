@@ -110,10 +110,12 @@
                 <td>@item.Id</td>
                 <!-- DURUM -->
                 <td>
-                    <span class="badge @(item.StatusId == 1 ? "bg-danger" 
-                                          : item.StatusId == 2 ? "bg-warning" 
-                                          : "bg-primary")">
-                        @item.StatusName
+                    <span class="badge @(item.StatusId == (int)EnumStatusType.OnayBekliyor ? "bg-danger" 
+                    : item.StatusId == (int)EnumStatusType.Paketlendi    ? "bg-warning text-dark" 
+                    : item.StatusId == (int)EnumStatusType.Kargoda       ? "bg-info" 
+                    : item.StatusId == (int)EnumStatusType.Tamamlandı    ? "bg-success" 
+                    : "bg-secondary")">
+                    @item.StatusName
                     </span>
                 </td>
                 <!-- TARİH -->
@@ -173,11 +175,16 @@
                 </td>
                 <!-- İŞLEMLER -->
                 <td>
-                    <button type="button"       
-                            class="btn btn-sm btn-primary"
-                            style="white-space:nowrap !important;
-                            onclick="openCargoModal(@item.Id)">
-                        <i class="fas fa-cog"></i> İşlem Yap
+                    <button type="button" class="btn btn-sm btn-primary change-status-btn"                       style="white-space:nowrap !important;"
+                            data-bs-toggle="modal" data-bs-target="#cargoStatusModal"
+                            data-cargodetailid="@item.Id"
+                            data-location="@item.HospitalName"
+                            data-category="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.CategoryName)) : "-")"
+                            data-product="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.ProductName)) : "-")"
+                            data-quantity="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.Quantity)) : "-")"
+                            data-receiver="@item.ReceiverFullName"
+                            data-address="@item.HospitalAddress">
+                            <i class="mdi mdi-cog"></i> İşlem Yap
                     </button>
                 </td>
             </tr>
@@ -185,12 +192,169 @@
     </tbody>
 </table>
 
+<!-- ================= MODAL Baslangic ================= -->
+
+<!-- Kargo Operasyon Modalı -->
+<div class="modal fade" id="cargoStatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <form id="cargoOperasyonForm" asp-action="SaveCargoInfo" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="cargoDetailId" />
+
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-primary"><i class="mdi mdi-truck-delivery-outline"></i> Kargo Operasyon Merkezi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <div class="row"> 
+                        <!-- SOL TARAF: GÖNDERİM DETAYI -->
+                        <div class="col-lg-6 border-end pe-4">
+                            <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">1. Gönderim Detayı</h6>
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr><td class="text-muted" style="width: 140px;">Lokasyon:</td><td class="fw-bold" id="summaryLocation">-</td></tr>
+                                    <tr><td class="text-muted">Kategori:</td><td class="fw-bold" id="summaryCategory">-</td></tr>
+                                    <tr>
+                                        <td class="text-muted">Ürün Adı:</td>
+                                        <td class="fw-bold">
+                                            <span id="summaryProduct">-</span>
+                                            <a href="javascript:void(0);" id="arcBoxConfigIcon" class="text-warning ms-2 d-none"
+                                               data-bs-toggle="popover" title="Arc Box Config İçeriği"
+                                               data-bs-content="Seri No: Bekleniyor... | ETH MAC: ... | WLAN MAC: ...">
+                                                <i class="mdi mdi-cog fs-5 spin-icon" title="Config Detayları"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr><td class="text-muted">Adet:</td><td class="fw-bold" id="summaryQuantity">-</td></tr>
+                                    <tr><td class="text-muted">Alıcı:</td><td class="fw-bold" id="summaryRecipient">-</td></tr>
+                                    <tr><td class="text-muted">Adres:</td><td class="fw-bold small text-wrap" id="summaryAddress">-</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- SAĞ TARAF: İŞLEM EKRANI -->
+                        <div class="col-lg-6 ps-4">
+                            <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">2. Kargo Durum Güncelle</h6>
+                            <div class="d-flex flex-column mb-3">
+                                <label class="col-form-label fw-bold">Durumu <span class="text-danger">*</span></label>
+                                <select name="StatusId" id="cargoStatusSelect" class="form-select border-primary">
+                                    <option value="">-- Durum Seçiniz --</option>
+                                    <option value="@((int)EnumStatusType.OnayBekliyor)">Onay Bekliyor</option>
+                                    <option value="@((int)EnumStatusType.Paketlendi)">Paketlendi - Kargoya Hazır</option>
+                                    <option value="@((int)EnumStatusType.Kargoda)">Kargoya Verildi</option>
+                                    <option value="@((int)EnumStatusType.Tamamlandı)">Teslim Edildi</option>
+                                    <option value="@((int)EnumStatusType.İptal)">İptal Edildi</option>
+                                </select>
+                            </div>
+                            <div id="cargoExtraFields" class="row g-3 d-none bg-light p-2 rounded border mt-1">
+                                <div class="col-12">
+                                    <label class="form-label mb-1">Kargo Firması <span class="text-danger">*</span></label>
+                                    <select name="CargoNameId" id="cargoCompany" class="form-select w-100" asp-items="@(ViewBag.CargoNames)">
+                                        <option value="">-- Seçiniz --</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label mb-1">Kargo Takip Numarası <span class="text-danger">*</span></label>
+                                    <input type="text" name="TrackingNumber" id="trackingNumber" class="form-control w-100" placeholder="Örn: 1Z9999999999999999" />
+                                </div>
+                            </div>
+                            <div id="cancelReasonField" class="row mt-3 d-none">
+                                <div class="col-12">
+                                    <label class="form-label text-danger fw-bold mb-1">İptal Sebebi <span class="text-danger">*</span></label>
+                                    <textarea name="CancelDescription" id="cancelReason" class="form-control border-danger w-100" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>                    
+                    <!-- İŞTE RADARA YAKALANMAYAN KENDİ BUTONUMUZ -->
+                    <button type="button" id="btnSaveCargo" class="btn btn-success px-5"><i class="mdi mdi-content-save-check"></i> Kaydet ve Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- ================= MODAL BİTTİ ================= -->
+
 @section Scripts {
     <script>
-        // İleride Modal'ı açmak için kullanacağımız boş fonksiyon (Hazırlık)
-        function openCargoModal(id) {
-            console.log("Modal açılacak, Kargo ID: " + id);
-            // Burada AJAX ile Modal'ın içini dolduracağız...
+        const ST_PAKET       = @((int)EnumStatusType.Paketlendi);
+        const ST_VERILDI     = @((int)EnumStatusType.Kargoda);
+        const ST_IPTALEDILDI = @((int)EnumStatusType.İptal);
+
+        function syncRequired() {
+            const st = parseInt($("#cargoStatusSelect").val() || 0, 10);
+            const needCargo  = (st === ST_VERILDI);
+            const needCancel = (st === ST_IPTALEDILDI);
+
+            $("#cargoExtraFields").toggleClass("d-none", !needCargo);
+            if (!needCargo) { $("#trackingNumber").val(""); $("#cargoCompany").val(""); }
+
+            $("#cancelReasonField").toggleClass("d-none", !needCancel);
+            if (!needCancel) { $("#cancelReason").val(""); }
         }
+
+        $("#cargoStatusSelect").on("change", syncRequired);
+
+        // KENDİ KAYDETME MANTIĞIMIZ
+        $("#btnSaveCargo").on("click", function () {
+            const st = parseInt($("#cargoStatusSelect").val() || 0, 10);
+            const tracking = $("#trackingNumber").val().trim();
+            const company = $("#cargoCompany").val();
+            const cancelReason = $("#cancelReason").val().trim();
+
+            if (st === 0 || isNaN(st)) {
+                Swal.fire('Eksik Bilgi', 'Lütfen Kargo Durumunu seçiniz.', 'warning');
+                return;
+            }
+            if (st === ST_VERILDI && (!company || !tracking)) {
+                Swal.fire('Eksik Bilgi', 'Kargoya verildi durumunda Kargo Firması ve Takip Numarası zorunludur!', 'warning');
+                return;
+            }
+            if (st === ST_IPTALEDILDI && !cancelReason) {
+                Swal.fire('Eksik Bilgi', 'İptal durumunda İptal Sebebi zorunludur!', 'warning');
+                return;
+            }
+
+            // Doğrulamayı geçti, C#'a yolla!
+            $("#cargoOperasyonForm")[0].submit(); 
+        });
+
+        // MODAL AÇMA VE VERİ DOLDURMA
+        $(document).on("click", ".change-status-btn", function () {
+            const d = $(this).data();
+
+            // Küçük 'i' ile hatasız ID ataması
+            $("#cargoDetailId").val(d.cargodetailid || "");
+            
+            $("#summaryLocation").text(d.location || "-");
+            $("#summaryCategory").text(d.category || "-");
+            $("#summaryQuantity").text(d.quantity || "-");
+            $("#summaryRecipient").text(d.receiver || "-");
+            $("#summaryAddress").text(d.address || "-");
+    
+            let productName = d.product || "-";
+            $("#summaryProduct").text(productName);
+
+            // ARC BOX POPUP MANTIĞI
+            if (productName.toLowerCase().includes("arc box")) {
+                $("#arcBoxConfigIcon").removeClass("d-none");
+                var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+                var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+                    return new bootstrap.Popover(popoverTriggerEl)
+                });
+            } else {
+                $("#arcBoxConfigIcon").addClass("d-none");
+            }
+
+            $("#cargoStatusSelect").val("").trigger("change");
+            $("#trackingNumber, #cargoCompany, #cancelReason").val("");
+            syncRequired(); 
+        });
     </script>
 }

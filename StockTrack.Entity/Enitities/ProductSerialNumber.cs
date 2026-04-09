@@ -9,7 +9,7 @@
         public MainRepoLocation MainRepoLocation { get; set; }
 
         // Arc Box Özel Bilgileri
-        public string SerialNumber { get; set; }
+        public string? SerialNumber { get; set; }
         public string? EthMac { get; set; }
         public string? WlanMac { get; set; }
 
