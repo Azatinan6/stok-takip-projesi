@@ -53,6 +53,25 @@ namespace StockTrack.Entity.Enitities
         public string? ReturnedBy { get; set; }
         public DateTime? ReturnedDate { get; set; }
 
+        // --- GÖNDERİM VE İADE DETAYLARI İÇİN PDF EKLEMELERİ ---
+
+        public string? Label { get; set; }               // PDF: Etiket
+        public string? SendReason { get; set; }          // PDF: Gönderim Nedeni (Değişim, Yedek, Demo vb.)
+        public string? ProductCondition { get; set; }     // PDF: Ürün Durumu (Yeni, Kullanılmış, Arızalı vb.)
+        public string? Note { get; set; }                // PDF: Not (Kullanıcının düştüğü özel notlar)
+
+        // --- İADE SÜRECİ ÖZEL ALANLARI ---
+        public int? ReceivedQuantity { get; set; }       // PDF: Teslim Alınan Adet (Beklenen vs Gelen kontrolü için)
+        public string? ControlResult { get; set; }       // PDF: Kontrol Sonucu (İade modalındaki metin alanı)
+        public int? ZayiatQuantity { get; set; }         // PDF: Zayiat Miktarı (Stok hareketini bozmayan fire)
+
+        // --- ARC BOX TEKNİK DETAYLARI (Veritabanında saklamalıyız) ---
+        public string? SerialNumber { get; set; }        // Seri No
+        public string? EthMac { get; set; }              // ETH MAC
+        public string? WlanMac { get; set; }             // WLAN MAC
+        public string? ConnectionType { get; set; }      // Bağlantı Türü (DHCP, Statik vb.)
+        public string? ConfigUrl { get; set; }           // Config_URL
+
         [ForeignKey("RequestFormId")]
         public virtual RequestForm? RequestForm { get; set; } // Navigation Property
     }

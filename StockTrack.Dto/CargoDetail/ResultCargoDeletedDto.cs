@@ -30,6 +30,19 @@ namespace StockTrack.Dto.CargoDetail
         public bool IsOfficeDelivery { get; set; }
         public string? TrackingNumber { get; set; }
         public string CargoCompany { get; set; }
+        
+        // Gönderim Detayları
+        public string? Label { get; set; }
+        public string? SendReason { get; set; }
+        public string? ProductCondition { get; set; }
+        public string? Note { get; set; }
+
+        // Arc Box Teknik Detayları
+        public string? SerialNumber { get; set; }
+        public string? EthMac { get; set; }
+        public string? WlanMac { get; set; }
+        public string? ConnectionType { get; set; }
+        public string? ConfigUrl { get; set; }  
 
         public List<ProductDetailDto> Products { get; set; }
         

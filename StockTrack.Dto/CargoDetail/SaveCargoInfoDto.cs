@@ -4,6 +4,7 @@
     {
         public int Id { get; set; }  
 
+        public string? CargoPreparerUserId { get; set; }
         public int StatusId { get; set; }
         public int? CargoNameId { get; set; }
         public DateTime? CargoDeliveredDate { get; set; }

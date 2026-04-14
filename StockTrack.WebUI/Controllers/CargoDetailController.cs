@@ -52,7 +52,7 @@ namespace StockTrack.WebUI.Controllers
             await SetCargoCountsAsync();
 
             ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
-
+            ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultAllCargo = (from rfd in _appDbContext.RequestFormDetails
                                 join rf in _appDbContext.RequestForms on rfd.RequestFormId equals rf.Id
                                 
@@ -82,6 +82,14 @@ namespace StockTrack.WebUI.Controllers
                                     IsOfficeDelivery = rf.IsOfficeDelivery,
                                     TrackingNumber = rfd.TrackingNumber,
                                     MainRepoName = mrl != null ? mrl.Name : "Bilinmiyor",
+                                    SendReason = rfd.SendReason,
+                                    ProductCondition = rfd.ProductCondition,
+                                    Note = rfd.Note, 
+                                    SerialNumber = rfd.SerialNumber,
+                                    EthMac = rfd.EthMac,
+                                    WlanMac = rfd.WlanMac,
+                                    ConnectionType = rfd.ConnectionType,
+                                    ConfigUrl = rfd.ConfigUrl,
                                     Products = (from rp in _appDbContext.RequestProducts
                                                 join p in _appDbContext.Products on rp.ProductId equals p.Id
                                                 join c in _appDbContext.Categories on p.CategoryId equals c.Id
@@ -104,7 +112,7 @@ namespace StockTrack.WebUI.Controllers
             await SetCargoCountsAsync();
 
             ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
-
+            ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultAwaitingApprovals = (from rfd in _appDbContext.RequestFormDetails
                                            join rf in _appDbContext.RequestForms on rfd.RequestFormId equals rf.Id
                                            join mrl in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals mrl.Id into repoGroup
@@ -129,6 +137,15 @@ namespace StockTrack.WebUI.Controllers
                                                IsOfficeDelivery = rf.IsOfficeDelivery,
                                                TrackingNumber = rfd.TrackingNumber,
                                                MainRepoName = mrl != null ? mrl.Name : "Bilinmiyor",
+                                               Label = rfd.Label,
+                                               SendReason = rfd.SendReason,
+                                               ProductCondition = rfd.ProductCondition,
+                                               Note = rfd.Note, 
+                                               SerialNumber = rfd.SerialNumber,
+                                               EthMac = rfd.EthMac,
+                                               WlanMac = rfd.WlanMac,
+                                               ConnectionType = rfd.ConnectionType,
+                                               ConfigUrl = rfd.ConfigUrl,
                                                Products = (from rp in _appDbContext.RequestProducts
                                                            join p in _appDbContext.Products on rp.ProductId equals p.Id
                                                            join c in _appDbContext.Categories on p.CategoryId equals c.Id
@@ -152,6 +169,7 @@ namespace StockTrack.WebUI.Controllers
 
             ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
             // Paketlenmiş kargo taleplerini konum, ürün ve diğer detaylarla birlikte listeliyor
+            ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultCargoForReadyDtos = (from rfd in _appDbContext.RequestFormDetails
                                            join rf in _appDbContext.RequestForms on rfd.RequestFormId equals rf.Id
                                            join mrl in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals mrl.Id into repoGroup
@@ -176,6 +194,14 @@ namespace StockTrack.WebUI.Controllers
                                                CargoGivenDate = rfd.CargoGivenDate,
                                                IsOfficeDelivery = rf.IsOfficeDelivery,
                                                TrackingNumber = rfd.TrackingNumber,
+                                               SendReason = rfd.SendReason,
+                                               ProductCondition = rfd.ProductCondition,
+                                               Note = rfd.Note, 
+                                               SerialNumber = rfd.SerialNumber,
+                                               EthMac = rfd.EthMac,
+                                               WlanMac = rfd.WlanMac,
+                                               ConnectionType = rfd.ConnectionType,
+                                               ConfigUrl = rfd.ConfigUrl,
                                                Products = (from rp in _appDbContext.RequestProducts
                                                            join p in _appDbContext.Products on rp.ProductId equals p.Id
                                                            join c in _appDbContext.Categories on p.CategoryId equals c.Id
@@ -198,6 +224,7 @@ namespace StockTrack.WebUI.Controllers
             await SetCargoCountsAsync();
             // Kargoya verilmiş yolda olan talepleri kargo firması, takip numarası, konum ve ürün detaylarıyla birlikte listeliyor
             ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
+            ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultCargoInDeliveries = (from rf in _appDbContext.RequestForms
                                            join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
                                            join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id into repoGroup
@@ -225,7 +252,14 @@ namespace StockTrack.WebUI.Controllers
                                                CargoNameId = rfd.CargoNameId,
                                                TrackingNumber = rfd.TrackingNumber,
                                                CargoCompany = cn != null ? cn.Name : "Atanmadı",
-
+                                               SendReason = rfd.SendReason,
+                                               ProductCondition = rfd.ProductCondition,
+                                               Note = rfd.Note, 
+                                               SerialNumber = rfd.SerialNumber,
+                                               EthMac = rfd.EthMac,
+                                               WlanMac = rfd.WlanMac,
+                                               ConnectionType = rfd.ConnectionType,
+                                               ConfigUrl = rfd.ConfigUrl,
                                                Products = (from rp in _appDbContext.RequestProducts
                                                            join p in _appDbContext.Products on rp.ProductId equals p.Id
                                                            join c in _appDbContext.Categories on p.CategoryId equals c.Id
@@ -248,7 +282,9 @@ namespace StockTrack.WebUI.Controllers
         public async Task<IActionResult> Delivered()
         {
             await SetCargoCountsAsync();
-            // Teslim edilmiş kargo taleplerini ürün, konum, kargo firması, takip numarası ve işlem tarihleriyle birlikte listeliyor          
+            // Teslim edilmiş kargo taleplerini ürün, konum, kargo firması, takip numarası ve işlem tarihleriyle birlikte listeliyor      
+            ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");    
+            ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultCargoDelivereds = (from rf in _appDbContext.RequestForms
                                          join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
                                          join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id into repoGroup
@@ -279,6 +315,14 @@ namespace StockTrack.WebUI.Controllers
                                              CargoCompany = cn != null ? cn.Name : "Atanmadı",
                                              CompletedCargoDate = rfd.CompletedDate,
                                              IsOfficeDelivery = rf.IsOfficeDelivery,
+                                             SendReason = rfd.SendReason,
+                                             ProductCondition = rfd.ProductCondition,
+                                             Note = rfd.Note, 
+                                             SerialNumber = rfd.SerialNumber,
+                                             EthMac = rfd.EthMac,
+                                             WlanMac = rfd.WlanMac,
+                                             ConnectionType = rfd.ConnectionType,
+                                             ConfigUrl = rfd.ConfigUrl,                                             
                                              Products = (from rp in _appDbContext.RequestProducts
                                                          join p in _appDbContext.Products on rp.ProductId equals p.Id
                                                          join c in _appDbContext.Categories on p.CategoryId equals c.Id
@@ -301,6 +345,7 @@ namespace StockTrack.WebUI.Controllers
         public async Task<IActionResult> Cancelled()
         {
             await SetCargoCountsAsync();
+            ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultCargoCanceleds = (from rf in _appDbContext.RequestForms
                                         join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
                                         join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id into repoGroup
@@ -330,6 +375,14 @@ namespace StockTrack.WebUI.Controllers
                                             CargoGivenDate = rfd.CargoGivenDate,
                                             IsOfficeDelivery = rf.IsOfficeDelivery,
                                             TrackingNumber = rfd.TrackingNumber,
+                                            SendReason = rfd.SendReason,
+                                            ProductCondition = rfd.ProductCondition,
+                                            Note = rfd.Note, 
+                                            SerialNumber = rfd.SerialNumber,
+                                            EthMac = rfd.EthMac,
+                                            WlanMac = rfd.WlanMac,
+                                            ConnectionType = rfd.ConnectionType,
+                                            ConfigUrl = rfd.ConfigUrl,
                                             Products = (from rp in _appDbContext.RequestProducts
                                                         join p in _appDbContext.Products on rp.ProductId equals p.Id
                                                         join c in _appDbContext.Categories on p.CategoryId equals c.Id
@@ -353,9 +406,6 @@ namespace StockTrack.WebUI.Controllers
         
         public async Task<IActionResult> SaveCargoInfo(SaveCargoInfoDto dto)
         {
-            // 1. MODELSTATE POLİSİNİ KOVDUK! Çünkü kontrolü JS'de biz yapıyoruz.
-            // if (!ModelState.IsValid) { ... } (SİLİNDİ)
-
             var findCargoDetail = _appDbContext.RequestFormDetails.FirstOrDefault(x => x.Id == dto.Id);
 
             if (findCargoDetail == null)
@@ -375,7 +425,7 @@ namespace StockTrack.WebUI.Controllers
                 findCargoDetail.CreatedBy = currentUser.NameSurname;
                 findCargoDetail.IsActive = true;
                 findCargoDetail.IsDeleted = false;
-
+                findCargoDetail.CargoPreparerUserId = dto.CargoPreparerUserId;
                 findCargoDetail.ApprovalDate = now; // Onaylanma tarihi
                 findCargoDetail.ApprovalBy = currentUser.NameSurname; // Onaylayan kişi
                 findCargoDetail.PackingDate = now; // Paketlenme tarihi

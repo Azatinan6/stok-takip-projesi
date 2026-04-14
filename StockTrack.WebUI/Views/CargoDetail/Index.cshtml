@@ -113,7 +113,7 @@
                     <span class="badge @(item.StatusId == (int)EnumStatusType.OnayBekliyor ? "bg-danger" 
                     : item.StatusId == (int)EnumStatusType.Paketlendi    ? "bg-warning text-dark" 
                     : item.StatusId == (int)EnumStatusType.Kargoda       ? "bg-info" 
-                    : item.StatusId == (int)EnumStatusType.Tamamlandı    ? "bg-success" 
+                    : item.StatusId == (int)EnumStatusType.Tamamlandı    ?  "bg-success" 
                     : "bg-secondary")">
                     @item.StatusName
                     </span>
@@ -183,7 +183,20 @@
                             data-product="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.ProductName)) : "-")"
                             data-quantity="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.Quantity)) : "-")"
                             data-receiver="@item.ReceiverFullName"
-                            data-address="@item.HospitalAddress">
+                            data-address="@item.HospitalAddress"
+                            data-tracking="@item.TrackingNumber"
+                            data-preparer="@item.CargoProccessBy" 
+                            data-company="@item.CargoNameId"
+                            data-label="@item.Label"
+                            data-sendreason="@item.SendReason"
+                            data-condition="@item.ProductCondition"
+                            data-note="@item.Note"
+                            data-serial="@item.SerialNumber"
+                            data-ethmac="@item.EthMac"
+                            data-wlanmac="@item.WlanMac"
+                            data-connection="@item.ConnectionType"
+                            data-configurl="@item.ConfigUrl">
+
                             <i class="mdi mdi-cog"></i> İşlem Yap
                     </button>
                 </td>
@@ -215,19 +228,25 @@
                             <table class="table table-sm table-borderless">
                                 <tbody>
                                     <tr><td class="text-muted" style="width: 140px;">Lokasyon:</td><td class="fw-bold" id="summaryLocation">-</td></tr>
-                                    <tr><td class="text-muted">Kategori:</td><td class="fw-bold" id="summaryCategory">-</td></tr>
                                     <tr>
                                         <td class="text-muted">Ürün Adı:</td>
                                         <td class="fw-bold">
                                             <span id="summaryProduct">-</span>
                                             <a href="javascript:void(0);" id="arcBoxConfigIcon" class="text-warning ms-2 d-none"
-                                               data-bs-toggle="popover" title="Arc Box Config İçeriği"
-                                               data-bs-content="Seri No: Bekleniyor... | ETH MAC: ... | WLAN MAC: ...">
+                                            data-bs-toggle="popover" data-bs-html="true" title="<i class='mdi mdi-router-wireless'></i> Arc Box Config İçeriği">
                                                 <i class="mdi mdi-cog fs-5 spin-icon" title="Config Detayları"></i>
                                             </a>
                                         </td>
                                     </tr>
+                                    <tr><td class="text-muted">Kategori:</td><td class="fw-bold" id="summaryCategory">-</td></tr>
                                     <tr><td class="text-muted">Adet:</td><td class="fw-bold" id="summaryQuantity">-</td></tr>
+                                    
+                                    <tr><td class="text-muted">Etiket:</td><td class="fw-bold" id="summaryLabel">-</td></tr>
+                                    <tr><td class="text-muted">Gönd. Nedeni:</td><td class="fw-bold text-primary" id="summarySendReason">-</td></tr>
+                                    <tr><td class="text-muted">Ürün Durumu:</td><td class="fw-bold text-info" id="summaryCondition">-</td></tr>
+                                    <tr><td class="text-muted align-top">Not:</td><td class="fw-bold small fst-italic text-wrap" id="summaryNote">-</td></tr>
+                                    
+                                    <tr><td colspan="2"><hr class="my-1"></td></tr>
                                     <tr><td class="text-muted">Alıcı:</td><td class="fw-bold" id="summaryRecipient">-</td></tr>
                                     <tr><td class="text-muted">Adres:</td><td class="fw-bold small text-wrap" id="summaryAddress">-</td></tr>
                                 </tbody>
@@ -237,6 +256,12 @@
                         <!-- SAĞ TARAF: İŞLEM EKRANI -->
                         <div class="col-lg-6 ps-4">
                             <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">2. Kargo Durum Güncelle</h6>
+                            <div class="mb-3 bg-light p-2 rounded border">
+                                <label class="form-label fw-bold text-dark mb-1"><i class="mdi mdi-account-hard-hat"></i> Kargo Hazırlayan <span class="text-danger">*</span></label>
+                                <select name="CargoPreparerUserId" id="cargoPreparer" class="form-select border-secondary" asp-items="@(ViewBag.UserNames)">
+                                    <option value="">-- Personel Seçiniz --</option>
+                                </select>
+                            </div>
                             <div class="d-flex flex-column mb-3">
                                 <label class="col-form-label fw-bold">Durumu <span class="text-danger">*</span></label>
                                 <select name="StatusId" id="cargoStatusSelect" class="form-select border-primary">
@@ -283,17 +308,31 @@
 
 @section Scripts {
     <script>
-        const ST_PAKET       = @((int)EnumStatusType.Paketlendi);
-        const ST_VERILDI     = @((int)EnumStatusType.Kargoda);
+        const ST_KARGODA     = @((int)EnumStatusType.Kargoda);
+        const ST_TAMAMLANDI  = @((int)EnumStatusType.Tamamlandı);
         const ST_IPTALEDILDI = @((int)EnumStatusType.İptal);
+
+        // HAFIZA KUTULARI
+        let tempTracking = "";
+        let tempCompany = "";
 
         function syncRequired() {
             const st = parseInt($("#cargoStatusSelect").val() || 0, 10);
-            const needCargo  = (st === ST_VERILDI);
+            
+            // Hem Kargoda hem Teslim Edildi durumlarında kargo kutuları açık kalmalı
+            const needCargo  = (st === ST_KARGODA || st === ST_TAMAMLANDI);
             const needCancel = (st === ST_IPTALEDILDI);
 
             $("#cargoExtraFields").toggleClass("d-none", !needCargo);
-            if (!needCargo) { $("#trackingNumber").val(""); $("#cargoCompany").val(""); }
+            
+            // Eğer kargo modundaysa eski verileri bas, değilse temizle
+            if (needCargo) {
+                $("#trackingNumber").val(tempTracking);
+                $("#cargoCompany").val(tempCompany);
+            } else {
+                $("#trackingNumber").val("");
+                $("#cargoCompany").val("");
+            }
 
             $("#cancelReasonField").toggleClass("d-none", !needCancel);
             if (!needCancel) { $("#cancelReason").val(""); }
@@ -301,18 +340,26 @@
 
         $("#cargoStatusSelect").on("change", syncRequired);
 
-        // KENDİ KAYDETME MANTIĞIMIZ
+        // KAYDET BUTONU GÜVENLİK
         $("#btnSaveCargo").on("click", function () {
             const st = parseInt($("#cargoStatusSelect").val() || 0, 10);
             const tracking = $("#trackingNumber").val().trim();
             const company = $("#cargoCompany").val();
             const cancelReason = $("#cancelReason").val().trim();
+            const preparer = $("#cargoPreparer").val(); 
 
             if (st === 0 || isNaN(st)) {
                 Swal.fire('Eksik Bilgi', 'Lütfen Kargo Durumunu seçiniz.', 'warning');
                 return;
             }
-            if (st === ST_VERILDI && (!company || !tracking)) {
+            
+            // İptal hariç her durumda hazırlayan zorunlu olsun
+            if (st !== ST_IPTALEDILDI && !preparer) {
+                Swal.fire('Eksik Bilgi', 'Lütfen Kargoyu Hazırlayan personeli seçiniz.', 'warning');
+                return;
+            }
+
+            if (st === ST_KARGODA && (!company || !tracking)) {
                 Swal.fire('Eksik Bilgi', 'Kargoya verildi durumunda Kargo Firması ve Takip Numarası zorunludur!', 'warning');
                 return;
             }
@@ -321,39 +368,57 @@
                 return;
             }
 
-            // Doğrulamayı geçti, C#'a yolla!
             $("#cargoOperasyonForm")[0].submit(); 
         });
 
-        // MODAL AÇMA VE VERİ DOLDURMA
+        // MODAL AÇMA (GARSON)
         $(document).on("click", ".change-status-btn", function () {
             const d = $(this).data();
 
-            // Küçük 'i' ile hatasız ID ataması
+            // HAFIZAYA AL
+            tempTracking = d.tracking || "";
+            tempCompany = d.company || "";
+
+            // TEMEL BİLGİLER
             $("#cargoDetailId").val(d.cargodetailid || "");
-            
             $("#summaryLocation").text(d.location || "-");
             $("#summaryCategory").text(d.category || "-");
             $("#summaryQuantity").text(d.quantity || "-");
             $("#summaryRecipient").text(d.receiver || "-");
             $("#summaryAddress").text(d.address || "-");
-    
+            
+            // YENİ PDF BİLGİLERİ 
+            $("#summaryLabel").text(d.label || "-");
+            $("#summarySendReason").text(d.sendreason || "-");
+            $("#summaryCondition").text(d.condition || "-");
+            $("#summaryNote").text(d.note || "-");
+
             let productName = d.product || "-";
             $("#summaryProduct").text(productName);
 
-            // ARC BOX POPUP MANTIĞI
+            // ARC BOX ZEKASI
             if (productName.toLowerCase().includes("arc box")) {
-                $("#arcBoxConfigIcon").removeClass("d-none");
-                var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
-                var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-                    return new bootstrap.Popover(popoverTriggerEl)
-                });
+                let configHtml = `
+                    <ul class="list-unstyled small mb-0">
+                        <li><b>Seri No:</b> ${d.serial || 'Bekleniyor...'}</li>
+                        <li><b>ETH MAC:</b> ${d.ethmac || 'Yok'}</li>
+                        <li><b>WLAN MAC:</b> ${d.wlanmac || 'Yok'}</li>
+                        <li><b>Bağlantı:</b> ${d.connection || 'DHCP'}</li>
+                    </ul>
+                `;
+                $("#arcBoxConfigIcon").attr("data-bs-content", configHtml).removeClass("d-none");
+                $('[data-bs-toggle="popover"]').popover('dispose');
+                $('[data-bs-toggle="popover"]').popover({ html: true });
             } else {
                 $("#arcBoxConfigIcon").addClass("d-none");
             }
 
+            // FORMU TEMİZLE
+            $("#cargoPreparer").val(d.preparer || ""); // Varsa eski hazırlayanı seç
             $("#cargoStatusSelect").val("").trigger("change");
-            $("#trackingNumber, #cargoCompany, #cancelReason").val("");
+            $("#trackingNumber").val(tempTracking);
+            $("#cargoCompany").val(tempCompany);
+            $("#cancelReason").val("");
             syncRequired(); 
         });
     </script>

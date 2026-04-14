@@ -6,7 +6,6 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<!-- Üst Sekmeler (Aynı Kalıyor) -->
 <div class="d-flex flex-wrap gap-3 mb-4">
     <a href="~/CargoDetail/Index" class="btn rounded-pill px-4 shadow-sm border" style="background-color: #f1f3f5; color: #495057;">Tümü (@ViewBag.AllCount)</a>
     <a href="~/CargoDetail/AwaitingApproval" class="btn rounded-pill px-4 shadow-sm" style="background-color: #fde2e1; color: #d62828; border: 1px solid #f5c2c0;">Onay Bekliyor (@ViewBag.PendingCount)</a>
@@ -53,13 +52,25 @@
                     <button type="button" class="btn btn-sm btn-dark deleted-detail-btn"
                             data-bs-toggle="modal" data-bs-target="#deletedDetailModal"
                             data-id="@item.Id"
-                            @* DTO isimlerine dikkat: *@
                             data-by="@item.DeletedBy"
                             data-date="@item.DeletedDate?.ToString("dd.MM.yyyy HH:mm")"
                             data-reqby="@item.RequestFormBy"
                             data-reqdate="@item.RequestFormDate.ToString("dd.MM.yyyy")"
                             data-receiver="@item.ReceiverFullName"
-                            data-location="@item.HospitalName">
+                            data-location="@item.HospitalName"
+                            data-address="@item.HospitalAddress"
+                            data-category="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.CategoryName)) : "-")"
+                            data-product="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.ProductName)) : "-")"
+                            data-quantity="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.Quantity)) : "-")"
+                            data-label="@item.Label"
+                            data-sendreason="@item.SendReason"
+                            data-condition="@item.ProductCondition"
+                            data-note="@item.Note"
+                            data-serial="@item.SerialNumber"
+                            data-ethmac="@item.EthMac"
+                            data-wlanmac="@item.WlanMac"
+                            data-connection="@item.ConnectionType"
+                            data-configurl="@item.ConfigUrl">
                         <i class="mdi mdi-eye-outline"></i> Detay
                     </button>
                 </td>
@@ -68,45 +79,75 @@
     </tbody>
 </table>
 
-<!-- Silme Detayı Modalı -->
 <div class="modal fade" id="deletedDetailModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content border-top border-secondary border-4">
             <div class="modal-header bg-light">
                 <h5 class="modal-title text-secondary"><i class="mdi mdi-delete-restore"></i> Silinmiş Kayıt Bilgisi</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
             </div>
+            
             <div class="modal-body p-4">
-                <div class="alert alert-secondary border-0 mb-4 text-center">
-                    <strong>ID: #<span id="detId"></span></strong> numaralı kargo kaydı silinmiştir.
-                </div>
-                
-                <div class="row g-3">
-                    <div class="col-6">
-                        <label class="text-muted small d-block">Silen Kullanıcı:</label>
-                        <span class="fw-bold" id="detBy">-</span>
+                <div class="row">
+                    <div class="col-lg-6 border-end pe-4">
+                        <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">1. Gönderim Detayı</h6>
+                        <table class="table table-sm table-borderless">
+                            <tbody>
+                                <tr><td class="text-muted" style="width: 140px;">Lokasyon:</td><td class="fw-bold" id="summaryLocation">-</td></tr>
+                                <tr>
+                                    <td class="text-muted">Ürün Adı:</td>
+                                    <td class="fw-bold">
+                                        <span id="summaryProduct">-</span>
+                                        <a href="javascript:void(0);" id="arcBoxConfigIcon" class="text-secondary ms-2 d-none"
+                                        data-bs-toggle="popover" data-bs-html="true" title="<i class='mdi mdi-router-wireless'></i> Arc Box Config İçeriği">
+                                            <i class="mdi mdi-cog fs-5 spin-icon"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr><td class="text-muted">Kategori:</td><td class="fw-bold" id="summaryCategory">-</td></tr>
+                                <tr><td class="text-muted">Adet:</td><td class="fw-bold" id="summaryQuantity">-</td></tr>
+                                <tr><td class="text-muted">Etiket:</td><td class="fw-bold" id="summaryLabel">-</td></tr>
+                                <tr><td class="text-muted">Gönd. Nedeni:</td><td class="fw-bold text-secondary" id="summarySendReason">-</td></tr>
+                                <tr><td class="text-muted">Ürün Durumu:</td><td class="fw-bold text-secondary" id="summaryCondition">-</td></tr>
+                                <tr><td class="text-muted align-top">Not:</td><td class="fw-bold small fst-italic text-wrap" id="summaryNote">-</td></tr>
+                                <tr><td colspan="2"><hr class="my-1"></td></tr>
+                                <tr><td class="text-muted">Alıcı:</td><td class="fw-bold" id="summaryRecipient">-</td></tr>
+                                <tr><td class="text-muted">Adres:</td><td class="fw-bold small text-wrap" id="summaryAddress">-</td></tr>
+                            </tbody>
+                        </table>
                     </div>
-                    <div class="col-6 text-end">
-                        <label class="text-muted small d-block">Silinme Tarihi:</label>
-                        <span class="fw-bold" id="detDate">-</span>
-                    </div>
-                    <div class="col-12"><hr class="my-1"></div>
-                    <div class="col-6">
-                        <label class="text-muted small d-block">Talebi Açan:</label>
-                        <span class="fw-bold" id="detReqBy">-</span>
-                    </div>
-                    <div class="col-6 text-end">
-                        <label class="text-muted small d-block">Talep Tarihi:</label>
-                        <span class="fw-bold" id="detReqDate">-</span>
-                    </div>
-                    <div class="col-12">
-                        <label class="text-muted small d-block">Alıcı / Lokasyon:</label>
-                        <span class="fw-bold" id="detLocation">-</span>
+
+                    <div class="col-lg-6 ps-4">
+                        <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">2. Silinme Detayları</h6>
+                        
+                        <div class="alert alert-secondary border-0 mb-4 text-center">
+                            <strong>ID: #<span id="detId"></span></strong> numaralı kayıt sistemden silinmiştir.
+                        </div>
+                        
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
+                                <span class="text-muted">Silen Kullanıcı:</span>
+                                <span class="fw-bold text-dark" id="detBy">-</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
+                                <span class="text-muted">Silinme Tarihi:</span>
+                                <span class="fw-bold text-danger" id="detDate">-</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
+                                <span class="text-muted">Talebi Açan:</span>
+                                <span class="fw-bold" id="detReqBy">-</span>
+                            </div>
+                            <div class="list-group-item d-flex justify-content-between align-items-center bg-transparent px-0">
+                                <span class="text-muted">Talep Tarihi:</span>
+                                <span class="fw-bold" id="detReqDate">-</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Kapat</button>
+            
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary px-5" data-bs-dismiss="modal">Kapat</button>
             </div>
         </div>
     </div>
@@ -116,12 +157,43 @@
     <script>
         $(document).on("click", ".deleted-detail-btn", function () {
             const d = $(this).data();
-            $("#detId").text(d.id);
+            
+            // SAĞ TARAF (SİLİNME BİLGİLERİ)
+            $("#detId").text(d.id || "-");
             $("#detBy").text(d.by || "Bilinmiyor");
             $("#detDate").text(d.date || "-");
             $("#detReqBy").text(d.reqby || "-");
             $("#detReqDate").text(d.reqdate || "-");
-            $("#detLocation").text((d.receiver || "") + " / " + (d.location || ""));
+
+            // SOL TARAF (GÖNDERİM DETAYLARI)
+            $("#summaryLocation").text(d.location || "-");
+            $("#summaryCategory").text(d.category || "-");
+            $("#summaryQuantity").text(d.quantity || "-");
+            $("#summaryRecipient").text(d.receiver || "-");
+            $("#summaryAddress").text(d.address || "-");
+            $("#summaryLabel").text(d.label || "-");
+            $("#summarySendReason").text(d.sendreason || "-");
+            $("#summaryCondition").text(d.condition || "-");
+            $("#summaryNote").text(d.note || "-");
+
+            let productName = d.product || "-";
+            $("#summaryProduct").text(productName);
+
+            // ARC BOX ZEKASI VE POPOVER
+            if (productName.toLowerCase().includes("arc box")) {
+                let configHtml = `
+                    <ul class="list-unstyled small mb-0">
+                        <li><b>Seri No:</b> ${d.serial || 'Bekleniyor...'}</li>
+                        <li><b>ETH MAC:</b> ${d.ethmac || 'Yok'}</li>
+                        <li><b>WLAN MAC:</b> ${d.wlanmac || 'Yok'}</li>
+                        <li><b>Bağlantı:</b> ${d.connection || 'DHCP'}</li>
+                    </ul>`;
+                $("#arcBoxConfigIcon").attr("data-bs-content", configHtml).removeClass("d-none");
+                $('[data-bs-toggle="popover"]').popover('dispose');
+                $('[data-bs-toggle="popover"]').popover({ html: true });
+            } else {
+                $("#arcBoxConfigIcon").addClass("d-none");
+            }
         });
     </script>
 }
