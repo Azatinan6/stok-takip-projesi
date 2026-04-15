@@ -346,6 +346,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
+
             var resultCargoCanceleds = (from rf in _appDbContext.RequestForms
                                         join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
                                         join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id into repoGroup
@@ -395,7 +396,6 @@ namespace StockTrack.WebUI.Controllers
                                                             Quantity = rp.Quantity
                                                         }).ToList()
                                         }).ToList();
-
 
             return View(resultCargoCanceleds);
         }
@@ -568,10 +568,123 @@ namespace StockTrack.WebUI.Controllers
             return View(resultCargoDeleteds);
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ReturnsIndex()
+        {
+            // await SetCargoCountsAsync(); 
 
+            var resultReturns = (from rfd in _appDbContext.RequestFormDetails
+                                join rf in _appDbContext.RequestForms on rfd.RequestFormId equals rf.Id
+                                join m in _appDbContext.MainRepoLocations on rf.MainRepoLocationId equals m.Id into repoGroup
+                                from m in repoGroup.DefaultIfEmpty()
+                                join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id into hospitalGroup
+                                from h in hospitalGroup.DefaultIfEmpty()
+                                join s in _appDbContext.StatusTypes on rfd.StatusId equals s.Id into statusGroup
+                                from s in statusGroup.DefaultIfEmpty()
+                                where rfd.StatusId == 20 || 
+                                    rfd.StatusId == 21 || 
+                                    rfd.StatusId == 22 || 
+                                    rfd.StatusId == 23 || 
+                                    rfd.StatusId == 24
+                                select new ResultAwitingApprovalDto 
+                                {
+                                    Id = rfd.Id,
+                                    StatusId = rfd.StatusId,
+                                    StatusName = s != null ? s.Name : "Tanımsız Statü", 
+                                    ReceiverFullName = rfd.ToPerson,
+                                    HospitalName = h != null ? h.Name : "Belirtilmemiş",
+                                    RequestFormRequestedDate = rfd.RequestDate,
+                                    RequestFormRequestedBy = rfd.RequestBy,
+                                    MainRepoName = m != null ? m.Name : "Bilinmiyor",
+                                    CargoGivenDate = rfd.CargoGivenDate,
+                                    
+                                    // İŞTE EKSİK OLAN VE EKLENEN VERİLER:
+                                    Label = rfd.Label,
+                                    SendReason = rfd.SendReason,
+                                    ProductCondition = rfd.ProductCondition,
+                                    SerialNumber = rfd.SerialNumber,
+                                    EthMac = rfd.EthMac,
+                                    WlanMac = rfd.WlanMac,
+                                    ConnectionType = rfd.ConnectionType,
+                                    ConfigUrl = rfd.ConfigUrl,
+                                    Note = rfd.Note,
 
-        
+                                    Products = (from rp in _appDbContext.RequestProducts
+                                                join p in _appDbContext.Products on rp.ProductId equals p.Id
+                                                join c in _appDbContext.Categories on p.CategoryId equals c.Id
+                                                where rp.RequestFormId == rf.Id
+                                                select new ProductDetailDto
+                                                {
+                                                    CategoryName = c.Name,
+                                                    ProductName = p.Name,
+                                                    Quantity = rp.Quantity
+                                                }).ToList()
+                                }).ToList();
 
+            return View(resultReturns);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveReturnInfo(SaveCargoReturnInfoDto dto)
+        {
+            var findDetail = await _appDbContext.RequestFormDetails.FindAsync(dto.Id);
+            if (findDetail == null)
+            {
+                TempData["ErrorMessage"] = "İade kaydı bulunamadı.";
+                return RedirectToAction("ReturnsIndex");
+            }
+
+            findDetail.StatusId = dto.StatusId;
+            findDetail.ReceivedQuantity = dto.ReceivedQuantity;
+            findDetail.ZayiatQuantity = dto.ZayiatQuantity;
+            findDetail.ControlResult = dto.ControlResult;
+            findDetail.CargoGivenDate = DateTime.Now; 
+
+            if (!string.IsNullOrEmpty(dto.NewSerialNumber))
+            {
+                findDetail.Note = $"[ESKİ SERİ NO: {findDetail.SerialNumber} - YENİSİ İLE DEĞİŞTİ] " + findDetail.Note;
+                findDetail.SerialNumber = dto.NewSerialNumber;
+            }
+
+            if (!string.IsNullOrEmpty(dto.ExtraProductName) && dto.ExtraProductQty > 0)
+            {
+                findDetail.Note += $" | [SÜRPRİZ ÜRÜN: {dto.ExtraProductName} - {dto.ExtraProductQty} Adet]";
+            }
+
+            // Stok güncelleme kısmı
+            if (dto.StatusId != 22 && dto.ReceivedQuantity > 0)
+            {
+                int saglamGelenAdet = dto.ReceivedQuantity - dto.ZayiatQuantity;
+
+                if (saglamGelenAdet > 0)
+                {
+                    var requestForm = await _appDbContext.RequestForms.FindAsync(findDetail.RequestFormId);
+                    var requestedProducts = _appDbContext.RequestProducts.Where(x => x.RequestFormId == findDetail.RequestFormId).ToList();
+
+                    foreach (var rp in requestedProducts)
+                    {
+                        // Inventories yerine ProductMainRepoLocations kullanıyoruz
+                        var stockItem = _appDbContext.ProductMainRepoLocations.FirstOrDefault(i => 
+                            i.ProductId == rp.ProductId && 
+                            i.MainRepoLocationId == requestForm.MainRepoLocationId);
+
+                        if (stockItem != null)
+                        {
+                            // Stok adetini güncelliyoruz (Eğer modelindeki miktar alanının adı Quantity değilse burayı ona göre düzeltmelisin)
+                             stockItem.Quantity += saglamGelenAdet; 
+                            _appDbContext.ProductMainRepoLocations.Update(stockItem);
+                        }
+                    }
+                }
+            }
+
+            _appDbContext.RequestFormDetails.Update(findDetail);
+            await _appDbContext.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "İade başarıyla tamamlandı ve sağlam ürünler stoklara geri eklendi!";
+            return RedirectToAction("ReturnsIndex");
+        }
 
     }
 }

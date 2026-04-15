@@ -1,0 +1,358 @@
+@using StockTrack.Dto.CargoDetail
+@using StockTrack.WebUI.Enums
+@model List<ResultAwitingApprovalDto>
+
+@{
+    ViewData["Title"] = "Tüm İade İşlemleri";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex flex-wrap gap-3 mb-4" id="filterButtons">
+    <a href="javascript:void(0);" class="btn rounded-pill px-4 shadow-sm border filter-btn fw-bold" data-filter="all" style="background-color: #f1f3f5; color: #495057; opacity: 1;">Tüm İadeler</a>
+    
+    <a href="javascript:void(0);" class="btn rounded-pill px-3 shadow-sm border text-secondary filter-btn" data-filter="20" style="opacity: 0.6;">İade Bekleniyor</a>
+    
+    <a href="javascript:void(0);" class="btn rounded-pill px-3 shadow-sm border text-success filter-btn" data-filter="21" style="opacity: 0.6;">Teslim Alındı</a>
+    
+    <a href="javascript:void(0);" class="btn rounded-pill px-3 shadow-sm border text-danger filter-btn" data-filter="22" style="opacity: 0.6;">Teslim Alınamadı</a>
+    
+    <a href="javascript:void(0);" class="btn rounded-pill px-3 shadow-sm border text-warning filter-btn" data-filter="23,24" style="opacity: 0.6;">Eksik/Fazla Teslim</a>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+    <h4 class="text-primary"><i class="mdi mdi-keyboard-return"></i> İade Yönetim Paneli</h4>
+    <div class="text-start mb-3">
+        <a href="@Url.Action("Index", "CargoDetail")" class="btn btn-outline-success shadow-sm"><i class="mdi mdi-check"></i> Kargo Gönderim Paneline Dön</a>
+    </div>
+</div>
+<hr />
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+<table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th> 
+            <th>Durum</th> 
+            <th>Tarih</th> 
+            <th>Kullanıcı</th> 
+            <th>Depo</th> 
+            <th>Ürün (Kategori : Miktar)</th> 
+            <th>Lokasyon</th> 
+            <th>İade Teslim Tarihi</th> 
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr class="iade-satiri" data-statu="@item.StatusId">
+                <td>@item.Id</td>
+                <td>
+                    <span class="badge @(
+                        item.StatusId == (int)EnumStatusType.IadeBekleniyor ? "bg-secondary" :
+                        item.StatusId == (int)EnumStatusType.IadeTeslimAlindi ? "bg-success" :
+                        item.StatusId == (int)EnumStatusType.IadeEksikTeslimAlindi ? "bg-warning text-dark" :
+                        item.StatusId == (int)EnumStatusType.IadeFazlaTeslimAlindi ? "bg-info" :
+                        "bg-danger")">
+                        @item.StatusName
+                    </span>
+                </td>
+                <td>@(item.RequestFormRequestedDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                <td>@(item.RequestFormRequestedBy ?? "-")</td>
+                <td>@item.MainRepoName</td>
+                <td>
+                    @foreach (var p in item.Products)
+                    {
+                        <div class="fw-bold text-dark">@p.CategoryName : @p.Quantity Adet</div>
+                    }
+                </td>
+                <td>@item.HospitalName</td>
+                <td>
+                    @(item.StatusId == (int)EnumStatusType.IadeTeslimAlindi 
+                        ? (item.CargoGivenDate?.ToString("dd.MM.yyyy") ?? "-") 
+                        : "Bekleniyor...")
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-primary return-status-btn"
+                        data-bs-toggle="modal" data-bs-target="#returnStatusModal"
+                        data-cargodetailid="@item.Id"
+                        data-location="@item.HospitalName"
+                        data-category="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.CategoryName)) : "-")"
+                        data-product="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.ProductName)) : "-")"
+                        data-quantity="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.Quantity)) : "-")"
+                        data-label="@item.Label"
+                        data-sendreason="@item.SendReason"
+                        data-condition="@item.ProductCondition"
+                        data-serial="@item.SerialNumber"
+                        data-ethmac="@item.EthMac"
+                        data-wlanmac="@item.WlanMac"
+                        data-connection="@item.ConnectionType"
+                        data-note="@item.Note">
+                    <i class="mdi mdi-clipboard-check-outline"></i> İşlem Yap
+                </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="modal fade" id="returnStatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <form id="returnOperasyonForm" asp-action="SaveReturnInfo" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="returnDetailId" />
+
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-primary"><i class="mdi mdi-keyboard-return"></i> İade İşlem Merkezi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <div class="col-lg-6 border-end pe-4">
+                            <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">1. İade Detayı</h6>
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr><td class="text-muted" style="width: 150px;">Lokasyon:</td><td class="fw-bold text-dark" id="retLocation">-</td></tr>
+                                    <tr>
+                                        <td class="text-muted">Ürün Adı:</td>
+                                        <td class="fw-bold">
+                                            <span id="retProduct">-</span>
+                                            <a href="javascript:void(0);" id="retArcBoxIcon" class="text-warning ms-2 d-none"
+                                               data-bs-toggle="popover" data-bs-html="true" title="<i class='mdi mdi-router-wireless'></i> Arc Box Config İçeriği">
+                                                <i class="mdi mdi-cog fs-5 spin-icon"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr><td class="text-muted">Kategori:</td><td class="fw-bold" id="retCategory">-</td></tr>
+                                    <tr><td class="text-muted">Beklenen Adet:</td><td class="fw-bold text-danger" id="retQuantity">-</td></tr>
+                                    <tr><td class="text-muted">Teslim Alınan:</td><td class="fw-bold text-success" id="retReceivedQty">Henüz Girilmedi</td></tr>
+                                    <tr><td class="text-muted">Etiket:</td><td class="fw-bold" id="retLabel">-</td></tr>
+                                    <tr><td class="text-muted">İade Nedeni:</td><td class="fw-bold text-primary" id="retReason">-</td></tr>
+                                    <tr><td class="text-muted">Ürün Durumu:</td><td class="fw-bold" id="retCondition">-</td></tr>
+                                    <tr><td class="text-muted">Kontrol Sonucu:</td><td class="fw-bold" id="retControlResult">Bekleniyor...</td></tr>
+                                    <tr><td class="text-muted align-top">Not:</td><td class="fw-bold small fst-italic text-wrap" id="retNote">-</td></tr>
+                                    <tr>
+                                        <td class="text-muted">Görsel Kanıt:</td>
+                                        <td>
+                                            <a href="#" id="viewImageBtn" class="text-info d-none"><i class="mdi mdi-image-outline fs-5"></i> Görüntüle</a>
+                                            <span id="noImageSpan" class="text-muted small">Görsel Yok</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="col-lg-6 ps-4">
+                            <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">2. Durum Güncelle</h6>
+                            
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold">Teslim Alınan Adet <span class="text-danger">*</span></label>
+                                    <input type="number" name="ReceivedQuantity" id="inputReceivedQty" class="form-control" min="0" />
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold text-danger">Zayiat (Fire) Adeti</label>
+                                    <input type="number" name="ZayiatQuantity" id="inputZayiatQty" class="form-control border-danger" value="0" min="0" />
+                                    <small class="text-muted" style="font-size:0.70rem;">Stok hareketine işlemez</small>
+                                </div>
+                            </div>
+
+                            <div id="arcBoxSerialCheck" class="d-none bg-light p-3 rounded border border-warning mb-3">
+                                <h6 class="text-warning fw-bold mb-2"><i class="mdi mdi-alert-circle-outline"></i> Arc Box Seri No Kontrolü</h6>
+                                <p class="mb-1 small">Beklenen Seri No: <strong id="expectedSerial"></strong></p>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="serialMatchCheck" checked>
+                                    <label class="form-check-label small" for="serialMatchCheck">Gelen cihazın seri numarası uyuşuyor</label>
+                                </div>
+                                <div id="newSerialArea" class="d-none">
+                                    <label class="form-label small text-danger fw-bold">Yeni Seri Numarasını Giriniz:</label>
+                                    <input type="text" name="NewSerialNumber" id="newSerialNumber" class="form-control form-control-sm border-warning" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <button type="button" class="btn btn-sm btn-outline-secondary w-100 mb-2" id="toggleExtraProductBtn">
+                                    <i class="mdi mdi-plus"></i> Paketten Fazladan Ürün Çıktı (Manuel Ekle)
+                                </button>
+                                <div id="extraProductArea" class="d-none bg-light p-2 rounded border">
+                                    <input type="text" name="ExtraProductName" class="form-control form-control-sm mb-1" placeholder="Ekstra Ürün Adı" />
+                                    <input type="number" name="ExtraProductQty" class="form-control form-control-sm" placeholder="Adet" min="1" />
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Kontrol Sonucu</label>
+                                <textarea name="ControlResult" id="inputControlResult" class="form-control" rows="2" placeholder="Cihaz sağlam, kutusu yırtık vs..."></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Durumu <span class="text-danger">*</span></label>
+                                <select name="StatusId" id="returnStatusSelect" class="form-select border-primary">
+                                    <option value="">-- Seçiniz --</option>
+                                    <option value="@((int)EnumStatusType.IadeTeslimAlindi)">İade Teslim Alındı (Tam)</option>
+                                    <option value="@((int)EnumStatusType.IadeEksikTeslimAlindi)">Eksik Teslim Alındı</option>
+                                    <option value="@((int)EnumStatusType.IadeFazlaTeslimAlindi)">Fazla Teslim Alındı</option>
+                                    <option value="@((int)EnumStatusType.IadeTeslimAlinamadi)">Teslim Alınamadı</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-0">
+                                <label class="form-label fw-bold"><i class="mdi mdi-camera"></i> Görsel Yükle</label>
+                                <input type="file" name="ReturnImage" class="form-control form-control-sm" accept="image/*" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>                    
+                    <button type="button" id="btnSaveReturn" class="btn btn-success px-5">İadeyi Tamamla</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 1. PDF KURALLARI: GÖRSEL EFEKTLER VE EKSTRALAR
+        $("#serialMatchCheck").on("change", function() {
+            if(!$(this).is(":checked")) {
+                $("#newSerialArea").removeClass("d-none");
+            } else {
+                $("#newSerialArea").addClass("d-none");
+                $("#newSerialNumber").val("");
+            }
+        });
+
+        $("#toggleExtraProductBtn").on("click", function() {
+            $("#extraProductArea").toggleClass("d-none");
+        });
+
+        // 2. YENİ EKLENEN: ZEKİ STATÜ ROBOTU (Kendi Kendine Seçen Kod)
+        $("#inputReceivedQty").on("input change", function() {
+            let expected = parseInt($("#retQuantity").text()) || 0;
+            let received = parseInt($(this).val());
+
+            if (isNaN(received) || $(this).val() === "") {
+                $("#returnStatusSelect").val(""); 
+                return;
+            }
+
+            if (received === 0) {
+                $("#returnStatusSelect").val("22"); 
+            } else if (received < expected) {
+                $("#returnStatusSelect").val("23"); 
+            } else if (received > expected) {
+                $("#returnStatusSelect").val("24"); 
+            } else { 
+                $("#returnStatusSelect").val("21"); 
+            }
+        });
+
+        // 3. GÜVENLİK (KAYDETME)
+        $("#btnSaveReturn").on("click", function() {
+            let st = $("#returnStatusSelect").val();
+            let qty = $("#inputReceivedQty").val();
+
+            if(qty === "" || qty < 0) {
+                Swal.fire('Uyarı', 'Lütfen Teslim Alınan Adeti giriniz.', 'warning');
+                return;
+            }
+            if(!st) {
+                Swal.fire('Uyarı', 'Lütfen İade Durumunu seçiniz.', 'warning');
+                return;
+            }
+            
+            $("#returnOperasyonForm").submit();
+        });
+
+        // 4. MODALI DOLDURAN GARSON
+        $(document).on("click", ".return-status-btn", function () {
+            const d = $(this).data();
+            
+            $("#returnDetailId").val(d.cargodetailid || "");
+            $("#retProduct").text(d.product || "-");
+            $("#retCategory").text(d.category || "-");
+            
+            let beklenenAdet = d.quantity || "0";
+            $("#retQuantity").text(beklenenAdet); 
+            
+            // Lokasyon verisini basıyoruz
+            $("#retLocation").text(d.location || "-");
+            
+            $("#retLabel").text(d.label || "-");
+            $("#retReason").text(d.sendreason || "-");
+            $("#retCondition").text(d.condition || "-");
+            $("#retNote").text(d.note || "-");
+
+            // Arc Box Zekası
+            let pName = d.product || "";
+            if (pName.toLowerCase().includes("arc box")) {
+                $("#arcBoxSerialCheck").removeClass("d-none");
+                $("#expectedSerial").text(d.serial || "Bilinmiyor");
+                $("#serialMatchCheck").prop("checked", true);
+                $("#newSerialArea").addClass("d-none");
+
+                let configHtml = `
+                    <ul class="list-unstyled small mb-0">
+                        <li><b>Seri No:</b> ${d.serial || '-'}</li>
+                        <li><b>ETH MAC:</b> ${d.ethmac || '-'}</li>
+                        <li><b>WLAN MAC:</b> ${d.wlanmac || '-'}</li>
+                        <li><b>Bağlantı:</b> ${d.connection || '-'}</li>
+                    </ul>`;
+                $("#retArcBoxIcon").attr("data-bs-content", configHtml).removeClass("d-none");
+                $('[data-bs-toggle="popover"]').popover('dispose');
+                $('[data-bs-toggle="popover"]').popover({ html: true });
+            } else {
+                $("#arcBoxSerialCheck").addClass("d-none");
+                $("#retArcBoxIcon").addClass("d-none");
+            }
+
+            // ÇÖKEN KOD BURADAN SİLİNDİ!
+
+            // FORMU TEMİZLE VE ROBOTU UYANDIR
+            $("#inputZayiatQty").val(0);
+            $("#inputControlResult").val("");
+            $("#extraProductArea").addClass("d-none");
+            $("input[name='ExtraProductName'], input[name='ExtraProductQty']").val("");
+            
+            $("#inputReceivedQty").val(beklenenAdet).trigger("input"); 
+        });
+        
+        $(".filter-btn").on("click", function() {
+            // 1. Görsel Efekt: Tıklanan butonu parlat, diğerlerini soluklaştır
+            $(".filter-btn").css("opacity", "0.6").removeClass("fw-bold border-2 shadow");
+            $(this).css("opacity", "1").addClass("fw-bold border-2 shadow");
+
+            // 2. Tıklanan butonun filtre ID'sini al
+            let filterValue = $(this).data("filter");
+
+            // 3. Filtreleme Mantığı
+            if (filterValue === "all") {
+                // Tümü seçildiyse hepsini yavaşça göster
+                $(".iade-satiri").fadeIn(300); 
+            } else {
+                // "23,24" gibi virgüllü gelenleri diziye çeviriyoruz
+                let statusArray = filterValue.toString().split(","); 
+                
+                // Önce bütün satırları gizle
+                $(".iade-satiri").hide(); 
+                
+                // Sadece data-statu değeri butondaki ID'ler ile eşleşenleri göster
+                $(".iade-satiri").filter(function() {
+                    return statusArray.includes($(this).data("statu").toString());
+                }).fadeIn(300);
+            }
+        });
+    </script>
+}

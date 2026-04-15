@@ -39,7 +39,7 @@
             <tr>
                 <td>@item.Id</td>
                 <td><span class="badge bg-secondary">@item.StatusName</span></td>
-                <td>@(item.DeletedDate?.ToString("dd.MM.yyyy HH:mm") ?? "-")</td>
+                <td>@(item.DeletedDate.HasValue ? item.DeletedDate.Value.ToString("dd.MM.yyyy HH:mm") : "-")</td>
                 <td>@(item.DeletedBy ?? "Sistem")</td>
                 <td>
                     @foreach (var p in item.Products)
