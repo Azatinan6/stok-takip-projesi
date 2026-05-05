@@ -1,0 +1,208 @@
+﻿@using StockTrack.Dto.CargoDetail
+@using StockTrack.WebUI.Enums
+@model List<ResultCargoCanceledDto>
+
+@{
+    ViewData["Title"] = "İptal Edilen Kargolar";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex flex-wrap gap-3 mb-4">
+    <a href="~/CargoDetail/Index" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #f1f3f5; color: #495057;">Tümü (@ViewBag.AllCount)</a>
+    <a href="~/CargoDetail/AwaitingApproval" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #fde2e1; color: #d62828; border: 1px solid #f5c2c0;">Onay Bekliyor (@ViewBag.PendingCount)</a>
+    <a href="~/CargoDetail/ReadyForCargo" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #fff4cc; color: #e0a800; border: 1px solid #ffe69c;">Paketlendi (@ViewBag.PackagedCount)</a>
+    <a href="~/CargoDetail/CargoInDelivery" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #d0ebff; color: #1971c2; border: 1px solid #a5d8ff;">Kargoda (@ViewBag.InCargoCount)</a>
+    <a href="~/CargoDetail/Delivered" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #d3f9d8; color: #2b8a3e; border: 1px solid #b2f2bb;">Teslim Edildi (@ViewBag.DeliveredCount)</a>
+    <a href="~/CargoDetail/Cancelled" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #ffe3e3; color: #c92a2a; border: 1px solid #ffc9c9;">İptal Edilenler (@ViewBag.CancelledCount)</a>
+    <!-- YENİ STATÜ BUTONLARI -->
+    <a href="/CargoDetail/OfficePickup" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #e0f7fa; color: #00838f; border: 1px solid #b2ebf2;">Ofisten Teslim (@ViewBag.OfficePickupCount)</a>
+    <a href="/CargoDetail/ReturnWaiting" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #f4ecfb; color: #6f42c1; border: 1px solid #d6c3eb;">İade Geldiği Zaman Kargoya Verilecek (@ViewBag.ReturnWaitingCount)</a>
+    <a href="~/CargoDetail/Deleted" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #e9ecef; color: #6c757d; border: 1px solid #dee2e6;">Silinenler (@ViewBag.DeletedCount)</a>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+    <h4 class="text-danger"><i class="mdi mdi-cancel"></i> İptal Edilen Kargo İşlemleri</h4>
+</div>
+<hr />
+
+<table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
+    <thead class="table-light">
+        <tr>
+            <th>ID</th>
+            <th>Durum</th>
+            <th>Talep Tarihi</th>
+            <th>Talebi Açan</th>
+            <th>Depo</th>
+            <th>Ürün (Kategori : Miktar)</th>
+            <th>Lokasyon</th>
+            <th>İptal Sebebi</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td><span class="badge bg-danger">@item.StatusName</span></td>
+                <td>@(item.RequestFormDate.ToString("dd.MM.yyyy") ?? "-")</td>
+                <td>@(item.RequestFormBy ?? "-")</td>
+                <td>@item.MainRepoName</td>
+                <td>
+                    @foreach (var p in item.Products)
+                    {
+                        <div class="small fw-bold">@p.CategoryName : @p.Quantity Adet</div>
+                    }
+                </td>
+                <td>
+                    <div class="fw-bold">@item.HospitalName</div>
+    
+                    @if (item.IsOfficeDelivery)
+                    {
+                        <span class="badge bg-soft-info text-info border border-info mt-1" style="font-size: 0.75rem;">
+                            <i class="mdi mdi-office-building"></i> Ofisten Teslim
+                        </span>
+                    }
+
+                    @if (item.IsShipAfterReturn)
+                    {
+                        <span class="badge bg-soft-warning text-warning border border-warning mt-1" style="font-size: 0.75rem;">
+                            <i class="mdi mdi-keyboard-return"></i> İade Gelince Kargolanacak
+                        </span>
+                    }
+                </td>
+                
+                <td>
+                    <span class="text-muted small text-truncate d-inline-block" style="max-width: 150px;" title="@item.CanceledDesc">
+                        @(string.IsNullOrEmpty(item.CanceledDesc) ? "Belirtilmemiş" : item.CanceledDesc)
+                    </span>
+                </td>
+
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger cancel-detail-btn"
+                            data-bs-toggle="modal" data-bs-target="#cancelDetailModal"
+                            data-id="@item.Id"
+                            data-location="@item.HospitalName"
+                            data-category="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.CategoryName)) : "-")"
+                            data-product="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.ProductName)) : "-")"
+                            data-quantity="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.Quantity)) : "-")"
+                            data-receiver="@item.ReceiverFullName"
+                            data-address="@item.HospitalAddress"
+                            data-label="@item.Label"
+                            data-sendreason="@item.SendReason"
+                            data-condition="@item.ProductCondition"
+                            data-note="@item.Note"
+                            data-canceldesc="@item.CanceledDesc"
+                            data-serial="@item.SerialNumber"
+                            data-ethmac="@item.EthMac"
+                            data-wlanmac="@item.WlanMac"
+                            data-connection="@item.ConnectionType"
+                            data-configurl="@item.ConfigUrl">
+                        <i class="mdi mdi-eye"></i> Detay Gör
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="modal fade" id="cancelDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-top border-danger border-4">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title text-danger"><i class="mdi mdi-alert-circle"></i> İptal Edilmiş İşlem Detayları</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <div class="row">
+                    <div class="col-lg-6 border-end pe-4">
+                        <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">1. Planlanan Gönderim Detayı</h6>
+                        <table class="table table-sm table-borderless">
+                            <tbody>
+                                <tr><td class="text-muted" style="width: 140px;">Lokasyon:</td><td class="fw-bold" id="summaryLocation">-</td></tr>
+                                <tr>
+                                    <td class="text-muted">Ürün Adı:</td>
+                                    <td class="fw-bold">
+                                        <span id="summaryProduct">-</span>
+                                        <a href="javascript:void(0);" id="arcBoxConfigIcon" class="text-warning ms-2 d-none"
+                                               data-bs-toggle="popover" data-bs-html="true" title="<i class='mdi mdi-router-wireless'></i> Arc Box Config İçeriği">
+                                            <i class="mdi mdi-cog fs-5 spin-icon"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr><td class="text-muted">Kategori:</td><td class="fw-bold" id="summaryCategory">-</td></tr>
+                                <tr><td class="text-muted">Adet:</td><td class="fw-bold" id="summaryQuantity">-</td></tr>
+                                <tr><td class="text-muted">Etiket:</td><td class="fw-bold" id="summaryLabel">-</td></tr>
+                                <tr><td class="text-muted">Gönd. Nedeni:</td><td class="fw-bold text-primary" id="summarySendReason">-</td></tr>
+                                <tr><td class="text-muted">Ürün Durumu:</td><td class="fw-bold text-info" id="summaryCondition">-</td></tr>
+                                <tr><td colspan="2"><hr class="my-1"></td></tr>
+                                <tr><td class="text-muted">Alıcı:</td><td class="fw-bold" id="summaryRecipient">-</td></tr>
+                                <tr><td class="text-muted">Adres:</td><td class="fw-bold small text-wrap" id="summaryAddress">-</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="col-lg-6 ps-4">
+                        <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">2. İptal Gerekçesi</h6>
+                        
+                        <div class="alert alert-danger border-0 mb-4 text-center">
+                            <strong>Dikkat!</strong> ID: #<span id="cancelDetId"></span> numaralı bu kargo gönderimi iptal edilmiştir.
+                        </div>
+
+                        <div class="mb-3 bg-light p-3 rounded border border-danger">
+                            <label class="form-label fw-bold text-danger"><i class="mdi mdi-text-box-remove-outline"></i> İptal Edilme Sebebi:</label>
+                            <p class="mb-0 text-dark fst-italic" id="cancelDesc">İptal sebebi belirtilmemiş.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">Pencereyi Kapat</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).on("click", ".cancel-detail-btn", function () {
+            const d = $(this).data();
+
+            // İPTAL DETAYLARI
+            $("#cancelDetId").text(d.id || "-");
+            $("#cancelDesc").text(d.canceldesc || "İptal sebebi belirtilmemiş.");
+
+            // SOL TARAF (GÖNDERİM BİLGİLERİ)
+            $("#summaryLocation").text(d.location || "-");
+            $("#summaryCategory").text(d.category || "-");
+            $("#summaryQuantity").text(d.quantity || "-");
+            $("#summaryRecipient").text(d.receiver || "-");
+            $("#summaryAddress").text(d.address || "-");
+            $("#summaryLabel").text(d.label || "-");
+            $("#summarySendReason").text(d.sendreason || "-");
+            $("#summaryCondition").text(d.condition || "-");
+
+            let productName = d.product || "-";
+            $("#summaryProduct").text(productName);
+
+            // ARC BOX ZEKASI VE POPOVER (İptal de olsa ürün bilgisi görünmeli)
+            let pNameClean = productName.replace(/[\s\-]+/g, '').toLowerCase();
+            if (pNameClean.includes("arcbox")) {
+                let configHtml = `
+                    <ul class="list-unstyled small mb-0">
+                        <li><b>Seri No:</b> ${d.serial || 'Bekleniyor...'}</li>
+                        <li><b>ETH MAC:</b> ${d.ethmac || 'Yok'}</li>
+                        <li><b>WLAN MAC:</b> ${d.wlanmac || 'Yok'}</li>
+                        <li><b>Bağlantı:</b> ${d.connection || 'DHCP'}</li>
+                    </ul>`;
+                $("#arcBoxConfigIcon").attr("data-bs-content", configHtml).removeClass("d-none");
+                $('[data-bs-toggle="popover"]').popover('dispose');
+                $('[data-bs-toggle="popover"]').popover({ html: true });
+            } else {
+                $("#arcBoxConfigIcon").addClass("d-none");
+            }
+        });
+    </script>
+}

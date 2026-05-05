@@ -1,0 +1,70 @@
+﻿@using StockTrack.Dto.Set
+@model IEnumerable<SetDeletedDto>
+
+@{
+    ViewData["Title"] = "Silinen Setler";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<h4>Silinen Setler</h4>
+<hr />
+
+<table id="DataTables" class="table table-hover align-middle mb-0" style="width:100%">
+    <thead>
+        <tr>
+            <th>#Id</th>
+            <th>Set Adı</th>
+            <th>Set İçeriği</th>
+            <th>Silinme Tarihi</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int count = 1;
+        }
+        @foreach (var set in Model)
+        {
+            <tr>
+                <td>@(count++)</td>
+                <td>@set.Name</td>
+                <td>
+                    @if (set.ProductNames != null && set.ProductNames.Any())
+                    {
+                        foreach (var pName in set.ProductNames.Take(3))
+                        {
+                            <span class="badge rounded-pill bg-light text-dark border px-3 py-2 me-1 mb-1">
+                                <i class="bi bi-hash"></i> @pName
+                            </span>
+                        }
+
+                        @if (set.ProductNames.Count > 3)
+                        {
+                            <span class="badge rounded-pill bg-secondary text-white px-2 py-2 mb-1" title="@string.Join(", ", set.ProductNames)" style="cursor: help;">
+                                +@(set.ProductNames.Count - 3) Daha...
+                            </span>
+                        }
+                    }
+                    else
+                    {
+                        <span class="text-muted fst-italic">İçerik yok</span>
+                    }
+                </td>
+                <td>@set.DeletedDate?.ToString("dd MMMM yyyy HH:mm")</td>
+                <td>
+                    <form asp-controller="Set" asp-action="Restore" asp-route-id="@set.Id" method="post" onsubmit="return confirm('Bu seti geri yüklemek istediğinize emin misiniz?');">
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="mdi mdi-restore me-1"></i> Geri Yükle
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div class="mt-3">
+    <a asp-controller="Set" asp-action="Index" class="btn btn-secondary">
+        <i class="fa fa-arrow-left"></i> Set Listesine Dön
+    </a>
+</div>

@@ -1,0 +1,115 @@
+﻿@model List<StockTrack.Entity.Enitities.CargoDefinition>
+@{
+    ViewData["Title"] = "Ürün Durumu Tanımları";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+    <h6 class="m-0 font-weight-bold text-primary">📦 Ürün Durumu (Giriş/Çıkış) Tanımları</h6>
+    <div>
+        <a asp-controller="CargoDefinition" asp-action="DeletedProductStatus" class="btn btn-outline-danger me-2 shadow-sm">
+            <i class="mdi mdi-delete-restore me-1"></i> Silinenler
+        </a>
+        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createDefModal">
+            <i class="fa fa-plus"></i> Yeni Durum Ekle
+        </button>
+    </div>
+        
+    </div>
+
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            <div class="list-group-item bg-light text-muted fw-bold d-flex justify-content-between px-4 py-3">
+                <span class="col-2">#ID</span>
+                <span class="col-4">Durum Adı</span>
+                <span class="col-3">İşlem Yönü</span>
+                <span class="col-3 text-end">İşlemler</span>
+            </div>
+
+            @foreach (var item in Model)
+            {
+                <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3 hover-shadow">
+                    <span class="col-2 text-muted">@item.Id</span>
+                    <span class="col-4 fw-bold text-dark">@item.Name</span>
+                    <span class="col-3">
+                        @if (item.DefinitionType == 2)
+                        {
+                            <span class="badge bg-success">Giriş (Stok Artar)</span>
+                        }
+                        else if (item.DefinitionType == 3)
+                        {
+                            <span class="badge bg-danger">Çıkış (Stok Azalır)</span>
+                        }
+                    </span>
+                    <span class="col-3 text-end">
+                        <button type="button" class="btn btn-warning btn-sm shadow-sm"
+                                onclick="openEditDefModal(@item.Id, '@item.Name')">
+                            Düzenle
+                        </button>
+                        <a href="~/CargoDefinition/DeleteProductStatus/@item.Id" class="btn btn-danger btn-sm shadow-sm" onclick="return confirm('Bu durumu silmek istediğinize emin misiniz?');">Sil</a>
+                    </span>
+                </div>
+            }
+        </div>
+    </div>
+
+
+<div class="modal fade" id="createDefModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Yeni Ürün Durumu Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="~/CargoDefinition/CreateProductStatus" method="post">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">İşlem Yönü</label>
+                        <select name="DefinitionType" class="form-select" required>
+                            <option value="">-- Seçiniz --</option>
+                            <option value="2">GİRİŞ (Örn: Sıfır Ürün, İade)</option>
+                            <option value="3">ÇIKIŞ (Örn: Yeni Kurulum, Arıza Değişimi)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Durum Adı</label>
+                        <input type="text" class="form-control" name="Name" required placeholder="Örn: Sağlam İade" />
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-primary w-100">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editDefModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">Durumu Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="~/CargoDefinition/EditProductStatus" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" id="editDefId" name="Id" />
+                    <label class="form-label fw-bold">Durum Adı</label>
+                    <input type="text" class="form-control" id="editDefName" name="Name" required />
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-warning w-100">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openEditDefModal(id, name) {
+        document.getElementById('editDefId').value = id;
+        document.getElementById('editDefName').value = name;
+        var myModal = new bootstrap.Modal(document.getElementById('editDefModal'));
+        myModal.show();
+    }
+</script>

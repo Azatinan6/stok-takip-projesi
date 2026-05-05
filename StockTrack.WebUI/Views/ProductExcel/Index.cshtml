@@ -1,0 +1,39 @@
+﻿@{
+    ViewData["Title"] = "Depo Çıkış Raporu";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+@if (TempData["NoDataMessage"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["NoDataMessage"]
+    </div>
+}
+
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Depo Çıkış Raporu</h5>
+            </div>
+            <div class="card-body">
+                <form asp-action="ExportProductInExcel" asp-controller="ProductExcel" method="post" id="dateFilterForm">
+                    <div class="mb-3">
+                        <label for="startDate" class="form-label">Başlangıç Tarihi</label>
+                        <input type="date" id="startDate" name="startDate" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label for="endDate" class="form-label">Bitiş Tarihi</label>
+                        <input type="date" id="endDate" name="endDate" class="form-control" required />
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="mdi mdi-file-excel-outline me-1"></i> Excel'e Aktar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+

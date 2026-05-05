@@ -1,0 +1,387 @@
+@using StockTrack.Dto.CargoDetail
+@using StockTrack.WebUI.Enums
+@model List<StockTrack.Dto.CargoDetail.ResultAwitingApprovalDto>
+
+@{
+    ViewData["Title"] = "Tüm Kargolar";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<!-- ÜST FİLTRE BUTONLARI -->
+<div class="d-flex flex-wrap gap-3 mb-4">
+    <a href="~/CargoDetail/Index" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #f1f3f5; color: #495057;">Tümü (@ViewBag.AllCount)</a>
+    <a href="~/CargoDetail/AwaitingApproval" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #fde2e1; color: #d62828; border: 1px solid #f5c2c0;">Onay Bekliyor (@ViewBag.PendingCount)</a>
+    <a href="~/CargoDetail/ReadyForCargo" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #fff4cc; color: #e0a800; border: 1px solid #ffe69c;">Paketlendi (@ViewBag.PackagedCount)</a>
+    <a href="~/CargoDetail/CargoInDelivery" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #d0ebff; color: #1971c2; border: 1px solid #a5d8ff;">Kargoda (@ViewBag.InCargoCount)</a>
+    <a href="~/CargoDetail/Delivered" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #d3f9d8; color: #2b8a3e; border: 1px solid #b2f2bb;">Teslim Edildi (@ViewBag.DeliveredCount)</a>
+    <a href="~/CargoDetail/Cancelled" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #ffe3e3; color: #c92a2a; border: 1px solid #ffc9c9;">İptal Edilenler (@ViewBag.CancelledCount)</a>
+    <!-- YENİ STATÜ BUTONLARI -->
+    <a href="/CargoDetail/OfficePickup" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #e0f7fa; color: #00838f; border: 1px solid #b2ebf2;">Ofisten Teslim (@ViewBag.OfficePickupCount)</a>
+    <a href="/CargoDetail/ReturnWaiting" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #f4ecfb; color: #6f42c1; border: 1px solid #d6c3eb;">İade Geldiği Zaman Kargoya Verilecek (@ViewBag.ReturnWaitingCount)</a>
+    <a href="~/CargoDetail/Deleted" class="btn rounded-pill fw-bold px-3 py-1 me-2 mb-2 shadow-sm" style="background-color: #e9ecef; color: #6c757d; border: 1px solid #dee2e6;">Silinenler (@ViewBag.DeletedCount)</a>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+    <h4>Tüm Kargolar</h4>
+    <div class="text-start mb-3">
+        <a href="@Url.Action("ReturnsIndex", "CargoDetail")" class="btn btn-outline-success shadow-sm"><i class="mdi mdi-check"></i> İade Yönetim Paneline Git</a>
+    </div>
+</div>
+<hr />
+
+<!-- BİLGİ MESAJLARI -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        <i class="mdi mdi-check-circle me-1"></i> @TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
+        <i class="mdi mdi-alert-circle me-1"></i> @TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+    </div>
+}
+
+<!-- KARGO LİSTESİ TABLOSU -->
+<div class="card shadow mb-4 border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-striped align-middle mb-0" id="cargoTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Durum</th>
+                        <th>Tarih</th>
+                        <th>Kullanıcı</th>
+                        <th>Depo</th>
+                        <th>Ürün (Kategori : Miktar)</th>
+                        <th>Lokasyon</th>
+                        <th>Kargo Verilme Tarihi</th>
+                        <th>Kargo Takip No</th>
+                        <th class="text-center">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.Id</td>
+                            <td>
+                                <span class="badge @(item.StatusId == (int)EnumStatusType.OnayBekliyor ? "bg-danger" 
+                                                   : item.StatusId == (int)EnumStatusType.Paketlendi ? "bg-warning text-dark"
+                                                   : item.StatusId == (int)EnumStatusType.Kargoda ? "bg-info"
+                                                   : item.StatusId == (int)EnumStatusType.Tamamlandı ? "bg-success"
+                                                   : "bg-secondary")">
+                                    @item.StatusName
+                                </span>
+                            </td>
+                            <td>@(item.RequestFormRequestedDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                            <td>@(item.RequestFormRequestedBy ?? "-")</td>
+                            <td>@item.MainRepoName</td>
+                            <td>
+                                @foreach (var product in item.Products)
+                                {
+                                    <div>@product.ProductName <small class="text-muted">(@product.CategoryName : @product.Quantity Adet)</small></div>
+                                }
+                            </td>
+                            <td>
+                                @if (item.IsOfficeDelivery)
+                                {
+                                    <span class="badge bg-soft-info text-info border border-info"><i class="mdi mdi-office-building"></i> Ofisten Teslim</span>
+                                }
+                                else
+                                {
+                                    <span class="fw-bold">@item.HospitalName</span>
+                                }
+
+                                <!-- İade Bekleyen zırhı (Sadece görsel eklenti) -->
+                                @if (item.StatusId == 13 || item.StatusId == 20)
+                                {
+                                    <span class="badge bg-soft-warning text-warning border border-warning mt-1 d-block w-auto" style="font-size: 0.70rem;">
+                                        <i class="mdi mdi-keyboard-return"></i> İade Sürecinde
+                                    </span>
+                                }
+                            </td>
+                            <td>@(item.CargoGivenDate?.ToString("dd.MM.yyyy") ?? "-")</td>
+                            <td>
+                                @if (item.IsOfficeDelivery && (item.StatusId == (int)EnumStatusType.Kargoda || item.StatusId == (int)EnumStatusType.Tamamlandı))
+                                {
+                                    <span class="badge bg-secondary">Ofisten Teslim Edildi</span>
+                                }
+                                else if (string.IsNullOrEmpty(item.TrackingNumber) && (item.StatusId == (int)EnumStatusType.Kargoda || item.StatusId == (int)EnumStatusType.Tamamlandı))
+                                {
+                                    <span class="text-danger fw-bold"><i class="mdi mdi-alert-circle"></i> Eksik!</span>
+                                }
+                                else
+                                {
+                                    @(string.IsNullOrEmpty(item.TrackingNumber) ? "-" : item.TrackingNumber)
+                                }
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-primary change-status-btn" style="white-space:nowrap !important;"
+                                        data-bs-toggle="modal" data-bs-target="#cargoStatusModal"
+                                        data-cargodetailid="@item.Id"
+                                        data-location="@item.HospitalName"
+                                        data-category="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.CategoryName)) : "-")"
+                                        data-product="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.ProductName)) : "-")"
+                                        data-quantity="@(item.Products.Any() ? string.Join(", ", item.Products.Select(p => p.Quantity)) : "-")"
+                                        data-receiver="@item.ReceiverFullName"
+                                        data-address="@item.HospitalAddress"
+                                        data-username="@item.RequestFormRequestedBy"
+                                        data-tracking="@item.TrackingNumber"
+                                        data-preparer="@item.CargoProccessBy"
+                                        data-company="@item.CargoNameId"
+                                        data-label="@item.Label"
+                                        data-sendreason="@item.SendReason"
+                                        data-condition="@item.ProductCondition"
+                                        data-note="@item.Note"
+                                        data-serial="@item.SerialNumber"
+                                        data-ethmac="@item.EthMac"
+                                        data-wlanmac="@item.WlanMac"
+                                        data-connection="@item.ConnectionType"
+                                        data-configurl="@item.ConfigUrl">
+                                    <i class="mdi mdi-cog"></i> İşlem Yap
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ================= MODAL BAŞLANGICI ================= -->
+<div class="modal fade" id="cargoStatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+            <form id="cargoOperasyonForm" asp-action="SaveCargoInfo" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="cargoDetailId" />
+
+                <div class="modal-header bg-light">
+                    <h5 class="modal-title text-primary"><i class="mdi mdi-truck-delivery-outline"></i> Kargo Operasyon Merkezi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+                </div>
+
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <!-- SOL TARAF: GÖNDERİM DETAYI -->
+                        <div class="col-lg-6 border-end pe-4">
+                            <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">1. Gönderim Detayı</h6>
+                            <table class="table table-sm table-borderless">
+                                <tbody>
+                                    <tr><td class="text-muted" style="width: 140px;">Lokasyon:</td><td class="fw-bold" id="summaryLocation">-</td></tr>
+                                    <tr>
+                                        <td class="text-muted">Ürün Adı:</td>
+                                        <td class="fw-bold">
+                                            <span id="summaryProduct">-</span>
+                                            <a href="javascript:void(0);" id="arcBoxConfigIcon" class="text-warning ms-2 d-none"
+                                                   data-bs-toggle="popover" data-bs-html="true" title="<i class='mdi mdi-router-wireless'></i> Arc Box Config İçeriği">
+                                                <i class="mdi mdi-cog fs-5 spin-icon" title="Config Detayları"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    <tr><td class="text-muted">Kategori:</td><td class="fw-bold" id="summaryCategory">-</td></tr>
+                                    <tr><td class="text-muted">Adet:</td><td class="fw-bold" id="summaryQuantity">-</td></tr>
+                                    
+                                    <tr><td class="text-muted">Etiket:</td><td class="fw-bold" id="summaryLabel">-</td></tr>
+                                    <tr><td class="text-muted">Gönd. Nedeni:</td><td class="fw-bold text-primary" id="summarySendReason">-</td></tr>
+                                    <tr><td class="text-muted">Ürün Durumu:</td><td class="fw-bold text-info" id="summaryCondition">-</td></tr>
+                                    <tr><td class="text-muted align-top">Not:</td><td class="fw-bold small fst-italic text-wrap" id="summaryNote">-</td></tr>
+                                    <tr><td class="text-muted">Kullanıcı Adı:</td><td class="fw-bold" id="summaryUserName">-</td></tr>
+                                    
+                                    <tr><td colspan="2"><hr class="my-1"></td></tr>
+                                    <tr><td class="text-muted">Alıcı:</td><td class="fw-bold" id="summaryRecipient">-</td></tr>
+                                    <tr><td class="text-muted">Adres:</td><td class="fw-bold small text-wrap" id="summaryAddress">-</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- SAĞ TARAF: İŞLEM EKRANI -->
+                        <div class="col-lg-6 ps-4">
+                            <h6 class="text-uppercase text-muted mb-3 border-bottom pb-2">2. Kargo Durum Güncelle</h6>
+                            <div class="mb-3 bg-light p-2 rounded border">
+                                <label class="form-label fw-bold text-dark mb-1"><i class="mdi mdi-account-hard-hat"></i> Kargo Hazırlayan <span class="text-danger">*</span></label>
+                                <select name="CargoPreparerUserId" id="cargoPreparer" class="form-select border-secondary" asp-items="@(ViewBag.UserNames)">
+                                    <option value="">-- Personel Seçiniz --</option>
+                                </select>
+                            </div>
+                            <div class="d-flex flex-column mb-3">
+                                <label class="col-form-label fw-bold">Durumu <span class="text-danger">*</span></label>
+                                <!-- DOĞRU ENUM DEĞERLERİ YÜKLENDİ -->
+                                <select name="StatusId" id="cargoStatusSelect" class="form-select border-primary">
+                                    <option value="">-- Durum Seçiniz --</option>
+                                    <option value="@((int)EnumStatusType.OnayBekliyor)">Onay Bekliyor</option>
+                                    <option value="@((int)EnumStatusType.Paketlendi)">Paketlendi - Kargoya Hazır</option>
+                                    <option value="11">Ofisten Teslim Alınacak</option>
+                                    <option value="13">İade Geldiği Zaman Kargolanacak</option>
+                                    <option value="@((int)EnumStatusType.Kargoda)">Kargoya Verildi</option>
+                                    <option value="@((int)EnumStatusType.Tamamlandı)">Teslim Edildi</option>
+                                    <option value="@((int)EnumStatusType.İptal)">İptal Edildi</option>
+                                </select>
+                            </div>
+                            <div id="cargoExtraFields" class="row g-3 d-none bg-light p-2 rounded border mt-1">
+                                <div class="col-12">
+                                    <label class="form-label mb-1">Kargo Firması <span class="text-danger">*</span></label>
+                                    <select name="CargoNameId" id="cargoCompany" class="form-select w-100" asp-items="@(ViewBag.CargoNames)">
+                                        <option value="">-- Seçiniz --</option>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label mb-1">Kargo Takip Numarası <span class="text-danger">*</span></label>
+                                    <input type="text" name="TrackingNumber" id="trackingNumber" class="form-control w-100" placeholder="Örn: 1Z9999999999999999" />
+                                </div>
+                            </div>
+                            <div id="cancelReasonField" class="row mt-3 d-none">
+                                <div class="col-12">
+                                    <label class="form-label text-danger fw-bold mb-1">İptal Sebebi <span class="text-danger">*</span></label>
+                                    <textarea name="CancelDescription" id="cancelReason" class="form-control border-danger w-100" rows="2"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                    <!-- TIKLANABİLİRLİK GARANTİSİ EKLENDİ -->
+                    <button type="button" id="btnSaveCargo" class="btn btn-success px-5"><i class="mdi mdi-content-save-check"></i> Kaydet ve Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- ================= MODAL BİTTİ ================= -->
+
+@section Scripts {
+    <script>
+        // C# ENUM SABİTLERİ (Eksiksiz eşleşme sağlandı)
+        const ST_KARGODA     = @((int)EnumStatusType.Kargoda);
+        const ST_TAMAMLANDI  = @((int)EnumStatusType.Tamamlandı);
+        const ST_IPTALEDILDI = @((int)EnumStatusType.İptal);
+
+        // HAFIZA KUTULARI (Düzenleme esnasında eski verileri tutar)
+        let tempTracking = "";
+        let tempCompany = "";
+
+        // EKRAN ELEMANLARINI GİZLEME / GÖSTERME
+        function syncRequired() {
+            const st = parseInt($("#cargoStatusSelect").val() || 0, 10);
+            
+            // Kargoda ve Teslim Edildi statülerinde kargo kutuları açık kalmalı
+            const needCargo  = (st === ST_KARGODA || st === ST_TAMAMLANDI);
+            const needCancel = (st === ST_IPTALEDILDI);
+
+            $("#cargoExtraFields").toggleClass("d-none", !needCargo);
+            
+            if (needCargo) {
+                $("#trackingNumber").val(tempTracking);
+                $("#cargoCompany").val(tempCompany);
+            } else {
+                $("#trackingNumber").val("");
+                $("#cargoCompany").val("");
+            }
+
+            $("#cancelReasonField").toggleClass("d-none", !needCancel);
+            if (!needCancel) { $("#cancelReason").val(""); }
+        }
+
+        $("#cargoStatusSelect").on("change", syncRequired);
+
+        // BUTON TIKLAMA VE ZORUNLU KONTROLLER
+        $("#btnSaveCargo").on("click", function () {
+            const st = parseInt($("#cargoStatusSelect").val() || 0, 10);
+            // Güvenli trim: Undefined hatası fırlatmasını engeller
+            const tracking = $("#trackingNumber").val()?.trim() || "";
+            const company = $("#cargoCompany").val();
+            const cancelReason = $("#cancelReason").val()?.trim() || "";
+            const preparer = $("#cargoPreparer").val();
+
+            if (st === 0 || isNaN(st)) {
+                Swal.fire('Eksik Bilgi', 'Lütfen Kargo Durumunu seçiniz.', 'warning');
+                return;
+            }
+            
+            // "İptal Edildi" (Reddetme) HARİÇ bütün işlemlerde "Hazırlayan Personel" ZORUNLUDUR!
+            if (st !== ST_IPTALEDILDI && !preparer) {
+                Swal.fire('Eksik Bilgi', 'Lütfen Kargoyu Hazırlayan personeli seçiniz.', 'warning');
+                return;
+            }
+
+            if (st === ST_KARGODA && (!company || !tracking)) {
+                Swal.fire('Eksik Bilgi', 'Kargoya verildi durumunda Kargo Firması ve Takip Numarası zorunludur!', 'warning');
+                return;
+            }
+            if (st === ST_IPTALEDILDI && !cancelReason) {
+                Swal.fire('Eksik Bilgi', 'İptal durumunda İptal Sebebi zorunludur!', 'warning');
+                return;
+            }
+
+            // DOĞRUDAN FORM SUBMIT (Sessiz jQuery engellemelerini delip geçer)
+            $("#cargoOperasyonForm")[0].submit();
+        });
+
+        // MODAL VERİ DOLDURMA (Tıklanıldığında çalışır)
+        $(document).on("click", ".change-status-btn", function () {
+            const d = $(this).data();
+
+            // HAFIZAYA AL
+            tempTracking = d.tracking || "";
+            tempCompany = d.company || "";
+
+            // TEMEL BİLGİLERİ BAS
+            $("#cargoDetailId").val(d.cargodetailid || "");
+            $("#summaryLocation").text(d.location || "-");
+            $("#summaryCategory").text(d.category || "-");
+            $("#summaryQuantity").text(d.quantity || "-");
+            $("#summaryRecipient").text(d.receiver || "-");
+            $("#summaryAddress").text(d.address || "-");
+            
+            // YENİ BİLGİLERİ BAS
+            $("#summaryLabel").text(d.label || "-");
+            $("#summarySendReason").text(d.sendreason || "-");
+            $("#summaryCondition").text(d.condition || "-");
+            $("#summaryNote").text(d.note || "-");
+            $("#summaryUserName").text(d.username || "-");
+
+            let productName = d.product || "-";
+            $("#summaryProduct").text(productName);
+
+            // ARC BOX POP-UP ZEKASI
+            let pNameClean = productName.replace(/[\s\-]+/g, '').toLowerCase();
+            if (pNameClean.includes("arcbox")) {
+                let configHtml = `
+                    <ul class="list-unstyled small mb-0">
+                        <li><b>Seri No:</b> ${d.serial || 'Bekleniyor...'}</li>
+                        <li><b>ETH MAC:</b> ${d.ethmac || 'Yok'}</li>
+                        <li><b>WLAN MAC:</b> ${d.wlanmac || 'Yok'}</li>
+                        <li><b>Bağlantı:</b> ${d.connection || 'DHCP'}</li>
+                        <li class="mt-1"><b>URL:</b> <a href="${d.configurl || '#'}" target="_blank" class="text-truncate d-inline-block" style="max-width: 150px;">${d.configurl || 'Oluşturulmadı'}</a></li>
+                        <li class="text-muted mt-1">dhcpd.conf | wpa_supplicant.conf</li>
+                    </ul>
+                `;
+                $("#arcBoxConfigIcon").attr("data-bs-content", configHtml).removeClass("d-none");
+                
+                // Popover tetikleme
+                if(typeof $.fn.popover === 'function') {
+                    $('[data-bs-toggle="popover"]').popover('dispose');
+                    $('[data-bs-toggle="popover"]').popover({ html: true });
+                }
+            } else {
+                $("#arcBoxConfigIcon").addClass("d-none");
+            }
+
+            // FORMU TEMİZLE VE SENKRONİZE ET
+            $("#cargoPreparer").val(d.preparer || ""); 
+            $("#cargoStatusSelect").val("").trigger("change");
+            $("#trackingNumber").val(tempTracking);
+            $("#cargoCompany").val(tempCompany);
+            $("#cancelReason").val("");
+            syncRequired();
+        });
+    </script>
+}

@@ -1,0 +1,142 @@
+﻿@model StockTrack.Dto.Set.SetEditDto
+@using StockTrack.Entity.Enitities
+@{
+    ViewData["Title"] = "Seti Düzenle";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+
+    // Controller'dan gelen tüm ürünler listesi
+    var allProducts = ViewBag.Products as List<Product>;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-warning py-3">
+                <h5 class="mb-0 text-dark"><i class="mdi mdi-pencil me-2"></i> Seti Düzenle</h5>
+            </div>
+
+            <div class="card-body p-4">
+                <form action="~/Set/Edit" method="post">
+                    <input type="hidden" name="Id" value="@Model.Id" />
+
+                    <div class="row mb-4">
+                        <div class="col-md-9">
+                            <label class="form-label fw-bold">Set Adı</label>
+                            <input type="text" class="form-control" name="Name" value="@Model.Name" required />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold">Durum</label>
+                            <select class="form-select" name="IsActive">
+                                <option value="true" selected="@(Model.IsActive)">Aktif</option>
+                                <option value="false" selected="@(!Model.IsActive)">Pasif</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <hr class="text-muted opacity-25" />
+                    <h6 class="text-muted mb-3"><i class="mdi mdi-link-variant"></i> Set İçeriği (Ürünler)</h6>
+
+                    <div id="dynamic-product-list">
+                        @{
+                            int count = 1;
+                        }
+
+                        @if (Model.ProductIds != null && Model.ProductIds.Any())
+                        {
+                            foreach (var selectedProdId in Model.ProductIds)
+                            {
+                                <div class="row mb-3 product-row align-items-end">
+                                    <div class="col-md-10">
+                                        <label class="form-label text-secondary small">@(count). Ürün</label>
+                                        <select class="form-select bg-light border-0" name="ProductIds" required>
+                                            <option value="">-- Ürün Seçiniz --</option>
+                                            @foreach (var p in allProducts)
+                                            {
+                                                <option value="@p.Id" selected="@(p.Id == selectedProdId)">@p.Name</option>
+                                            }
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 text-end">
+                                        @if (count == 1)
+                                        {
+                                            <button type="button" class="btn btn-secondary disabled"><i class="mdi mdi-minus"></i></button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-danger btn-remove-product" title="Bu ürünü sil"><i class="mdi mdi-minus"></i></button>
+                                        }
+                                    </div>
+                                </div>
+                                count++;
+                            }
+                        }
+                        else
+                        {
+                            <div class="row mb-3 product-row align-items-end">
+                                <div class="col-md-10">
+                                    <label class="form-label text-secondary small">1. Ürün Seçin</label>
+                                    <select class="form-select bg-light border-0" name="ProductIds" required>
+                                        <option value="">-- Ürün Seçiniz --</option>
+                                        @foreach (var p in allProducts)
+                                        {
+                                            <option value="@p.Id">@p.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-md-2 text-end">
+                                    <button type="button" class="btn btn-secondary disabled"><i class="mdi mdi-minus"></i></button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mb-4">
+                        <button type="button" id="btnAddProduct" class="btn btn-outline-success border-dashed w-100 py-2">
+                            <i class="mdi mdi-plus fw-bold fs-5"></i> Yeni Ürün Ekle
+                        </button>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="~/Set/Index" class="btn btn-light border me-2 px-4">İptal</a>
+                        <button type="submit" class="btn btn-warning px-4 text-dark fw-bold"><i class="mdi mdi-content-save"></i> Değişiklikleri Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // "count" değerini Razor'dan alıp JS'e aktarıyoruz ki sayı doğru ilerlesin
+            let productCount = @(Model.ProductIds != null && Model.ProductIds.Any() ? Model.ProductIds.Count : 1);
+
+            $("#btnAddProduct").click(function () {
+                productCount++;
+                let newRow = $(".product-row").first().clone();
+                newRow.find("label").text(productCount + ". Ürün");
+
+                // Klonlanan satırdaki seçimi temizle (eski ürünü kopyalamasın)
+                newRow.find("select").val("");
+                newRow.find("option").removeAttr("selected");
+
+                let removeBtn = newRow.find("button");
+                removeBtn.removeClass("btn-secondary disabled").addClass("btn-danger btn-remove-product");
+                removeBtn.attr("title", "Bu ürünü sil");
+
+                $("#dynamic-product-list").append(newRow);
+            });
+
+            $(document).on("click", ".btn-remove-product", function () {
+                $(this).closest(".product-row").remove();
+
+                productCount = 0;
+                $(".product-row").each(function () {
+                    productCount++;
+                    $(this).find("label").text(productCount + ". Ürün");
+                });
+            });
+        });
+    </script>
+}
