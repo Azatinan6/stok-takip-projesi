@@ -140,14 +140,14 @@
                                     </div>
                                     <div class="col-6 mb-3">
                                         <label for="AddQty" class="form-label">Miktar</label>
-                                        <input type="number" id="AddQty" class="form-control" min="1" placeholder="Miktar">
+                                        <input type="number" id="AddQty" class="form-control" min="1" >
                                         <small class="text-muted">Stok: <span id="RemainingStock" class="fw-bold text-primary">-</span></small>
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="LabelInput" class="form-label">Etiket (Cihaz İsimleri vb.)</label>
-                                    <input type="text" id="LabelInput" class="form-control" placeholder="Örn: 1. Kat Monitörü">
+                                    <input type="text" id="LabelInput" class="form-control">
                                 </div>
 
                                 <div id="addWarn" class="alert alert-warning d-none shadow-sm">
@@ -288,15 +288,15 @@
                             <div class="row">
                                 <div class="col-md-6 mb-3">
                                     <label for="ReceiverFullName" class="form-label">Alıcı Adı Soyadı <span class="text-danger">*</span></label>
-                                    <input type="text" id="ReceiverFullName" name="ReceiverFullName" class="form-control" placeholder="Ad Soyad">
+                                    <input type="text" id="ReceiverFullName" name="ReceiverFullName" class="form-control" >
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="ReceiverPhone" class="form-label">Telefon Numarası <span class="text-danger">*</span></label>
-                                    <input type="tel" id="ReceiverPhone" name="Phone" class="form-control" placeholder="05xx xxx xx xx" pattern="^0[5-9][0-9]{9}$" maxlength="11">
+                                    <input type="tel" id="ReceiverPhone" name="Phone" class="form-control" pattern="^0[5-9][0-9]{9}$" maxlength="11">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="ReceiverDepartment" class="form-label">Birimi</label>
-                                    <input type="text" id="ReceiverDepartment" name="ReceiverDepartment" class="form-control" placeholder="Örn: IT Departmanı, Satın Alma...">
+                                    <input type="text" id="ReceiverDepartment" name="ReceiverDepartment" class="form-control">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="Note" class="form-label">Not</label>
@@ -304,7 +304,7 @@
                                 </div>
                                 <div class="col-12 mb-2" id="addressFieldContainer">
                                     <label for="CargoAddress" class="form-label">Açık Adres <span class="text-danger">*</span></label>
-                                    <textarea id="CargoAddress" name="CargoAddress" class="form-control" rows="2" placeholder="Kargo teslimat adresi..."></textarea>
+                                    <textarea id="CargoAddress" name="CargoAddress" class="form-control" rows="2"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -412,17 +412,17 @@
 
                     <div class="mb-3">
                         <label class="form-label">Config URL <span class="text-danger">*</span></label>
-                        <input type="text" id="ConfigUrl" class="form-control" placeholder="https://...">
+                        <input type="text" id="ConfigUrl" class="form-control">
                     </div>
 
                     <div class="mb-3" id="divDhcpd">
                         <label class="form-label">dhcpd.conf <span class="text-danger" id="reqDhcpd" style="display:none;">*</span></label>
-                        <textarea id="ConfigDhcpd" class="form-control" rows="2" placeholder="Statik IP ayarları..."></textarea>
+                        <textarea id="ConfigDhcpd" class="form-control" rows="2"></textarea>
                     </div>
 
                     <div class="mb-3" id="divWpa">
                         <label class="form-label">wpa_supplicant.conf <span class="text-danger" id="reqWpa" style="display:none;">*</span></label>
-                        <textarea id="ConfigWpa" class="form-control" rows="2" placeholder="Wifi SSID / Şifre..."></textarea>
+                        <textarea id="ConfigWpa" class="form-control" rows="2"></textarea>
                     </div>
                 </div>
                 <!-- İade AYARLARI (Başta Gizli) -->
@@ -442,7 +442,6 @@
                         <input type="text"
                                id="ReturnIpAddress"
                                class="form-control"
-                               placeholder="Örn: 192.168.1.50">
                     </div>
 
                     <!-- Ethernet MAC -->
@@ -454,7 +453,6 @@
                         <input type="text"
                                id="ReturnEthMac"
                                class="form-control"
-                               placeholder="Örn: 00:1A:2B:3C:4D:5E">
                     </div>
 
                     <!-- Wifi MAC -->
@@ -466,7 +464,6 @@
                         <input type="text"
                                id="ReturnWlanMac"
                                class="form-control"
-                               placeholder="Örn: 00:1A:2B:3C:4D:5F">
                     </div>
                 </div>
                 

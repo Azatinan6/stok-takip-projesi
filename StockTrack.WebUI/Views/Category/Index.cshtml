@@ -54,8 +54,8 @@
             <th>#</th>
             <th>Ad</th>
             @* <th>Oluşturulma Tarihi</th> *@
-            <th>Aktif mi?</th>                
-            <th></th>                
+            <th>Aktif mi?</th>
+            <th></th>
         </tr>
     </tfoot>
     <tbody>
@@ -75,34 +75,30 @@
                 @if (User.IsInRole(RoleConsts.Admin))
                 {
                     <td>
-                        <a class="text-muted dropdown-toggle font-size-18 px-2" href="#" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <a class="text-muted dropdown-toggle font-size-18 px-2" href="#" role="button" data-bs-toggle="dropdown"
+                               aria-haspopup="true" aria-expanded="false">
                             <i class="bx bx-dots-vertical-rounded"></i>
                         </a>
 
                         <div class="dropdown-menu dropdown-menu-end">
                             <!-- Düzenle -->
-                            <a class="dropdown-item edit-category-btn"
-                               data-bs-toggle="modal"
-                               data-bs-target="#editCategoryModal"
-                               data-category-id="@category.Id"
-                               data-category-name="@category.Name">
+                            <a class="dropdown-item edit-category-btn" data-bs-toggle="modal"
+                                   data-bs-target="#editCategoryModal" data-category-id="@category.Id"
+                                   data-category-name="@category.Name">
                                 <i class="mdi mdi-pencil"></i> Düzenle
                             </a>
 
                             <!-- Aktif/Pasif Toggle -->
-                            <a href="javascript:void(0);"
-                               class="dropdown-item toggle-category-btn"
-                               data-url="@Url.Action(isDeactivate ? "Deactivate" : "Activate", "Category", new { Id = category.Id })"
-                               data-category-name="@category.Name"
-                               data-action="@(isDeactivate ? "deactivate" : "activate")">
+                            <a href="javascript:void(0);" class="dropdown-item toggle-category-btn"
+                                   data-url="@Url.Action(isDeactivate ? "Deactivate" : "Activate", "Category", new { Id = category.Id })"
+                                   data-category-name="@category.Name" data-action="@(isDeactivate ? "deactivate" : "activate")">
                                 <i class="mdi mdi-check-circle-outline"></i> @(isDeactivate ? "Pasif Yap" : "Aktif Yap")
                             </a>
 
                             <!-- Sil -->
-                            <a href="javascript:void(0);"
-                               class="dropdown-item delete-category-btn"
-                               data-url="@Url.Action("DeleteCategory", "Category", new { id = category.Id })"
-                               data-category-name="@category.Name">
+                            <a href="javascript:void(0);" class="dropdown-item delete-category-btn"
+                                   data-url="@Url.Action("DeleteCategory", "Category", new { id = category.Id })"
+                                   data-category-name="@category.Name">
                                 <i class="mdi mdi-delete"></i> Sil
                             </a>
                         </div>
@@ -114,9 +110,10 @@
 </table>
 
 @if (User.IsInRole(RoleConsts.Admin))
-{  
- <!-- Kategori Ekleme Modal -->
-    <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
+{
+    <!-- Kategori Ekleme Modal -->
+    <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel"
+         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form asp-action="Create" asp-controller="Category" id="createCategoryForm">
@@ -128,7 +125,7 @@
 
                         <div class="mb-3">
                             <label class="form-label">Kategori Adı(Marka)</label>
-                            <input type="text" id="categoryNameInput" class="form-control" placeholder="Kategori Adı" />
+                            <input type="text" id="categoryNameInput" class="form-control" />
                             <span id="nameError" class="text-danger small"></span>
                         </div>
 
@@ -152,7 +149,8 @@
     </div>
 
     @* Edit Category Modal *@
-    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel" aria-hidden="true">
+    <div class="modal fade" id="editCategoryModal" tabindex="-1" aria-labelledby="editCategoryModalLabel"
+         aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <form id="editCategoryForm" asp-action="Edit" asp-controller="Category" method="post">
@@ -421,24 +419,24 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(deletedIds)
                     })
-                    .then(r => r.json())
-                    .then(res => {
-                        if (res.status === 'ok') {
-                            Swal.fire({
-                                title: 'Başarılı!',
-                                text: res.message,
-                                icon: 'success',
-                                confirmButtonText: 'Tamam'
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire('Hata!', res.message || 'İşlem gerçekleştirilemedi.', 'error');
-                        }
-                    })
-                    .catch(() => {
-                        Swal.fire('Hata!', 'Sunucuya bağlanılamadı.', 'error');
-                    });
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res.status === 'ok') {
+                                Swal.fire({
+                                    title: 'Başarılı!',
+                                    text: res.message,
+                                    icon: 'success',
+                                    confirmButtonText: 'Tamam'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Hata!', res.message || 'İşlem gerçekleştirilemedi.', 'error');
+                            }
+                        })
+                        .catch(() => {
+                            Swal.fire('Hata!', 'Sunucuya bağlanılamadı.', 'error');
+                        });
                 }
             });
         });
