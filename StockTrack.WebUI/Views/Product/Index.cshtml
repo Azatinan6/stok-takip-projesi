@@ -9,9 +9,9 @@
     <h4 class="mb-3">Ürün Yönetimi</h4>
     <!-- Yeni Ürün Ekle Butonu -->
     <div>
-        <a asp-controller="Product" asp-action="Deleted" class="btn btn-outline-danger me-2 shadow-sm">
+        @* <a asp-controller="Product" asp-action="Deleted" class="btn btn-outline-danger me-2 shadow-sm">
             <i class="mdi mdi-delete-restore"></i> Silinen Ürünler
-        </a>
+        </a> *@
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createProductModal">
             <i class="mdi mdi-plus-circle"></i> Yeni Ürün Ekle
         </button>
@@ -107,11 +107,13 @@
 
                     </td>
                     <td>@p.CreatedDate.ToString("dd MMMM yyyy")</td>
+                    @if (User.IsInRole(RoleConsts.Admin)){
                     <td>
                         <span class="badge @(isActive ? "bg-success" : "bg-danger")">
                             @(isActive ? "Evet" : "Hayır")
                         </span>
                     </td>
+                    }
 
                     @if (User.IsInRole(RoleConsts.Admin))
                     {
@@ -147,6 +149,7 @@
                                             <i class="mdi mdi-pencil"></i> Düzenle
                                         </a>
                                     </li>
+                                    
                                     <li>
                                         <a class="dropdown-item toggle-product-btn"
                                            href="#"
@@ -156,15 +159,16 @@
                                             <i class="mdi mdi-check-circle-outline"></i> @(isActive ? "Pasif Yap" : "Aktif Yap")
                                         </a>
                                     </li>
-
-                                    <li>
+                                    @if (User.IsInRole(RoleConsts.Admin)){
+                                    @* <li>
                                         <a class="dropdown-item delete-product-btn"
                                            href="#"
                                            data-url="@Url.Action("DeleteProduct", "Product", new { id = p.Id })"
                                            data-product-name="@p.Name">
                                             <i class="mdi mdi-delete"></i> Sil
                                         </a>
-                                    </li>
+                                    </li> *@
+                                    }
                                 </ul>
                             </div>
                         </td>
@@ -538,7 +542,7 @@
         });
 
 
-        // Eğer silinmiş ürün varsa uyarı göster
+        @* // Eğer silinmiş ürün varsa uyarı göster
         @if (TempData["HasDeletedProducts"] != null && (bool)TempData["HasDeletedProducts"])
         {
             var deletedName = TempData["DeletedProductName"]?.ToString() ?? "";
@@ -571,7 +575,7 @@
                             }
                         });
             </text>
-        }
+        } *@
 
 
         //ürün depoda kaç adet var modalı

@@ -51,6 +51,18 @@
                         <label class="fw-bold">Adres</label>
                         <textarea asp-for="Address" class="form-control" rows="2"></textarea>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Kurulum Yapan Personel(ler)</label>
+                        <select class="form-control select2-multiple" asp-for="Users" asp-items="ViewBag.UserNames"
+                                multiple="multiple">
+                            <option value="" asp-validation-for="Users"></option>
+                        </select>
+                        @* <select name="CargoPreparerUserId" id="cargoPreparer"
+                                    class="form-select border-secondary" asp-items="@(ViewBag.UserNames)">
+                                <option value="">-- Personel Seçiniz --</option>
+                        </select> *@
+                        <span asp-validation-for="Users" class="text-danger"></span>
+                    </div>
                 </div>
 
                 <div class="col-md-6 bg-light p-4 rounded">
@@ -122,3 +134,18 @@
         </form>
     </div>
 </div>
+
+@section Scripts {
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+        // Arayüzdeki çoklu seçim kutusunu modern Select2 yapısına çeviriyoruz
+            $('.select2-multiple').select2({
+            allowClear: true,
+            width: '100%' // Kutunun form içine tam oturması için
+            });
+        });
+    </script>
+}

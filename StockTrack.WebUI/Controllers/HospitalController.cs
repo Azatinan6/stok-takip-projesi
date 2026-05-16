@@ -1,35 +1,71 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using StockTrack.Business.Abstract;
 using StockTrack.Dto.Hospital;
 using StockTrack.Entity.Enitities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.EntityFrameworkCore;
+using StockTrack.DataAccess.Context;
+
 
 namespace StockTrack.WebUI.Controllers
 {
     public class HospitalController : Controller
     {
         private readonly IHospitalService _hospitalService;
+        private readonly AppDbContext _appDbContext;
+        private readonly UserManager<AppUser> _userManager;
 
-        public HospitalController(IHospitalService hospitalService)
+        public HospitalController(IHospitalService hospitalService, AppDbContext appDbContext, UserManager<AppUser> userManager)
         {
             _hospitalService = hospitalService;
+            _appDbContext = appDbContext;
+            _userManager = userManager;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var values = await _hospitalService.TGetFilteredListAsync(h => !h.IsDeleted); // Silinmemiş hastaneleri getir
+            // 1. ZIRH: Kullanıcı Admin mi?
+            bool isAdmin = User.IsInRole("Admin");
+
+            // 2. FİLTRE: Adminse silinmemiş herkesi, Admin DEĞİLSE silinmemiş VE SADECE AKTİF olanları getir!
+            var values = await _hospitalService.TGetFilteredListAsync(h => !h.IsDeleted && (isAdmin || h.IsActive));
+
             return View(values);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> ToggleStatus(int id)
+        {
+            var hospital = await _hospitalService.TGetByIdAsync(id);
+            if (hospital == null)
+            {
+                return Json(new { success = false, message = "Hastane bulunamadı." });
+            }
+
+            // Durumu tersine çevir (Aktifse Pasif, Pasifse Aktif yap)
+            hospital.IsActive = !hospital.IsActive;
+            await _hospitalService.TUpdateAsync(hospital);
+
+            return Json(new { success = true, isActive = hospital.IsActive });
         }
 
         [HttpGet]
         public IActionResult Add()
         {
+            ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> Add(HospitalAddDto model)
         {
+
+            ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
+
             if (ModelState.IsValid)
             {
                 Hospital hospital = new Hospital()
@@ -55,7 +91,8 @@ namespace StockTrack.WebUI.Controllers
                     SnPassword = model.SnPassword,
 
                     IsActive = true, // Varsayılan aktif
-                    CreatedDate = DateTime.Now
+                    CreatedDate = DateTime.Now,
+                    Users = model.Users != null ? string.Join(", ", model.Users) : null
                 };
 
                 await _hospitalService.TAddAsync(hospital);
@@ -105,60 +142,62 @@ namespace StockTrack.WebUI.Controllers
             }
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var hospital = await _hospitalService.TGetByIdAsync(id);
 
-            hospital.IsDeleted = true;
-            hospital.DeletedDate = DateTime.Now;
-            hospital.IsActive = false;
+        // Delete ve Deleted Kaldirildi
+        // [HttpPost]
+        // public async Task<IActionResult> Delete(int id)
+        // {
+        //     var hospital = await _hospitalService.TGetByIdAsync(id);
 
-            await _hospitalService.TUpdateAsync(hospital);
+        //     hospital.IsDeleted = true;
+        //     hospital.DeletedDate = DateTime.Now;
+        //     hospital.IsActive = false;
 
-            return RedirectToAction("Index");
-        }
+        //     await _hospitalService.TUpdateAsync(hospital);
 
-        [HttpGet]
-        public async Task<IActionResult> Deleted()
-        {
-            var deletedHospitals = await _hospitalService.TGetFilteredListAsync(h => h.IsDeleted);
+        //     return RedirectToAction("Index");
+        // }
 
-            var result = deletedHospitals.Select(h => new HospitalDeletedDto
-            {
-                Id = h.Id,
-                Name = h.Name,
-                Branch = h.Branch,
-                HbysName = h.HbysName,
-                HbysVersion = h.HbysVersion,
-                DeletedDate = h.DeletedDate,
-                IsActive = h.IsActive
-            }).ToList();
+        // [HttpGet]
+        // public async Task<IActionResult> Deleted()
+        // {
+        //     var deletedHospitals = await _hospitalService.TGetFilteredListAsync(h => h.IsDeleted);
 
-            return View("Deleted", result);
-        }
+        //     var result = deletedHospitals.Select(h => new HospitalDeletedDto
+        //     {
+        //         Id = h.Id,
+        //         Name = h.Name,
+        //         Branch = h.Branch,
+        //         HbysName = h.HbysName,
+        //         HbysVersion = h.HbysVersion,
+        //         DeletedDate = h.DeletedDate,
+        //         IsActive = h.IsActive
+        //     }).ToList();
 
-        [HttpPost]
-        public async Task<IActionResult> Restore(int id)
-        {
-            var hospital = await _hospitalService.TGetByIdAsync(id);
+        //     return View("Deleted", result);
+        // }
 
-            if (hospital != null)
-            {
-                hospital.IsDeleted = false; // Silinme durumunu kaldır
-                hospital.IsActive = true;    // Geri yükleyince otomatik aktif yap
-                hospital.DeletedDate = null; // Silinme tarihini temizle
+        // [HttpPost]
+        // public async Task<IActionResult> Restore(int id)
+        // {
+        //     var hospital = await _hospitalService.TGetByIdAsync(id);
 
-                await _hospitalService.TUpdateAsync(hospital);
-                TempData["SuccessMessage"] = "Hastane başarıyla geri yüklendi.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Hastane bulunamadı.";
-            }
+        //     if (hospital != null)
+        //     {
+        //         hospital.IsDeleted = false; // Silinme durumunu kaldır
+        //         hospital.IsActive = true;    // Geri yükleyince otomatik aktif yap
+        //         hospital.DeletedDate = null; // Silinme tarihini temizle
 
-            return RedirectToAction("Deleted"); // Silinenler listesine geri dön
-        }
+        //         await _hospitalService.TUpdateAsync(hospital);
+        //         TempData["SuccessMessage"] = "Hastane başarıyla geri yüklendi.";
+        //     }
+        //     else
+        //     {
+        //         TempData["ErrorMessage"] = "Hastane bulunamadı.";
+        //     }
+
+        //     return RedirectToAction("Deleted"); // Silinenler listesine geri dön
+        // }
 
         [HttpGet]
         public async Task<IActionResult> GetHospitalDetail(int id)

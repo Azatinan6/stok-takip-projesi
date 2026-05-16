@@ -9,14 +9,14 @@ using StockTrack.WebUI.Consts;
 
 namespace StockTrack.WebUI.Controllers
 {
-    [Authorize]
+
+    [Authorize(Roles = "Admin")] 
     public class MainRepoLocationController : Controller
     {
         private readonly IMainRepoLocationService _mainRepoLocationService;
         private readonly UserManager<AppUser> _userManager;
         private readonly IToastNotification _toastNotification;
 
-        // GEREKSİZ SERVİSLER (Product, Category, DbContext) TEMİZLENDİ!
         public MainRepoLocationController(IMainRepoLocationService mainRepoLocationService, UserManager<AppUser> userManager, IToastNotification toastNotification)
         {
             _mainRepoLocationService = mainRepoLocationService;
@@ -92,28 +92,28 @@ namespace StockTrack.WebUI.Controllers
             return Ok(new { success = true, message = $"{location.Name} aktif hale getirildi." });
         }
 
-        [HttpPost]
-        [Authorize(Roles = RoleConsts.Admin)]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var location = await _mainRepoLocationService.TGetByIdAsync(id);
-            if (location == null)
-                return NotFound(new { success = false, message = "Lokasyon bulunamadı." });
+        // [HttpPost]
+        // [Authorize(Roles = RoleConsts.Admin)]
+        // public async Task<IActionResult> Delete(int id)
+        // {
+        //     var location = await _mainRepoLocationService.TGetByIdAsync(id);
+        //     if (location == null)
+        //         return NotFound(new { success = false, message = "Lokasyon bulunamadı." });
 
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-                return Challenge();
+        //     var currentUser = await _userManager.GetUserAsync(User);
+        //     if (currentUser == null)
+        //         return Challenge();
 
-            location.IsDeleted = true;
-            location.DeletedDate = DateTime.Now;
-            location.DeletedBy = currentUser.NameSurname;
-            await _mainRepoLocationService.TUpdateAsync(location);
-            return Ok(new
-            {
-                success = true,
-                message = $"{location.Name} başarıyla silindi."
-            });
-        }
+        //     location.IsDeleted = true;
+        //     location.DeletedDate = DateTime.Now;
+        //     location.DeletedBy = currentUser.NameSurname;
+        //     await _mainRepoLocationService.TUpdateAsync(location);
+        //     return Ok(new
+        //     {
+        //         success = true,
+        //         message = $"{location.Name} başarıyla silindi."
+        //     });
+        // }
 
         [HttpPost]
         public async Task<IActionResult> Edit(UpdateMainRepoLocationDto updateMainRepoLocationDto)
@@ -139,44 +139,44 @@ namespace StockTrack.WebUI.Controllers
             return RedirectToAction("Index");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Deleted()
-        {
-            var getLocationDeleted = (await _mainRepoLocationService.TGetFilteredListAsync(x => x.IsDeleted == true)).Select(x => new DeletedMainRepoLocationListDto
-            {
-                Adress = x.Adress,
-                CreatedDate = x.CreatedDate,
-                DeletedBy = x.DeletedBy,
-                DeletedDate = x.DeletedDate,
-                Id = x.Id,
-                IsActive = x.IsActive,
-                Name = x.Name
-            }).ToList();
+        // [HttpGet]
+        // public async Task<IActionResult> Deleted()
+        // {
+        //     var getLocationDeleted = (await _mainRepoLocationService.TGetFilteredListAsync(x => x.IsDeleted == true)).Select(x => new DeletedMainRepoLocationListDto
+        //     {
+        //         Adress = x.Adress,
+        //         CreatedDate = x.CreatedDate,
+        //         DeletedBy = x.DeletedBy,
+        //         DeletedDate = x.DeletedDate,
+        //         Id = x.Id,
+        //         IsActive = x.IsActive,
+        //         Name = x.Name
+        //     }).ToList();
 
-            return View(getLocationDeleted);
-        }
+        //     return View(getLocationDeleted);
+        // }
 
-        [HttpPost]
-        public async Task<IActionResult> Restore(int id)
-        {
-            var depo = await _mainRepoLocationService.TGetByIdAsync(id);
+        // [HttpPost]
+        // public async Task<IActionResult> Restore(int id)
+        // {
+        //     var depo = await _mainRepoLocationService.TGetByIdAsync(id);
 
-            if (depo != null)
-            {
-                depo.IsDeleted = false;
-                depo.IsActive = true;
-                depo.DeletedDate = null;
+        //     if (depo != null)
+        //     {
+        //         depo.IsDeleted = false;
+        //         depo.IsActive = true;
+        //         depo.DeletedDate = null;
 
-                await _mainRepoLocationService.TUpdateAsync(depo);
+        //         await _mainRepoLocationService.TUpdateAsync(depo);
 
-                TempData["SuccessMessage"] = "Depo başarıyla geri yüklendi.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Depo bulunamadı.";
-            }
+        //         TempData["SuccessMessage"] = "Depo başarıyla geri yüklendi.";
+        //     }
+        //     else
+        //     {
+        //         TempData["ErrorMessage"] = "Depo bulunamadı.";
+        //     }
 
-            return RedirectToAction("Deleted");
-        }
+        //     return RedirectToAction("Deleted");
+        // }
     }
 }

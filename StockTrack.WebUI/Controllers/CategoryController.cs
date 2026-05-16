@@ -9,7 +9,8 @@ using StockTrack.WebUI.Consts;
 
 namespace StockTrack.WebUI.Controllers
 {
-    [Authorize]
+
+    [Authorize(Roles = RoleConsts.Admin)]
     public class CategoryController : Controller
     {
         private readonly ICategoryService _categoryService;
@@ -30,7 +31,7 @@ namespace StockTrack.WebUI.Controllers
             var resultCategoryList = categories.OrderByDescending(x => x.CreatedDate).ThenByDescending(x => x.IsActive).Select(x => new ResultCategoryDto
             {
                 Id = x.Id,
-                Name = x.Name,                
+                Name = x.Name,
                 CreatedDate = x.CreatedDate,
                 IsActive = x.IsActive
             }).ToList();
@@ -114,7 +115,7 @@ namespace StockTrack.WebUI.Controllers
                 var now = DateTime.Now;
                 var toInsert = newDtos.Select(dto => new Category
                 {
-                    Name = dto.Name.Trim(),                   
+                    Name = dto.Name.Trim(),
                     CreatedBy = currentUser.NameSurname,
                     CreatedDate = now,
                     ModifiedDate = now,
@@ -138,7 +139,7 @@ namespace StockTrack.WebUI.Controllers
         [HttpPost]
         [Authorize(Roles = RoleConsts.Admin)]
         //silinmiş kategorileri geri yükleme
-        public async Task<IActionResult> RestoreDeletedCategories([FromBody]List<int> categoryIds)
+        public async Task<IActionResult> RestoreDeletedCategories([FromBody] List<int> categoryIds)
         {
             if (categoryIds == null || !categoryIds.Any())
                 return BadRequest("Geri yüklenecek kategori bulunamadı.");
@@ -201,7 +202,7 @@ namespace StockTrack.WebUI.Controllers
                 return RedirectToAction("Index");
             }
             var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)                
+            if (currentUser == null)
                 return Challenge();// Oturum açmamışsa giriş sayfasına yönlendir
 
             //  boş olma durumunu kontrolü
@@ -221,7 +222,7 @@ namespace StockTrack.WebUI.Controllers
                 TempData["ErrorMessage"] = "Kategori bulunamadı";
                 return RedirectToAction("Index");
             }
-           
+
             category.Name = updateCategoryDto.Name;
             category.ModifiedBy = currentUser.NameSurname;
             category.ModifiedDate = DateTime.Now;
@@ -230,67 +231,67 @@ namespace StockTrack.WebUI.Controllers
             return RedirectToAction("Index");
         }
 
-        [HttpPost]
-        [Authorize(Roles = RoleConsts.Admin)]
-        public async Task<IActionResult> DeleteCategory(int id)
-        {
-            var category = await _categoryService.TGetByIdAsync(id);
-            if (category == null)
-                return NotFound(new { success = false, message = "Kategori bulunamadı." });
+        // [HttpPost]
+        // [Authorize(Roles = RoleConsts.Admin)]
+        // public async Task<IActionResult> DeleteCategory(int id)
+        // {
+        //     var category = await _categoryService.TGetByIdAsync(id);
+        //     if (category == null)
+        //         return NotFound(new { success = false, message = "Kategori bulunamadı." });
 
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-                return Challenge();
+        //     var currentUser = await _userManager.GetUserAsync(User);
+        //     if (currentUser == null)
+        //         return Challenge();
 
-            category.IsDeleted = true;
-            category.IsActive = false;
-            category.DeletedDate = DateTime.Now;
-            category.DeletedBy = currentUser.NameSurname;
-            await _categoryService.TUpdateAsync(category);
-            return Ok(new
-            {
-                success = true,
-                message = $"{category.Name} başarıyla silindi."
-            });
-        }
+        //     category.IsDeleted = true;
+        //     category.IsActive = false;
+        //     category.DeletedDate = DateTime.Now;
+        //     category.DeletedBy = currentUser.NameSurname;
+        //     await _categoryService.TUpdateAsync(category);
+        //     return Ok(new
+        //     {
+        //         success = true,
+        //         message = $"{category.Name} başarıyla silindi."
+        //     });
+        // }
 
 
-        [HttpGet]
-        //Silinen Kategoriler
-        public async Task<IActionResult> Deleted()
-        {
-            var getCategories = await _categoryService.TGetFilteredListAsync(x => x.IsDeleted == true);
-            var result = getCategories.Select(x => new DeletedCategoryDto()
-            {
-                DeletedBy = x.DeletedBy,
-                DeletedDate = x.DeletedDate,
-                Id = x.Id,
-                Name = x.Name,
-                IsActive = x.IsActive
-            });
-            return View(result);
-        }
+        // [HttpGet]
+        // //Silinen Kategoriler
+        // public async Task<IActionResult> Deleted()
+        // {
+        //     var getCategories = await _categoryService.TGetFilteredListAsync(x => x.IsDeleted == true);
+        //     var result = getCategories.Select(x => new DeletedCategoryDto()
+        //     {
+        //         DeletedBy = x.DeletedBy,
+        //         DeletedDate = x.DeletedDate,
+        //         Id = x.Id,
+        //         Name = x.Name,
+        //         IsActive = x.IsActive
+        //     });
+        //     return View(result);
+        // }
 
-        [HttpPost]
-        public async Task<IActionResult> Restore(int id)
-        {
-            var category = await _categoryService.TGetByIdAsync(id);
-            if(category != null)
-            {
-                category.IsDeleted = false;
-                category.IsActive = true;
-                category.DeletedDate = null;
+        // [HttpPost]
+        // public async Task<IActionResult> Restore(int id)
+        // {
+        //     var category = await _categoryService.TGetByIdAsync(id);
+        //     if (category != null)
+        //     {
+        //         category.IsDeleted = false;
+        //         category.IsActive = true;
+        //         category.DeletedDate = null;
 
-                await _categoryService.TUpdateAsync(category);
+        //         await _categoryService.TUpdateAsync(category);
 
-                TempData["SuccessMessage"] = "Kategori başarıyla geri yüklendi.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Kategori bulunamadı.";
-            }
-            return RedirectToAction("Deleted");
-        }
+        //         TempData["SuccessMessage"] = "Kategori başarıyla geri yüklendi.";
+        //     }
+        //     else
+        //     {
+        //         TempData["ErrorMessage"] = "Kategori bulunamadı.";
+        //     }
+        //     return RedirectToAction("Deleted");
+        // }
 
     }
 

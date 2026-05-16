@@ -9,9 +9,9 @@
     <h4 class="mb-3">Kategori Yönetimi</h4>
     <!-- Yeni Ürün Ekle Butonu -->
     <div>
-        <a href="~/Category/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
+        @* <a href="~/Category/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
             <i class="mdi mdi-delete-restore"></i> Silinen Katagoriler
-        </a>
+        </a> *@
         <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
             <i class="mdi mdi-plus"></i> Yeni Kategori Ekle
         </button>
@@ -76,31 +76,31 @@
                 {
                     <td>
                         <a class="text-muted dropdown-toggle font-size-18 px-2" href="#" role="button" data-bs-toggle="dropdown"
-                               aria-haspopup="true" aria-expanded="false">
+                           aria-haspopup="true" aria-expanded="false">
                             <i class="bx bx-dots-vertical-rounded"></i>
                         </a>
 
                         <div class="dropdown-menu dropdown-menu-end">
                             <!-- Düzenle -->
                             <a class="dropdown-item edit-category-btn" data-bs-toggle="modal"
-                                   data-bs-target="#editCategoryModal" data-category-id="@category.Id"
-                                   data-category-name="@category.Name">
+                               data-bs-target="#editCategoryModal" data-category-id="@category.Id"
+                               data-category-name="@category.Name">
                                 <i class="mdi mdi-pencil"></i> Düzenle
                             </a>
 
                             <!-- Aktif/Pasif Toggle -->
                             <a href="javascript:void(0);" class="dropdown-item toggle-category-btn"
-                                   data-url="@Url.Action(isDeactivate ? "Deactivate" : "Activate", "Category", new { Id = category.Id })"
-                                   data-category-name="@category.Name" data-action="@(isDeactivate ? "deactivate" : "activate")">
+                               data-url="@Url.Action(isDeactivate ? "Deactivate" : "Activate", "Category", new { Id = category.Id })"
+                               data-category-name="@category.Name" data-action="@(isDeactivate ? "deactivate" : "activate")">
                                 <i class="mdi mdi-check-circle-outline"></i> @(isDeactivate ? "Pasif Yap" : "Aktif Yap")
                             </a>
 
                             <!-- Sil -->
-                            <a href="javascript:void(0);" class="dropdown-item delete-category-btn"
+                            @* <a href="javascript:void(0);" class="dropdown-item delete-category-btn"
                                    data-url="@Url.Action("DeleteCategory", "Category", new { id = category.Id })"
                                    data-category-name="@category.Name">
                                 <i class="mdi mdi-delete"></i> Sil
-                            </a>
+                            </a> *@
                         </div>
                     </td>
                 }

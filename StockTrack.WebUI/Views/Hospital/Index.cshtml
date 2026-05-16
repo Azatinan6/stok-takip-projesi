@@ -25,9 +25,9 @@
 <div class="d-flex justify-content-between alig-item-center ">
     <h4 class="mb-3">Hastane (Kurum) Tanımları</h4>
     <div>
-        <a href="~/Hospital/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
+        @* <a href="~/Hospital/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
             <i class="mdi mdi-delete-restore me-1"></i> Silinenler
-        </a>
+        </a> *@
         <a href="~/Hospital/Add" class="btn btn-primary shadow-sm">
             <i class="mdi mdi-plus"></i> Yeni Hastane Ekle
         </a>
@@ -36,85 +36,105 @@
 
 <hr>
 
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table id="DataTables" class="table table-hover align-middle mb-0">
-                <thead class="bg-light">
-                    <tr class="text-secondary small fw-bold text-uppercase">
-                        <th class="ps-4">#ID</th>
-                        <th>Kurum & Şube</th>
-                        <th>HBYS & Versiyon</th>
-                        <th>Kurulum Tarihi</th>
-                        <th class="text-center">Durum</th>
-                        <th class="text-end pe-4">İşlemler</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        <tr>
-                            <td class="ps-4 text-muted small">#@item.Id</td>
-                            <td>
-                                <div class="fw-bold text-dark">@item.Name</div>
-                                <div class="text-muted small">@(item.Branch ?? "Merkez Şube")</div>
-                            </td>
-                            <td>
-                                <div class="text-info fw-semibold">@(item.HbysName ?? "-")</div>
-                                <div class="text-muted x-small">V: @(item.HbysVersion ?? "1.0")</div>
-                            </td>
-                            <td class="small">
-                                <i class="mdi mdi-calendar-check text-muted me-1"></i>
-                                @(item.InstallationDate?.ToString("dd.MM.yyyy") ?? "Belirtilmedi")
-                            </td>
-                            <td class="text-center">
-                                @if (item.IsActive)
-                                {
-                                    <span class="badge bg-success-subtle text-success border border-success px-2 py-1 rounded-pill">Aktif</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger-subtle text-danger border border-danger px-2 py-1 rounded-pill">Pasif</span>
-                                }
-                            </td>
-                            <td class="text-end pe-4">
-                                <div class="dropdown">
-                                    <button class="btn btn-light btn-sm dropdown-toggle border-0" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="mdi mdi-dots-vertical"></i>
-                                    </button>
-                                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+<div class="card-body p-0">
+    <div class="table-responsive">
+        <table id="DataTables" class="table table-hover align-middle mb-0">
+            <thead class="bg-light">
+                <tr class="text-secondary small fw-bold text-uppercase">
+                    <th class="ps-4">#ID</th>
+                    <th>Kurum & Şube</th>
+                    <th>HBYS & Versiyon</th>
+                    <th>Kurulum Tarihi</th>
+                    <th class="text-center">Durum</th>
+                    <th class="text-end pe-4">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td class="ps-4 text-muted small">#@item.Id</td>
+                        <td>
+                            <div class="fw-bold text-dark">@item.Name</div>
+                            <div class="text-muted small">@(item.Branch ?? "Merkez Şube")</div>
+                        </td>
+                        <td>
+                            <div class="text-info fw-semibold">@(item.HbysName ?? "-")</div>
+                            <div class="text-muted x-small">V: @(item.HbysVersion ?? "1.0")</div>
+                        </td>
+                        <td class="small">
+                            <i class="mdi mdi-calendar-check text-muted me-1"></i>
+                            @(item.InstallationDate?.ToString("dd.MM.yyyy") ?? "Belirtilmedi")
+                        </td>
+                        <td class="text-center">
+                            @if (item.IsActive)
+                            {
+                                <span
+                                class="badge bg-success-subtle text-success border border-success px-2 py-1 rounded-pill">Aktif</span>
+                            }
+                            else
+                            {
+                                <span
+                                class="badge bg-danger-subtle text-danger border border-danger px-2 py-1 rounded-pill">Pasif</span>
+                            }
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="dropdown">
+                                <button class="btn btn-light btn-sm dropdown-toggle border-0" type="button"
+                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="mdi mdi-dots-vertical"></i>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                    <li>
+                                        <a href="javascript:void(0);" class="dropdown-item update-hospital-btn"
+                                           data-bs-toggle="modal" data-bs-target="#updateHospitalModal" data-id="@item.Id"
+                                           data-name="@item.Name" data-branch="@item.Branch" data-phone="@item.Phone"
+                                           data-address="@item.Address" data-hbysname="@item.HbysName"
+                                           data-hbysversion="@item.HbysVersion"
+                                           data-isactive="@item.IsActive.ToString().ToLower()">
+                                            <i class="mdi mdi-pencil text-warning me-2"></i> Düzenle
+                                        </a>
+                                    </li>
+                                    <li>
+                                        @* BURASI DÜZELDİ: view-hospital-btn classı eklendi *@
+                                        <a href="javascript:void(0);" class="dropdown-item view-hospital-btn"
+                                           data-id="@item.Id">
+                                            <i class="mdi mdi-eye me-2 text-info"></i> Detayları Gör
+                                        </a>
+                                    </li>
+                                    @if (User.IsInRole("Admin"))
+                                    {
                                         <li>
-                                            <a href="javascript:void(0);" class="dropdown-item update-hospital-btn"
-                                               data-bs-toggle="modal" data-bs-target="#updateHospitalModal"
-                                               data-id="@item.Id" data-name="@item.Name" data-branch="@item.Branch"
-                                               data-phone="@item.Phone" data-address="@item.Address"
-                                               data-hbysname="@item.HbysName" data-hbysversion="@item.HbysVersion"
-                                               data-isactive="@item.IsActive.ToString().ToLower()">
-                                                <i class="mdi mdi-pencil text-warning me-2"></i> Düzenle
+                                            <hr class="dropdown-divider pe-2">
+                                        </li>
+
+                                        <li>
+                                            <a class="dropdown-item toggle-status-btn" href="javascript:void(0)"
+                                               data-id="@item.Id">
+                                                <i
+                                                class="mdi @(item.IsActive ? "mdi-close-circle text-danger" : "mdi-check-circle text-success")"></i>
+                                                <span style="padding-left: 10px;" class="status-text">@(item.IsActive ? "Pasife Al" : "Aktif Yap")</span>
                                             </a>
                                         </li>
-                                        <li>
-                                            @* BURASI DÜZELDİ: view-hospital-btn classı eklendi *@
-                                            <a href="javascript:void(0);" class="dropdown-item view-hospital-btn" data-id="@item.Id">
-                                                <i class="mdi mdi-eye me-2 text-info"></i> Detayları Gör
-                                            </a>
-                                        </li>
-                                        <li><hr class="dropdown-divider"></li>
-                                        <li>
-                                            <form asp-controller="Hospital" asp-action="Delete" asp-route-id="@item.Id" method="post" onsubmit="return confirm('Bu hastaneyi silmek istediğinize emin misiniz?');">
+                                    }
+                                    @* <li>
+                                            <form asp-controller="Hospital" asp-action="Delete" asp-route-id="@item.Id"
+                                                method="post" onsubmit="return confirm('Bu hastaneyi silmek istediğinize emin
+                                                misiniz?');">
                                                 <button type="submit" class="dropdown-item text-danger">
                                                     <i class="mdi mdi-trash-can me-2"></i> Sil
                                                 </button>
                                             </form>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                                        </li> *@
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
+</div>
 
 
 
@@ -129,29 +149,36 @@
                 </div>
                 <div class="modal-body">
                     <input type="hidden" id="EditId" name="Id" />
-                    <div class="mb-3"><label class="form-label">Hastane Adı</label><input type="text" id="EditName" name="Name" class="form-control" required /></div>
-                    <div class="mb-3"><label class="form-label">Şube Adı</label><input type="text" id="EditBranch" name="Branch" class="form-control" required /></div>
-                    <div class="mb-3"><label class="form-label">İletişim</label><input type="text" id="EditPhone" name="Phone" class="form-control" required /></div>
-                    <div class="mb-3"><label class="form-label">Adres</label><textarea id="EditAddress" name="Address" class="form-control" rows="3"></textarea></div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label">HBYS Adı</label><input type="text" class="form-control" id="EditHbysName" name="HbysName"></div>
-                        <div class="col-md-6 mb-3"><label class="form-label">HBYS Versiyon</label><input type="text" class="form-control" id="EditHbysVersion" name="HbysVersion"></div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="EditIsActive" name="IsActive" value="true">
-                            <label class="form-check-label" for="EditIsActive">Aktif</label>
+                    <div class="mb-3"><label class="form-label">Hastane Adı</label><input type="text" id="EditName"
+                                                                                              name="Name" class="form-control" required /></div>
+                        <div class="mb-3"><label class="form-label">Şube Adı</label><input type="text" id="EditBranch"
+                                                                                               name="Branch" class="form-control" required /></div>
+                            <div class="mb-3"><label class="form-label">İletişim</label><input type="text" id="EditPhone"
+                                                                                                   name="Phone" class="form-control" required /></div>
+                                <div class="mb-3"><label class="form-label">Adres</label><textarea id="EditAddress" name="Address"
+                                                                                                       class="form-control" rows="3"></textarea></div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3"><label class="form-label">HBYS Adı</label><input type="text"
+                                                                                                                        class="form-control" id="EditHbysName" name="HbysName"></div>
+                                            <div class="col-md-6 mb-3"><label class="form-label">HBYS Versiyon</label><input type="text"
+                                                                                                                                 class="form-control" id="EditHbysVersion" name="HbysVersion"></div>
+                                            </div>
+                                            @* <div class="mb-3">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input" type="checkbox" id="EditIsActive" name="IsActive"
+                                                            value="true">
+                                                    <label class="form-check-label" for="EditIsActive">Aktif</label>
+                                                </div>
+                                            </div> *@
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                            <button type="submit" class="btn btn-primary">Güncelle</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                    <button type="submit" class="btn btn-primary">Güncelle</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 @* Bilgi (Detay) Modalı *@
 <div class="modal fade" id="hospitalInfoModal" tabindex="-1" aria-hidden="true">
@@ -172,21 +199,23 @@
                                 <p class="small mb-1 text-muted">Şehir / Adres</p>
                                 <p class="mb-2"><span id="vCity"></span> - <span id="vAddress"></span></p>
                                 <p class="small mb-1 text-muted">HBYS Bilgisi</p>
-                                <p class="mb-0 text-info fw-bold"><span id="vHbys"></span> (V: <span id="vHbysVer"></span>)</p>
+                                <p class="mb-0 text-info fw-bold"><span id="vHbys"></span> (V: <span
+                                    id="vHbysVer"></span>)</p>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card h-100 border-0 shadow-sm">
-                            <div class="card-body">
-                                <h6 class="text-primary border-bottom pb-2 mb-3">İletişim & Sistem</h6>
-                                <p class="small mb-1 text-muted">Telefon / E-Posta</p>
-                                <p class="mb-2"><span id="vPhone"></span> / <span id="vEmail"></span></p>
-                                <p class="small mb-1 text-muted">Kurulum Tarihi</p>
-                                <p class="mb-2" id="vDate"></p>
-                                <p class="small mb-1 text-muted">Entegrasyon Bilgileri</p>
-                                <p class="small mb-0"><strong>URL:</strong> <span id="vUrl"></span></p>
-                                <p class="small mb-0"><strong>Kullanıcı:</strong> <span id="vUser"></span></p>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body">
+                                    <h6 class="text-primary border-bottom pb-2 mb-3">İletişim & Sistem</h6>
+                                    <p class="small mb-1 text-muted">Telefon / E-Posta</p>
+                                    <p class="mb-2"><span id="vPhone"></span> / <span id="vEmail"></span></p>
+                                    <p class="small mb-1 text-muted">Kurulum Tarihi</p>
+                                    <p class="mb-2" id="vDate"></p>
+                                    <p class="small mb-1 text-muted">Entegrasyon Bilgileri</p>
+                                    <p class="small mb-0"><strong>URL:</strong> <span id="vUrl"></span></p>
+                                    <p class="small mb-0"><strong>Kullanıcı:</strong> <span id="vUser"></span></p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -194,65 +223,90 @@
             </div>
         </div>
     </div>
-</div>
 
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-            // DÜZENLEME KURYESİ
-            $('.update-hospital-btn').on('click', function () {
-                const id = $(this).data('id');
-                const name = $(this).data('name');
-                const branch = $(this).data('branch');
-                const address = $(this).data('address');
-                const phone = $(this).data('phone');
-                const hbysName = $(this).data('hbysname');
-                const hbysVersion = $(this).data('hbysversion');
-                const isActive = $(this).data('isactive');
+    @section Scripts {
+        <script>
+            $(document).ready(function () {
+                // DÜZENLEME KURYESİ
+                $('.update-hospital-btn').on('click', function () {
+                    const id = $(this).data('id');
+                    const name = $(this).data('name');
+                    const branch = $(this).data('branch');
+                    const address = $(this).data('address');
+                    const phone = $(this).data('phone');
+                    const hbysName = $(this).data('hbysname');
+                    const hbysVersion = $(this).data('hbysversion');
+                    const isActive = $(this).data('isactive');
 
-                $('#EditId').val(id);
-                $('#EditName').val(name);
-                $('#EditBranch').val(branch);
-                $('#EditAddress').val(address);
-                $('#EditPhone').val(phone);
-                $('#EditHbysName').val(hbysName);
-                $('#EditHbysVersion').val(hbysVersion);
+                    $('#EditId').val(id);
+                    $('#EditName').val(name);
+                    $('#EditBranch').val(branch);
+                    $('#EditAddress').val(address);
+                    $('#EditPhone').val(phone);
+                    $('#EditHbysName').val(hbysName);
+                    $('#EditHbysVersion').val(hbysVersion);
 
-                if (isActive === true || isActive === "true") {
-                    $('#EditIsActive').prop('checked', true);
-                } else {
-                    $('#EditIsActive').prop('checked', false);
-                }
-            });
+                    if (isActive === true || isActive === "true") {
+                        $('#EditIsActive').prop('checked', true);
+                    } else {
+                        $('#EditIsActive').prop('checked', false);
+                    }
+                });
 
-            // DETAY GÖRÜNTÜLEME KURYESİ
-            $(document).on('click', '.view-hospital-btn', function () {
-                var id = $(this).data('id');
-                $.get('/Hospital/GetHospitalDetail/' + id, function (data) {
-                    $('#vName').text(data.name + ' / ' + data.branch);
-                    $('#vCity').text(data.city);
-                    $('#vAddress').text(data.address);
-                    $('#vHbys').text(data.hbysName || '-');
-                    $('#vHbysVer').text(data.hbysVersion || '-');
-                    $('#vPhone').text(data.phone);
-                    $('#vEmail').text(data.email || '-');
-                    $('#vDate').text(data.installationDate);
-                    $('#vUrl').text(data.integrationUrl || '-');
-                    $('#vUser').text(data.integrationUsername || '-');
+                // DETAY GÖRÜNTÜLEME KURYESİ
+                $(document).on('click', '.view-hospital-btn', function () {
+                    var id = $(this).data('id');
+                    $.get('/Hospital/GetHospitalDetail/' + id, function (data) {
+                        $('#vName').text(data.name + ' / ' + data.branch);
+                        $('#vCity').text(data.city);
+                        $('#vAddress').text(data.address);
+                        $('#vHbys').text(data.hbysName || '-');
+                        $('#vHbysVer').text(data.hbysVersion || '-');
+                        $('#vPhone').text(data.phone);
+                        $('#vEmail').text(data.email || '-');
+                        $('#vDate').text(data.installationDate);
+                        $('#vUrl').text(data.integrationUrl || '-');
+                        $('#vUser').text(data.integrationUsername || '-');
 
-                    $('#hospitalInfoModal').modal('show');
+                        $('#hospitalInfoModal').modal('show');
+                    });
+                });
+
+                // AKTİF/PASİF YAPMA KURYESİ (AJAX)
+                $(document).on("click", ".toggle-status-btn", function () {
+                    const btn = $(this);
+                    const id = btn.data("id");
+                    const isCurrentlyActive = btn.find(".status-text").text().includes("Pasife Al");
+
+                    Swal.fire({
+                        title: 'Emin misiniz?',
+                        text: isCurrentlyActive ? "Bu hastaneyi pasife almak istiyor musunuz?" : "Bu hastaneyi tekrar aktif yapmak istiyor musunuz?",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Evet, Değiştir!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '/Hospital/ToggleStatus', // ControllerAdı/MetotAdı
+                                type: 'POST',
+                                data: { id: id },
+                                success: function (res) {
+                                    if (res.success) {
+                                        Swal.fire('Başarılı!', 'Hastane durumu güncellendi.', 'success');
+                                        setTimeout(() => location.reload(), 1500); // Tabloyu yenile
+                                    } else {
+                                        Swal.fire('Hata!', res.message, 'error');
+                                    }
+                                },
+                                error: function () {
+                                    Swal.fire('Hata!', 'İşlem sırasında bir hata oluştu veya yetkiniz yok.', 'error');
+                                }
+                            });
+                        }
+                    });
                 });
             });
-        });
-    </script>
-}
-<style>
-    /* Tablo içindeki dropdown'ların kesilmesini engeller */
-    .table-responsive {
-        overflow: visible !important;
+        </script>
     }
-
-    .dropdown-menu {
-        z-index: 1060 !important; /* Diğer elemanların kesinlikle üstünde kalması için */
-    }
-</style>

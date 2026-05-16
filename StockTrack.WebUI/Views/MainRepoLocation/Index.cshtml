@@ -27,10 +27,11 @@
 <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
     <h4 class="mb-0 text-dark fw-bold"><i class="mdi mdi-hospital-building me-2 text-muted"></i>Depo Yönetimi</h4>
     <div>
-        <a href="~/MainRepoLocation/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
+        @* <a href="~/MainRepoLocation/Deleted" class="btn btn-outline-danger me-2 shadow-sm">
             <i class="mdi mdi-delete-restore me-1"></i> Silinenler
-        </a>
-        <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createLocationModal">
+        </a> *@
+        <button type="button" class="btn btn-primary shadow-sm" data-bs-toggle="modal"
+                data-bs-target="#createLocationModal">
             <i class="mdi mdi-plus"></i> Yeni Depo Ekle
         </button>
     </div>
@@ -72,11 +73,8 @@
                 </td>
                 <td>
                     <!-- Düzenle -->
-                    <a class="btn btn-sm btn-warning"
-                       data-bs-toggle="modal"
-                       data-bs-target="#editLocationModal"
-                       data-location-id="@location.Id"
-                       data-location-name="@location.Name"
+                    <a class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editLocationModal"
+                       data-location-id="@location.Id" data-location-name="@location.Name"
                        data-location-address="@location.Adress">
                         <i class="mdi mdi-pencil"></i> Düzenle
                     </a>
@@ -91,48 +89,52 @@
                     </button>
 
                     <!-- Sil -->
-                    <button type="button"
+                    @* <button type="button"
                             class="btn btn-sm btn-danger delete-location-btn"
                             data-url="@Url.Action("Delete", "MainRepoLocation", new { id = location.Id })"
                             data-location-name="@location.Name">
                         <i class="mdi mdi-delete"></i> Sil
-                    </button>
+                    </button> *@
                 </td>
             </tr>
         }
     </tbody>
 </table>
 
-<!-- Lokasyon Ekleme Modal -->
-<div class="modal fade" id="createLocationModal" tabindex="-1" aria-labelledby="createLocationModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form asp-action="CreateMainRepoLocation" asp-controller="MainRepoLocation" method="post">
-                <div class="modal-header">
-                    <h5 class="modal-title">Yeni Depo Ekle</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Depo Adı</label>
-                        <input type="text" name="Name" class="form-control" required />
+@if (User.IsInRole(RoleConsts.Admin))
+{
+    <!-- Lokasyon Ekleme Modal -->
+    <div class="modal fade" id="createLocationModal" tabindex="-1" aria-labelledby="createLocationModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="CreateMainRepoLocation" asp-controller="MainRepoLocation" method="post">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Yeni Depo Ekle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Adres</label>
-                        <textarea name="Adress" class="form-control" rows="2"></textarea>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Depo Adı</label>
+                            <input type="text" name="Name" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Adres</label>
+                            <textarea name="Adress" class="form-control" rows="2"></textarea>
+                        </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                    <button type="submit" class="btn btn-primary">Kaydet</button>
-                </div>
-            </form>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-
+}
 <!-- Lokasyon Düzenleme Modal -->
-<div class="modal fade" id="editLocationModal" tabindex="-1" aria-labelledby="editLocationModalLabel" aria-hidden="true">
+<div class="modal fade" id="editLocationModal" tabindex="-1" aria-labelledby="editLocationModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <form asp-action="Edit" asp-controller="MainRepoLocation" method="post">

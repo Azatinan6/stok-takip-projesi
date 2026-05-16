@@ -79,7 +79,9 @@ namespace StockTrack.WebUI.Controllers
                 return Challenge();
 
             // Ürün adını normalize et (trim + küçük harf)
-            var nameNorm = (createProductDto.Name ?? string.Empty).Trim().ToLower();
+            var textInfo = new System.Globalization.CultureInfo("tr-TR").TextInfo;
+            var nameNorm = textInfo.ToTitleCase((createProductDto.Name ?? string.Empty).Trim().ToLower());
+            createProductDto.Model = textInfo.ToTitleCase((createProductDto.Model ?? string.Empty).Trim().ToLower());
 
             // Aynı kategori ve aynı isimdeki ürünü al
             var existingProduct = await _productService.TGetExistingCategoryProductAsync(createProductDto.CategoryId, nameNorm);
@@ -112,7 +114,7 @@ namespace StockTrack.WebUI.Controllers
                 Name = nameNorm,
                 CategoryId = createProductDto.CategoryId,
                 Model = createProductDto.Model,
-                WarningThreshold = createProductDto.WarningThreshold, 
+                WarningThreshold = createProductDto.WarningThreshold,
                 CreatedBy = currentUser.NameSurname,
                 CreatedDate = now,
                 ModifiedDate = now,
@@ -131,38 +133,38 @@ namespace StockTrack.WebUI.Controllers
             await _productService.TCreateAsync(newProduct);
 
             // Başarı bildirimi göster
-            _toastNotification.AddSuccessToastMessage( "Ürün kaydı başarıyla gerçekleştirildi",new ToastrOptions { Title = "Başarılı" }
+            _toastNotification.AddSuccessToastMessage("Ürün kaydı başarıyla gerçekleştirildi", new ToastrOptions { Title = "Başarılı" }
             );
 
             return RedirectToAction("Index");
         }
 
-        [HttpPost]
-        [Authorize(Roles = RoleConsts.Admin)]
-        public async Task<IActionResult> RestoreDeletedProduct([FromBody] int productId)
-        {
-            if (productId <= 0)
-                return BadRequest("Geçersiz ürün kimliği.");
+        // [HttpPost]
+        // [Authorize(Roles = RoleConsts.Admin)]
+        // public async Task<IActionResult> RestoreDeletedProduct([FromBody] int productId)
+        // {
+        //     if (productId <= 0)
+        //         return BadRequest("Geçersiz ürün kimliği.");
 
-            var product = await _productService.TGetByIdAsync(productId);
-            if (product == null)
-                return NotFound("Ürün bulunamadı.");
+        //     var product = await _productService.TGetByIdAsync(productId);
+        //     if (product == null)
+        //         return NotFound("Ürün bulunamadı.");
 
-            if (!product.IsDeleted)
-                return BadRequest("Bu ürün silinmiş değil.");
+        //     if (!product.IsDeleted)
+        //         return BadRequest("Bu ürün silinmiş değil.");
 
-            var currentUser = await _userManager.GetUserAsync(User);
-            var now = DateTime.Now;
+        //     var currentUser = await _userManager.GetUserAsync(User);
+        //     var now = DateTime.Now;
 
-            product.IsDeleted = false;
-            product.IsActive = true;
-            product.ModifiedDate = now;
-            product.ModifiedBy = currentUser?.NameSurname;
+        //     product.IsDeleted = false;
+        //     product.IsActive = true;
+        //     product.ModifiedDate = now;
+        //     product.ModifiedBy = currentUser?.NameSurname;
 
-            await _productService.TUpdateAsync(product);
+        //     await _productService.TUpdateAsync(product);
 
-            return Ok(new { status = "ok", message = $"'{product.Name}' ürünü başarıyla geri yüklendi." });
-        }
+        //     return Ok(new { status = "ok", message = $"'{product.Name}' ürünü başarıyla geri yüklendi." });
+        // }
 
         [HttpPost]
         [Authorize(Roles = RoleConsts.Admin)]
@@ -192,28 +194,28 @@ namespace StockTrack.WebUI.Controllers
             return Ok(new { success = true, message = $"{product.Name} aktif hale getirildi." });
         }
 
-        [HttpPost]
-        [Authorize(Roles = RoleConsts.Admin)]
-        public async Task<IActionResult> DeleteProduct(int id)
-        {
-            var product = await _productService.TGetByIdAsync(id);
-            if (product == null)
-                return NotFound(new { success = false, message = "Ürün bulunamadı." });
+        // [HttpPost]
+        // [Authorize(Roles = RoleConsts.Admin)]
+        // public async Task<IActionResult> DeleteProduct(int id)
+        // {
+        //     var product = await _productService.TGetByIdAsync(id);
+        //     if (product == null)
+        //         return NotFound(new { success = false, message = "Ürün bulunamadı." });
 
-            var currentUser = await _userManager.GetUserAsync(User);
-            if (currentUser == null)
-                return Challenge();
+        //     var currentUser = await _userManager.GetUserAsync(User);
+        //     if (currentUser == null)
+        //         return Challenge();
 
-            product.IsDeleted = true;
-            product.DeletedDate = DateTime.Now;
-            product.DeletedBy = currentUser.NameSurname;
-            await _productService.TUpdateAsync(product);
-            return Ok(new
-            {
-                success = true,
-                message = $"{product.Name} başarıyla silindi."
-            });
-        }
+        //     product.IsDeleted = true;
+        //     product.DeletedDate = DateTime.Now;
+        //     product.DeletedBy = currentUser.NameSurname;
+        //     await _productService.TUpdateAsync(product);
+        //     return Ok(new
+        //     {
+        //         success = true,
+        //         message = $"{product.Name} başarıyla silindi."
+        //     });
+        // }
 
         [HttpPost]
         [Authorize(Roles = RoleConsts.Admin)]
@@ -231,6 +233,9 @@ namespace StockTrack.WebUI.Controllers
                 // Oturum açmamışsa giriş sayfasına yönlendir
                 return Challenge();
 
+            var textInfo = new System.Globalization.CultureInfo("tr-TR").TextInfo;
+            updateProductDto.Name = textInfo.ToTitleCase((updateProductDto.Name ?? string.Empty).Trim().ToLower());
+            updateProductDto.Model = textInfo.ToTitleCase((updateProductDto.Model ?? string.Empty).Trim().ToLower());
             // Veritabanında bu isim varmı kontrolu
             if (product.Name.ToLower() != updateProductDto.Name.ToLower())
             {
@@ -246,7 +251,7 @@ namespace StockTrack.WebUI.Controllers
             product.CategoryId = updateProductDto.CategoryId;
             product.Description = updateProductDto.Description;
             product.ModifiedBy = currentUser.NameSurname;
-            product.ModifiedDate = DateTime.Now;           
+            product.ModifiedDate = DateTime.Now;
             product.Model = updateProductDto.Model;
             product.WarningThreshold = updateProductDto.WarningThreshold;
             // Resim kaldırılmış ise
@@ -281,111 +286,86 @@ namespace StockTrack.WebUI.Controllers
             _toastNotification.AddSuccessToastMessage("Ürün başarıyla güncellendi", new ToastrOptions { Title = "Başarılı" });
 
             return RedirectToAction("Index");
-        }      
-
-        [HttpGet]        
-        public async Task<IActionResult> Deleted()
-        {
-            var result = await _appDbContext.Products.Where(p => p.IsDeleted).Select(p => new DeletedProductDto
-            {
-                Id = p.Id,
-                CategoryName = p.Category != null ? p.Category.Name : null,
-                Name = p.Name,
-                Model = p.Model,
-                DeletedBy = p.DeletedBy,
-                DeletedDate = p.DeletedDate,
-                Description = p.Description,
-                IsActive = p.IsActive,
-                PhotoUrl = p.PhotoUrl,
-                CreatedDate = p.CreatedDate,
-            }).OrderByDescending(x => x.DeletedDate).ToListAsync();
-            return View(result);
         }
 
+        // [HttpGet]        
+        // public async Task<IActionResult> Deleted()
+        // {
+        //     var result = await _appDbContext.Products.Where(p => p.IsDeleted).Select(p => new DeletedProductDto
+        //     {
+        //         Id = p.Id,
+        //         CategoryName = p.Category != null ? p.Category.Name : null,
+        //         Name = p.Name,
+        //         Model = p.Model,
+        //         DeletedBy = p.DeletedBy,
+        //         DeletedDate = p.DeletedDate,
+        //         Description = p.Description,
+        //         IsActive = p.IsActive,
+        //         PhotoUrl = p.PhotoUrl,
+        //         CreatedDate = p.CreatedDate,
+        //     }).OrderByDescending(x => x.DeletedDate).ToListAsync();
+        //     return View(result);
+        // }
+
         //ürünün hangi depoda kaç adet oldugunu gösterme
+
         [HttpGet]
         public async Task<IActionResult> GetProductStockDetails(int productId)
         {
-            var productStock = await (from pm in _appDbContext.ProductMainRepoLocations
-                                      join rp in _appDbContext.RequestProducts on pm.ProductId equals rp.ProductId
-                                      join rf in _appDbContext.RequestForms on rp.RequestFormId equals rf.Id
-                                      join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
-                                      where pm.ProductId == productId
-                                            && rp.ProductId == pm.ProductId
-                                            && rf.IsDeleted == false
-                                            && (rfd.StatusId == (int)EnumStatusType.Kargoda
-                                                || rfd.StatusId == (int)EnumStatusType.Tamamlandı)
-                                      select new ProductStockDto
-                                      {
-                                          MainRepoName = pm.MainRepoLocation.Name,
-                                          TotalQuantity = pm.Quantity,
+            // Depodaki ürünleri alıyoruz (Hiç dağıtılmamış olsa bile listeye gelir!)
+            var productStock = await _appDbContext.ProductMainRepoLocations
+                .Include(pml => pml.MainRepoLocation)
+                .Where(pml => pml.ProductId == productId)
+                .Select(pml => new ProductStockDto
+                {
+                    MainRepoName = pml.MainRepoLocation.Name,
+                    TotalQuantity = pml.Quantity,
 
-                                          DistributedQuantity = (from rp2 in _appDbContext.RequestProducts
-                                                                 join rf2 in _appDbContext.RequestForms on rp2.RequestFormId equals rf2.Id
-                                                                 join rfd2 in _appDbContext.RequestFormDetails on rf2.Id equals rfd2.RequestFormId
-                                                                 where rp2.ProductId == pm.ProductId
-                                                                       && rf2.MainRepoLocationId == pm.MainRepoLocationId
-                                                                       && rf2.IsDeleted == false
-                                                                       && (rfd2.StatusId == (int)EnumStatusType.Kargoda
-                                                                           || rfd2.StatusId == (int)EnumStatusType.Tamamlandı)
-                                                                 select (int?)rp2.Quantity).Sum() ?? 0,
+                    // Sadece bu depodan ve bu üründen "Kargoda" veya "Tamamlandı" olanları topla
+                    DistributedQuantity = _appDbContext.RequestProducts
+                        .Where(rp => rp.ProductId == pml.ProductId
+                                && rp.RequestForm.MainRepoLocationId == pml.MainRepoLocationId
+                                && !rp.RequestForm.IsDeleted
+                                && rp.RequestForm.RequestFormDetails.Any(rfd =>
+                                        rfd.StatusId == (int)EnumStatusType.Kargoda ||
+                                        rfd.StatusId == (int)EnumStatusType.Tamamlandı))
+                        .Sum(rp => (int?)rp.Quantity) ?? 0
+                }).ToListAsync();
 
-                                          RemainingQuantity = pm.Quantity -
-                                              ((from rp3 in _appDbContext.RequestProducts
-                                                join rf3 in _appDbContext.RequestForms on rp3.RequestFormId equals rf3.Id
-                                                join rfd3 in _appDbContext.RequestFormDetails on rf3.Id equals rfd3.RequestFormId
-                                                where rp3.ProductId == pm.ProductId
-                                                      && rf3.MainRepoLocationId == pm.MainRepoLocationId
-                                                      && rf3.IsDeleted == false
-                                                      && (rfd3.StatusId == (int)EnumStatusType.Kargoda
-                                                          || rfd3.StatusId == (int)EnumStatusType.Tamamlandı)
-                                                select (int?)rp3.Quantity).Sum() ?? 0)
-                                      }).Distinct().ToListAsync();
-                
-
-            //var productStock = await _appDbContext.ProductMainRepoLocations.Where(pml => pml.ProductId == productId )
-            //                 .Select(pml => new ProductStockDto
-            //                 {
-            //                     MainRepoName = pml.MainRepoLocation.Name,
-            //                     TotalQuantity = pml.Quantity,
-            //                     DistributedQuantity = _appDbContext.RequestProducts
-            //                         .Where(rp => rp.ProductId == pml.ProductId && rp.RequestForm.MainRepoLocationId == pml.MainRepoLocationId && rp.RequestForm.IsDeleted == false)
-            //                         .Sum(rp => rp.Quantity),
-            //                     RemainingQuantity = pml.Quantity - _appDbContext.RequestProducts
-            //                         .Where(rp => rp.ProductId == pml.ProductId && rp.RequestForm.MainRepoLocationId == pml.MainRepoLocationId && rp.RequestForm.IsDeleted == false)
-            //                         .Sum(rp => rp.Quantity)
-            //                 }).ToListAsync();
-
+            // Kalan miktarı C# tarafında hesaplıyoruz (SQL'i yormamak için)
+            foreach (var item in productStock)
+            {
+                item.RemainingQuantity = item.TotalQuantity - item.DistributedQuantity;
+            }
 
             if (!productStock.Any())
             {
                 return Json(new { message = "Bu ürün için stok kaydı bulunamadı." });
             }
-        
 
             return Json(productStock);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Restore(int id)
-        {
-            var product = await _productService.TGetByIdAsync(id);
+        // [HttpPost]
+        // public async Task<IActionResult> Restore(int id)
+        // {
+        //     var product = await _productService.TGetByIdAsync(id);
 
-            if(product != null)
-            {
-                product.IsDeleted = false;
-                product.IsActive = true;
-                product.DeletedDate = null;
+        //     if(product != null)
+        //     {
+        //         product.IsDeleted = false;
+        //         product.IsActive = true;
+        //         product.DeletedDate = null;
 
-                await _productService.TUpdateAsync(product);
-                TempData["SuccessMessage"] = "Ürün başarıyla geri yüklendi.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Ürün bulunamadı.";
+        //         await _productService.TUpdateAsync(product);
+        //         TempData["SuccessMessage"] = "Ürün başarıyla geri yüklendi.";
+        //     }
+        //     else
+        //     {
+        //         TempData["ErrorMessage"] = "Ürün bulunamadı.";
 
-            }
-            return RedirectToAction("Deleted");
-        }
+        //     }
+        //     return RedirectToAction("Deleted");
+        // }
     }
 }

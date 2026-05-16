@@ -59,23 +59,23 @@ namespace StockTrack.WebUI.Controllers
             return RedirectToAction("Index");
         }
 
-        // 2. SİLME (Soft Delete) İŞLEMİ
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var existingCargo = await _cargoNameService.TGetByIdAsync(id);
+        // // 2. SİLME (Soft Delete) İŞLEMİ
+        // [HttpGet]
+        // public async Task<IActionResult> Delete(int id)
+        // {
+        //     var existingCargo = await _cargoNameService.TGetByIdAsync(id);
 
-            if (existingCargo != null)
-            {
-                existingCargo.IsDeleted = true;
-                existingCargo.IsActive = false;
-                existingCargo.DeletedDate = DateTime.Now;
+        //     if (existingCargo != null)
+        //     {
+        //         existingCargo.IsDeleted = true;
+        //         existingCargo.IsActive = false;
+        //         existingCargo.DeletedDate = DateTime.Now;
 
-                await _cargoNameService.TUpdateAsync(existingCargo);
-            }
+        //         await _cargoNameService.TUpdateAsync(existingCargo);
+        //     }
 
-            return RedirectToAction("Index");
-        }
+        //     return RedirectToAction("Index");
+        // }
         // 3. AKTİF/PASİF YAPMA (Toggle Status) İŞLEMİ
         [HttpGet]
         public async Task<IActionResult> ToggleStatus(int id)
@@ -94,39 +94,39 @@ namespace StockTrack.WebUI.Controllers
             return RedirectToAction("Index");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Deleted()
-        {
-            var deletedCargo = await _cargoNameService.TGetFilteredListAsync(c => c.IsDeleted);
+        // [HttpGet]
+        // public async Task<IActionResult> Deleted()
+        // {
+        //     var deletedCargo = await _cargoNameService.TGetFilteredListAsync(c => c.IsDeleted);
 
-            var result = deletedCargo.Select(c => new CargoNameDeletedDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                DeletedDate = c.DeletedDate
-            }).ToList();
+        //     var result = deletedCargo.Select(c => new CargoNameDeletedDto
+        //     {
+        //         Id = c.Id,
+        //         Name = c.Name,
+        //         DeletedDate = c.DeletedDate
+        //     }).ToList();
 
-            return View("Deleted", result);
-        }
-        [HttpPost]
-        public async Task<IActionResult> Restore(int id)
-        {
-            var cargo = await _cargoNameService.TGetByIdAsync(id);
-            if(cargo != null)
-            {
-                cargo.IsDeleted = false;
-                cargo.DeletedDate = null;
+        //     return View("Deleted", result);
+        // }
+        // [HttpPost]
+        // public async Task<IActionResult> Restore(int id)
+        // {
+        //     var cargo = await _cargoNameService.TGetByIdAsync(id);
+        //     if(cargo != null)
+        //     {
+        //         cargo.IsDeleted = false;
+        //         cargo.DeletedDate = null;
 
-                await _cargoNameService.TUpdateAsync(cargo);
-                TempData["SuccessMessage"] = "Kargo başarıyla geri yüklendi.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Kargo bulunamadı";
-            }
+        //         await _cargoNameService.TUpdateAsync(cargo);
+        //         TempData["SuccessMessage"] = "Kargo başarıyla geri yüklendi.";
+        //     }
+        //     else
+        //     {
+        //         TempData["ErrorMessage"] = "Kargo bulunamadı";
+        //     }
 
-            return RedirectToAction("Deleted");
-        }
+        //     return RedirectToAction("Deleted");
+        // }
 
     }
 }

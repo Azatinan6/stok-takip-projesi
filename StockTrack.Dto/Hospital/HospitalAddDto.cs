@@ -24,5 +24,7 @@ namespace StockTrack.Dto.Hospital
         public string? SnUsername { get; set; }
         public string? SnPassword { get; set; }
 
+        public List<string>? Users { get; set; }
+
     }
 }

@@ -27,5 +27,7 @@ namespace StockTrack.Entity.Enitities
         // SN (Sağlık.Net) Entegrasyon Bilgileri (YENİ EKLENEN)
         public string? SnUsername { get; set; } // SN Kullanıcı Adı
         public string? SnPassword { get; set; } // SN Şifre
+
+        public string? Users { get; set; }
     }
 }
