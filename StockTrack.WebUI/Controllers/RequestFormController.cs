@@ -58,7 +58,7 @@ namespace StockTrack.WebUI.Controllers
             var definitions = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted && x.IsActive);
 
             // Giriş (İade) Nedenleri -> DefinitionType = 3 (Veritabanındaki ID'sine göre kontrol et)
-            ViewBag.InboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 3), "Id", "Name");
+            ViewBag.InboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 5), "Id", "Name");
 
             // Çıkış (Gönderim) Nedenleri -> DefinitionType = 4 (Veritabanındaki ID'sine göre kontrol et)
             ViewBag.OutboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 4), "Id", "Name");
@@ -112,8 +112,8 @@ namespace StockTrack.WebUI.Controllers
                 .ToListAsync();
 
             var definitions = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted && x.IsActive);
-            // Giriş (İade) Nedenleri -> DefinitionType = 3 (Veritabanındaki ID'sine göre kontrol et)
-            ViewBag.InboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 3), "Id", "Name");
+            // Giriş (İade) Nedenleri -> DefinitionType = 5 (Veritabanındaki ID'sine göre kontrol et)
+            ViewBag.InboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 5), "Id", "Name");
 
             // Çıkış (Gönderim) Nedenleri -> DefinitionType = 4 (Veritabanındaki ID'sine göre kontrol et)
             ViewBag.OutboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 4), "Id", "Name");

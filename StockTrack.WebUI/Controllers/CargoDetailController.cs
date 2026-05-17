@@ -54,7 +54,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
 
-            ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
 
             // URL'DEN PARAMETREYİ ZORLA (GARANTİLİ) OKUMA YÖNTEMİ
@@ -135,7 +135,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
 
-            ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
 
             var resultReturnWaiting = (from rfd in _appDbContext.RequestFormDetails
@@ -198,7 +198,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
 
-            ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
 
             var resultOfficePickup = (from rfd in _appDbContext.RequestFormDetails
@@ -260,7 +260,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
 
-            ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
 
             var resultAwaitingApprovals = (from rfd in _appDbContext.RequestFormDetails
@@ -337,7 +337,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
 
-            ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
             // Paketlenmiş kargo taleplerini konum, ürün ve diğer detaylarla birlikte listeliyor
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultCargoForReadyDtos = (from rfd in _appDbContext.RequestFormDetails
@@ -410,7 +410,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
             // Kargoya verilmiş yolda olan talepleri kargo firması, takip numarası, konum ve ürün detaylarıyla birlikte listeliyor
-            ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultCargoInDeliveries = (from rf in _appDbContext.RequestForms
                                            join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
@@ -487,7 +487,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
             // Teslim edilmiş kargo taleplerini ürün, konum, kargo firması, takip numarası ve işlem tarihleriyle birlikte listeliyor      
-            ViewBag.CargoNames = new SelectList(_appDbContext.CargoNames.AsNoTracking().OrderBy(x => x.Name).ToList(), "Id", "Name");
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultCargoDelivereds = (from rf in _appDbContext.RequestForms
                                          join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
@@ -1007,6 +1007,22 @@ namespace StockTrack.WebUI.Controllers
             return RedirectToAction("ReturnsIndex");
         }
 
+        private async Task<SelectList> GetCargoListWithDefaultAsync()
+        {
+            var kargoFirmalari = await _appDbContext.CargoNames
+                                    .Where(x => x.IsActive && !x.IsDeleted)
+                                    .ToListAsync();
 
+            // TÜRKÇE KARAKTER UYUMLU GÜVENLİ ARAMA: Büyük/küçük harfe takılmaz
+            var yurticiKargo = kargoFirmalari.FirstOrDefault(x => x.Name.Contains("Yurtiçi", StringComparison.OrdinalIgnoreCase) 
+                                                            || x.Name.Contains("Yurtici", StringComparison.OrdinalIgnoreCase));
+            
+            int? defaultKargoId = yurticiKargo?.Id;
+            
+            // İşin sırrı: Bu ID'yi JavaScript'in de doğrudan okuyabilmesi için ViewBag'e fırlatıyoruz!
+            ViewBag.DefaultCargoId = defaultKargoId; 
+
+            return new SelectList(kargoFirmalari, "Id", "Name", defaultKargoId);
+        }
     }
 }

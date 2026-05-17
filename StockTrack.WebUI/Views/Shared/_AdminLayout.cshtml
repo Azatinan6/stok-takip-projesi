@@ -11,19 +11,18 @@
 
 <body>
     <div id="layout-wrapper">
+
         <header id="page-topbar" class="isvertical-topbar">
             <div class="navbar-header">
                 <div class="d-flex">
-                    <button type="button"
-                            class="btn btn-sm px-3 font-size-24 header-item waves-effect vertical-menu-btn">
+                    <button type="button" class="btn btn-sm px-3 font-size-24 header-item waves-effect vertical-menu-btn">
                         <i class="bx bx-menu align-middle"></i>
                     </button>
                 </div>
 
                 <div class="d-flex">
                     <div class="dropdown d-inline-block">
-                        <button type="button" class="btn header-item noti-icon" data-bs-toggle="dropdown"
-                                aria-haspopup="true" aria-expanded="false">
+                        <button type="button" class="btn header-item noti-icon" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             <i class="bx bx-search icon-sm align-middle"></i>
                         </button>
                         <div class="dropdown-menu dropdown-menu-lg dropdown-menu-end p-0">
@@ -64,6 +63,7 @@
             <div data-simplebar class="sidebar-menu-scroll">
                 <div id="sidebar-menu">
                     <ul class="metismenu list-unstyled" id="side-menu">
+
                         <li class="menu-title" data-key="t-menu">Anasayfa</li>
                         <li>
                             <a asp-controller="Dashboard" asp-action="Index">
@@ -79,203 +79,169 @@
                                 <i class="mdi mdi-layers-outline icon nav-icon"></i>
                                 <span class="menu-item" data-key="t-definitions">Genel Tanımlar</span>
                             </a>
-
                             <ul class="sub-menu" aria-expanded="false">
-
                                 <li><a asp-controller="Hospital" asp-action="Index">Hastaneler</a></li>
+                                
                                 @if (User.IsInRole(RoleConsts.Admin))
                                 {
                                     <li><a href="~/MainRepoLocation/Index">Depo Tanımı</a></li>
                                     <li><a asp-controller="Category" asp-action="Index">Kategoriler</a></li>
-
                                 }
 
                                 <li><a asp-controller="Product" asp-action="Index">Ürünler</a></li>
                                 <li><a asp-controller="Set" asp-action="Index">Setler</a></li>
                                 <li><a asp-controller="Rule" asp-action="Index">Kurallar</a></li>
 
-                                <li>
-                                    <a href="javascript:void(0);" class="has-arrow">Kargo</a>
-                                    <ul class="sub-menu" aria-expanded="false">
-                                        @if (User.IsInRole(RoleConsts.Admin))
-                                        {
-                                            <li><a asp-controller="CargoName" asp-action="Index">Kargo Firmaları</a></li>
-                                        }
-                                        <li><a asp-controller="CargoDefinition" asp-action="Index">Kontrol Sonucu
-                                            (+Diğer)</a></li>
-                                            <li><a asp-controller="CargoDefinition" asp-action="ProductStatusIndex">Ürün
-                                                Durumu</a></li>
-                                            </ul>
-                                        </li>
-
-                                        <li>
-                                            <a href="javascript:void(0);" class="has-arrow">Talep Tanımları</a>
-                                            <ul class="sub-menu" aria-expanded="false">
-                                                <li><a asp-controller="CargoDefinition" asp-action="RequestReasonIndex"
-                                                           asp-route-id="4">Gönderim Nedenleri</a></li>
-                                                    <li><a asp-controller="CargoDefinition" asp-action="RequestReasonIndex"
-                                                               asp-route-id="5">İade Nedenleri</a></li>
-                                                    </ul>
-                                                </li>
-
-                                            </ul>
-                                        </li>
-
-        
-                                        <li class="menu-title" data-key="t-hospital-title">OPERASYON</li>
-
-                                        <li>
-                                            <a href="javascript:void(0);">
-                                                <i class="mdi mdi-hospital-building icon nav-icon"></i>
-                                                <span class="menu-item" data-key="t-hospital">Hastane</span>
-                                            </a>
-                                        </li>
-
-                                        <li>
-                                            <a asp-controller="HospitalDashboard" asp-action="Index">
-                                                <i class="mdi mdi-chart-line icon nav-icon"></i>
-                                                <span class="menu-item">Hastane İade Analiz</span>
-                                            </a>
-                                        </li>
-
-                                        <li>
-                                            <a asp-controller="Inventory" asp-action="Stock">
-                                                <i class="mdi mdi-warehouse icon nav-icon"></i>
-                                                <span class="menu-item" data-key="t-inventory">Depo / Stok</span>
-                                            </a>
-                                        </li>
-
-                                    </li>
-
-                                    @* @await Component.InvokeAsync("RequestFormMenu")
-                            @await Component.InvokeAsync("CargoMenu")
-                            @await Component.InvokeAsync("InstallationMenu")
-                            @await Component.InvokeAsync("CargoMenu")
-                            *@
-
+                                @if (User.IsInRole(RoleConsts.Admin))
+                                {
                                     <li>
-                                        <a asp-controller="RequestForm" asp-action="Create" class="waves-effect">
-                                            <i class="mdi mdi-clipboard-text-outline icon nav-icon"></i>
-                                            <span class="menu-item" data-key="t-requests">Talep</span>
-                                        </a>
-                                    </li>
-
-                                    <li>
-                                        <a asp-controller="CargoDetail" asp-action="Index" class="waves-effect">
-                                            <i class="mdi mdi-truck-outline icon nav-icon"></i>
-                                            <span class="menu-item" data-key="t-requests">Kargo</span>
-                                        </a>
-                                    </li>
-
-        
-                                    @* <li>
-                                    <a asp-controller="Installation" asp-action="ServicesPage" class="waves-effect">
-                                        <i class="mdi mdi-tools icon nav-icon"></i>
-                                        <span class="menu-item">Servis İşlemleri</span>
-                                    </a>
-                                </li> *@
-
-                                    <li class="menu-title" data-key="t-filter-title">ARAÇLAR</li>
-
-                                    <li>
-                                        <a href="javascript:void(0);" class="has-arrow">
-                                            <i class="mdi mdi-filter-variant icon nav-icon"></i>
-                                            <span class="menu-item">Filtreler</span>
-                                        </a>
+                                        <a href="javascript:void(0);" class="has-arrow">Kargo</a>
                                         <ul class="sub-menu" aria-expanded="false">
-                                            <li><a href="#">...</a></li>
+                                            <li><a asp-controller="CargoName" asp-action="Index">Kargo Firmaları</a></li>
+                                            <li><a asp-controller="CargoDefinition" asp-action="Index">Kontrol Sonucu (+Diğer)</a></li>
+                                            <li><a asp-controller="CargoDefinition" asp-action="ProductStatusIndex">Ürün Durumu</a></li>
                                         </ul>
                                     </li>
 
                                     <li>
-                                        <a asp-controller="ProductExcel" asp-action="Index" class="waves-effect">
-                                            <i class="mdi mdi-file-excel icon nav-icon"></i>
-                                            <span class="menu-item">Excel'e Aktar</span>
-                                        </a>
+                                        <a href="javascript:void(0);" class="has-arrow">Talep Tanımları</a>
+                                        <ul class="sub-menu" aria-expanded="false">
+                                            <li><a asp-controller="CargoDefinition" asp-action="RequestReasonIndex" asp-route-id="4">Gönderim Nedenleri</a></li>
+                                            <li><a asp-controller="CargoDefinition" asp-action="RequestReasonIndex" asp-route-id="5">İade Nedenleri</a></li>
+                                        </ul>
                                     </li>
-
-                                    <li class="menu-title">SİSTEM YÖNETİMİ</li>
-
-                                    <li>
-                                        <a asp-controller="UserManagement" asp-action="Index" class="waves-effect">
-                                            <i class="mdi mdi-account-group icon nav-icon"></i>
-                                            <span class="menu-item">Kullanıcılar</span>
-                                        </a>
-                                    </li>
-
-                                    @if (User.IsInRole(RoleConsts.Admin))
-                                    {
-                                        <li>
-                                            <a asp-controller="MailSetting" asp-action="SettingSmtp" class="waves-effect">
-                                                <i class="mdi mdi-email-outline icon nav-icon"></i>
-                                                <span class="menu-item">Mail Ayarları</span>
-                                            </a>
-                                        </li>
-                                    }
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                    <header class="ishorizontal-topbar">
-                        <div class="topnav">
-                        </div>
-                    </header>
-
-                    <div id="sidebar-setting"></div>
-
-                    <div class="main-content">
-                        <div class="page-content">
-                            <div class="container-fluid">
-                                @RenderBody()
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                @await Component.InvokeAsync("Footer")
-
-                <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasActivity" aria-labelledby="offcanvasActivityLabel">
-                    <div class="offcanvas-header border-bottom">
-                        <h5 id="offcanvasActivityLabel">Offcanvas right</h5>
-                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                    </div>
-                    <div class="offcanvas-body"></div>
-                </div>
-
-                @await Component.InvokeAsync("Scripts")
-                @await Html.PartialAsync("_ValidationScriptsPartial")
-
-                <script>
-                        $(document).ready(function () {
-                            var table = $('#DataTables').DataTable({
-                                paging: true,
-                                searching: true,
-                                ordering: true,
-                                responsive: true,
-                                scrollCollapse: true,
-                                fixedColumns: true,
-                                language: {
-                                    url: '@Url.Content("~/DataTables/Turkish.json")'
                                 }
-                            });
+                            </ul> </li> <li class="menu-title" data-key="t-hospital-title">OPERASYON</li>
 
-                            $('#DataTables tfoot th').each(function (i) {
-                                var title = $(this).text().trim();
-                                if (title) {
-                                    $(this).html('<input type="text" placeholder="Ara ' + title + '" data-index="' + i + '" class="form-control form-control-sm" />');
-                                }
-                            });
+                        <li>
+                            <a href="javascript:void(0);">
+                                <i class="mdi mdi-hospital-building icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-hospital">Hastane</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="HospitalDashboard" asp-action="Index">
+                                <i class="mdi mdi-chart-line icon nav-icon"></i>
+                                <span class="menu-item">Hastane İade Analiz</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="Inventory" asp-action="Stock">
+                                <i class="mdi mdi-warehouse icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-inventory">Depo / Stok</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="RequestForm" asp-action="Create" class="waves-effect">
+                                <i class="mdi mdi-clipboard-text-outline icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-requests">Talep</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-controller="CargoDetail" asp-action="Index" class="waves-effect">
+                                <i class="mdi mdi-truck-outline icon nav-icon"></i>
+                                <span class="menu-item" data-key="t-requests">Kargo</span>
+                            </a>
+                        </li>
 
-                            // Scroll/fixedColumns ile footer inputları doğru bağlamak için
-                            $('#DataTables tfoot input').on('keyup change', function () {
-                                var colIndex = $(this).data('index');
-                                table.column(colIndex).search(this.value).draw();
-                            });
-                        });
-                </script>
+                        <li class="menu-title" data-key="t-filter-title">ARAÇLAR</li>
 
-                @await RenderSectionAsync("Scripts", required: false)
-                @await Component.InvokeAsync("NToastNotify")
-            </body>
+                        <li>
+                            <a href="javascript:void(0);" class="has-arrow waves-effect">
+                                <i class="mdi mdi-filter-variant icon nav-icon"></i>
+                                <span class="menu-item">Filtreler</span>
+                            </a>
+                            <ul class="sub-menu" aria-expanded="false">
+                                <li><a href="#">...</a></li>
+                            </ul>
+                        </li>
+                        <li>
+                            <a asp-controller="ProductExcel" asp-action="Index" class="waves-effect">
+                                <i class="mdi mdi-file-excel icon nav-icon"></i>
+                                <span class="menu-item">Excel'e Aktar</span>
+                            </a>
+                        </li>
 
-        </html>
+                        <li class="menu-title">SİSTEM YÖNETİMİ</li>
+
+                        <li>
+                            <a asp-controller="UserManagement" asp-action="Index" class="waves-effect">
+                                <i class="mdi mdi-account-group icon nav-icon"></i>
+                                <span class="menu-item">Kullanıcılar</span>
+                            </a>
+                        </li>
+
+                        @if (User.IsInRole(RoleConsts.Admin))
+                        {
+                            <li>
+                                <a asp-controller="MailSetting" asp-action="SettingSmtp" class="waves-effect">
+                                    <i class="mdi mdi-email-outline icon nav-icon"></i>
+                                    <span class="menu-item">Mail Ayarları</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <header class="ishorizontal-topbar">
+            <div class="topnav"></div>
+        </header>
+
+        <div id="sidebar-setting"></div>
+
+        <div class="main-content">
+            <div class="page-content">
+                <div class="container-fluid">
+                    @RenderBody()
+                </div>
+            </div>
+        </div>
+
+    </div> @await Component.InvokeAsync("Footer")
+
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasActivity" aria-labelledby="offcanvasActivityLabel">
+        <div class="offcanvas-header border-bottom">
+            <h5 id="offcanvasActivityLabel">Offcanvas right</h5>
+            <button type="button" class="btn-close text-reset" data-bs-canvas="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body"></div>
+    </div>
+
+    @await Component.InvokeAsync("Scripts")
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+
+    <script>
+        $(document).ready(function () {
+            var table = $('#DataTables').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                responsive: true,
+                scrollCollapse: true,
+                fixedColumns: true,
+                language: {
+                    url: '@Url.Content("~/DataTables/Turkish.json")'
+                }
+            });
+
+            $('#DataTables tfoot th').each(function (i) {
+                var title = $(this).text().trim();
+                if (title) {
+                    $(this).html('<input type="text" placeholder="Ara ' + title + '" data-index="' + i + '" class="form-control form-control-sm" />');
+                }
+            });
+
+            $('#DataTables tfoot input').on('keyup change', function () {
+                var colIndex = $(this).data('index');
+                table.column(colIndex).search(this.value).draw();
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+    @await Component.InvokeAsync("NToastNotify")
+</body>
+
+</html>

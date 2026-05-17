@@ -70,71 +70,71 @@ namespace StockTrack.WebUI.Controllers
             return RedirectToAction("Index");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var existingCargo = await _cargoDefinitionService.TGetByIdAsync(id);
+        // [HttpGet]
+        // public async Task<IActionResult> Delete(int id)
+        // {
+        //     var existingCargo = await _cargoDefinitionService.TGetByIdAsync(id);
 
-            if (existingCargo != null)
-            {
-                existingCargo.IsDeleted = true;
-                existingCargo.IsActive = false;
-                existingCargo.DeletedDate = DateTime.Now;
+        //     if (existingCargo != null)
+        //     {
+        //         existingCargo.IsDeleted = true;
+        //         existingCargo.IsActive = false;
+        //         existingCargo.DeletedDate = DateTime.Now;
 
-                await _cargoDefinitionService.TUpdateAsync(existingCargo);
-            }
+        //         await _cargoDefinitionService.TUpdateAsync(existingCargo);
+        //     }
 
-            return RedirectToAction("Index");
-        }
+        //     return RedirectToAction("Index");
+        // }
 
-        [HttpGet]
-        public async Task<IActionResult> Deleted()
-        {
-            var deletedCargo = await _cargoDefinitionService.TGetFilteredListAsync(c => c.IsDeleted);
+        // [HttpGet]
+        // public async Task<IActionResult> Deleted()
+        // {
+        //     var deletedCargo = await _cargoDefinitionService.TGetFilteredListAsync(c => c.IsDeleted);
 
-            var result = deletedCargo.Select(c => new CargoDefinitionDeletedDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                DeletedDate = c.DeletedDate
-            }).ToList();
+        //     var result = deletedCargo.Select(c => new CargoDefinitionDeletedDto
+        //     {
+        //         Id = c.Id,
+        //         Name = c.Name,
+        //         DeletedDate = c.DeletedDate
+        //     }).ToList();
 
-            return View(result);
-        }
-        [HttpPost]
-        public async Task<IActionResult> Restore(int id)
-        {
-            var cargoDef = await _cargoDefinitionService.TGetByIdAsync(id);
+        //     return View(result);
+        // }
+        // [HttpPost]
+        // public async Task<IActionResult> Restore(int id)
+        // {
+        //     var cargoDef = await _cargoDefinitionService.TGetByIdAsync(id);
 
-            if (cargoDef != null)
-            {
-                cargoDef.IsDeleted = false;
-                cargoDef.IsActive = true;
-                cargoDef.DeletedDate = null;
+        //     if (cargoDef != null)
+        //     {
+        //         cargoDef.IsDeleted = false;
+        //         cargoDef.IsActive = true;
+        //         cargoDef.DeletedDate = null;
 
-                await _cargoDefinitionService.TUpdateAsync(cargoDef);
-                TempData["SuccessMessage"] = "Kayıt başarıyla geri yüklendi.";
+        //         await _cargoDefinitionService.TUpdateAsync(cargoDef);
+        //         TempData["SuccessMessage"] = "Kayıt başarıyla geri yüklendi.";
 
-                // --- SİHİRLİ YÖNLENDİRME KISMI ---
-                // Hangi tipe aitse o çöp kutusuna geri dön!
-                if (cargoDef.DefinitionType == 1)
-                {
-                    return RedirectToAction("Deleted"); // Kontrol Sonuçları
-                }
-                else if (cargoDef.DefinitionType == 2 || cargoDef.DefinitionType == 3)
-                {
-                    return RedirectToAction("DeletedProductStatus"); // Ürün Durumları
-                }
-                else if (cargoDef.DefinitionType == 4 || cargoDef.DefinitionType == 5)
-                {
-                    // YENİ EKLENEN KISIM: Tip 4 veya 5 ise, ID'siyle beraber kendi sayfasına yolla
-                    return RedirectToAction("DeletedRequestReason", new { id = cargoDef.DefinitionType });
-                }
-            }
+        //         // --- SİHİRLİ YÖNLENDİRME KISMI ---
+        //         // Hangi tipe aitse o çöp kutusuna geri dön!
+        //         if (cargoDef.DefinitionType == 1)
+        //         {
+        //             return RedirectToAction("Deleted"); // Kontrol Sonuçları
+        //         }
+        //         else if (cargoDef.DefinitionType == 2 || cargoDef.DefinitionType == 3)
+        //         {
+        //             return RedirectToAction("DeletedProductStatus"); // Ürün Durumları
+        //         }
+        //         else if (cargoDef.DefinitionType == 4 || cargoDef.DefinitionType == 5)
+        //         {
+        //             // YENİ EKLENEN KISIM: Tip 4 veya 5 ise, ID'siyle beraber kendi sayfasına yolla
+        //             return RedirectToAction("DeletedRequestReason", new { id = cargoDef.DefinitionType });
+        //         }
+        //     }
 
-            TempData["ErrorMessage"] = "Kayıt bulunamadı.";
-            return RedirectToAction("Index"); // Hata olursa veya tip bulunamazsa ana sayfaya at
-        }
+        //     TempData["ErrorMessage"] = "Kayıt bulunamadı.";
+        //     return RedirectToAction("Index"); // Hata olursa veya tip bulunamazsa ana sayfaya at
+        // }
 
 
         // ======================================================
@@ -174,38 +174,38 @@ namespace StockTrack.WebUI.Controllers
             return RedirectToAction("ProductStatusIndex");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> DeleteProductStatus(int id)
-        {
-            var existingCargo = await _cargoDefinitionService.TGetByIdAsync(id);
+        // [HttpGet]
+        // public async Task<IActionResult> DeleteProductStatus(int id)
+        // {
+        //     var existingCargo = await _cargoDefinitionService.TGetByIdAsync(id);
 
-            if (existingCargo != null)
-            {
-                existingCargo.IsDeleted = true;
-                existingCargo.IsActive = false;
-                existingCargo.DeletedDate = DateTime.Now;
+        //     if (existingCargo != null)
+        //     {
+        //         existingCargo.IsDeleted = true;
+        //         existingCargo.IsActive = false;
+        //         existingCargo.DeletedDate = DateTime.Now;
 
-                await _cargoDefinitionService.TUpdateAsync(existingCargo);
-            }
+        //         await _cargoDefinitionService.TUpdateAsync(existingCargo);
+        //     }
 
-            return RedirectToAction("ProductStatusIndex");
-        }
-        [HttpGet]
-        public async Task<IActionResult> DeletedProductStatus()
-        {
-            // Tip 2 (Giriş) veya 3 (Çıkış) olanları getir
-            var deletedCargo = await _cargoDefinitionService.TGetFilteredListAsync(c => c.IsDeleted && (c.DefinitionType == 2 || c.DefinitionType == 3));
+        //     return RedirectToAction("ProductStatusIndex");
+        // }
+        // [HttpGet]
+        // public async Task<IActionResult> DeletedProductStatus()
+        // {
+        //     // Tip 2 (Giriş) veya 3 (Çıkış) olanları getir
+        //     var deletedCargo = await _cargoDefinitionService.TGetFilteredListAsync(c => c.IsDeleted && (c.DefinitionType == 2 || c.DefinitionType == 3));
 
-            var result = deletedCargo.Select(c => new CargoDefinitionDeletedDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                DeletedDate = c.DeletedDate,
-                DefinitionType = c.DefinitionType // YENİ: Veritabanındaki tipi DTO'ya aktarıyoruz
-            }).ToList();
+        //     var result = deletedCargo.Select(c => new CargoDefinitionDeletedDto
+        //     {
+        //         Id = c.Id,
+        //         Name = c.Name,
+        //         DeletedDate = c.DeletedDate,
+        //         DefinitionType = c.DefinitionType // YENİ: Veritabanındaki tipi DTO'ya aktarıyoruz
+        //     }).ToList();
 
-            return View(result);
-        }
+        //     return View(result);
+        // }
         
         // ======================================================
         // 3. TALEP NEDENLERİ İŞLEMLERİ (DefinitionType = 4 ve 5)
@@ -248,39 +248,39 @@ namespace StockTrack.WebUI.Controllers
             return RedirectToAction("RequestReasonIndex", new { id = returnType });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> DeleteRequestReason(int id)
-        {
-            var existingCargo = await _cargoDefinitionService.TGetByIdAsync(id);
-            int returnType = 4;
+        // [HttpGet]
+        // public async Task<IActionResult> DeleteRequestReason(int id)
+        // {
+        //     var existingCargo = await _cargoDefinitionService.TGetByIdAsync(id);
+        //     int returnType = 4;
 
-            if (existingCargo != null)
-            {
-                returnType = existingCargo.DefinitionType; // Geri dönülecek sayfayı bul
-                existingCargo.IsDeleted = true;
-                existingCargo.IsActive = false;
-                existingCargo.DeletedDate = DateTime.Now;
-                await _cargoDefinitionService.TUpdateAsync(existingCargo);
-            }
-            return RedirectToAction("RequestReasonIndex", new { id = returnType });
-        }
-        [HttpGet]
-        public async Task<IActionResult> DeletedRequestReason(int id = 4) // 4: Gönderim, 5: İade
-        {
-            ViewBag.ReasonType = id; // HTML tarafında başlığın "Gönderim" mi "İade" mi olacağını bilmek için
+        //     if (existingCargo != null)
+        //     {
+        //         returnType = existingCargo.DefinitionType; // Geri dönülecek sayfayı bul
+        //         existingCargo.IsDeleted = true;
+        //         existingCargo.IsActive = false;
+        //         existingCargo.DeletedDate = DateTime.Now;
+        //         await _cargoDefinitionService.TUpdateAsync(existingCargo);
+        //     }
+        //     return RedirectToAction("RequestReasonIndex", new { id = returnType });
+        // }
+        // [HttpGet]
+        // public async Task<IActionResult> DeletedRequestReason(int id = 4) // 4: Gönderim, 5: İade
+        // {
+        //     ViewBag.ReasonType = id; // HTML tarafında başlığın "Gönderim" mi "İade" mi olacağını bilmek için
 
-            // Sadece silinmiş ve ilgili tipe (4 veya 5) ait olanları getir
-            var deletedCargo = await _cargoDefinitionService.TGetFilteredListAsync(c => c.IsDeleted && c.DefinitionType == id);
+        //     // Sadece silinmiş ve ilgili tipe (4 veya 5) ait olanları getir
+        //     var deletedCargo = await _cargoDefinitionService.TGetFilteredListAsync(c => c.IsDeleted && c.DefinitionType == id);
 
-            var result = deletedCargo.Select(c => new CargoDefinitionDeletedDto
-            {
-                Id = c.Id,
-                Name = c.Name,
-                DeletedDate = c.DeletedDate,
-                DefinitionType = c.DefinitionType
-            }).ToList();
+        //     var result = deletedCargo.Select(c => new CargoDefinitionDeletedDto
+        //     {
+        //         Id = c.Id,
+        //         Name = c.Name,
+        //         DeletedDate = c.DeletedDate,
+        //         DefinitionType = c.DefinitionType
+        //     }).ToList();
 
-            return View(result);
-        }
+        //     return View(result);
+        // }
     }
 }

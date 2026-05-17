@@ -257,12 +257,10 @@
 
                 <!-- Kargo Firması ve Takip No -->
                 <div id="cargoExtraFields" class="row g-3 d-none bg-light p-2 rounded border mt-1">
-                    <div class="col-12">
-                        <label class="form-label mb-1">Kargo Firması <span
-                            class="text-danger">*</span></label>
-                            <select name="CargoNameId" id="cargoCompany" class="form-select w-100"
-                                    asp-items="@(ViewBag.CargoNames)">
-                                <option value="">-- Seçiniz --</option>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Kargo Firması</label>
+                            <select name="CargoNameId" id="cargoCompanySelect" class="form-select border-primary"
+                                    asp-items="@ViewBag.CargoNames">
                             </select>
                         </div>
                         <div class="col-12">
@@ -362,7 +360,7 @@
         $("#btnSaveCargo").on("click", function () {
             const st = parseInt($("#cargoStatusSelect").val() || 0, 10);
             const tracking = $("#trackingNumber").val().trim();
-            const company = $("#cargoCompany").val();
+            const company = $("#cargoCompanySelect").val();
             const cancelReason = $("#cancelReason").val().trim();
 
             // YENİ EKLENEN
@@ -433,9 +431,19 @@
                 $("#arcBoxConfigIcon").addClass("d-none");
             }
 
-            // Formu Temizle
+            // Formu Temizle ve Varsayılan Kargo Firmasını Seçtir
             $("#cargoStatusSelect").val("").trigger("change");
-            $("#trackingNumber, #cargoCompany, #cancelReason").val("");
+            $("#cargoPreparer").val("");
+            $("#trackingNumber, #cancelReason").val("");
+            
+            // Arka plandan gelen Yurtiçi Kargo ID'sini jilet gibi seçtiriyoruz
+            const defaultCargoId = '@ViewBag.DefaultCargoId';
+            if (defaultCargoId) {
+                $("#cargoCompanySelect").val(defaultCargoId);
+            } else {
+                $("#cargoCompanySelect").val("");
+            }
+
             if (typeof syncRequired === "function") syncRequired();
         });
     </script>

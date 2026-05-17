@@ -338,10 +338,10 @@ namespace StockTrack.WebUI.Controllers
                 item.RemainingQuantity = item.TotalQuantity - item.DistributedQuantity;
             }
 
-            if (!productStock.Any())
-            {
-                return Json(new { message = "Bu ürün için stok kaydı bulunamadı." });
-            }
+            // if (!productStock.Any())
+            // {
+            //     return Json(new { message = "Bu ürün için stok kaydı bulunamadı." });
+            // }
 
             return Json(productStock);
         }

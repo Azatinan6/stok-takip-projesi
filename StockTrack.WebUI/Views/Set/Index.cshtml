@@ -4,78 +4,126 @@
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-
-<div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-    <h5 class="mb-0 text-dark"><i class="mdi mdi-layers-triple text-primary me-2"></i> Set Tanımları</h5>        
-    <div class="d-flex justify-content-end align-items-center mt-4">
-            <a asp-controller="Set" asp-action="Deleted" class="btn btn-outline-danger me-2 shadow-sm">
-                <i class="mdi mdi-delete-restore"></i> Silinen Setler
-            </a>
-            
-            <a href="~/Set/Create" class="btn btn-primary">
-                <i class="mdi mdi-plus-circle"></i> Yeni Set Ekle
-            </a>
+<div class="d-flex justify-content-between align-items-center">
+    <h4 class="mb-3">Set Tanımları</h4>
+    <div>
+        <a href="~/Set/Create" class="btn btn-primary shadow-sm">
+            <i class="mdi mdi-plus-circle"></i> Yeni Set Ekle
+        </a>
     </div>
-    </div>
+</div>
 
-    <div class="card-body">
-        <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th width="10%">#ID</th>
-                        <th width="40%">Set Adı</th>
-                        <th width="15%">İçerik Sayısı</th>
-                        <th width="15%">Durum</th>
-                        <th width="20%" class="text-center">İşlemler</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model != null && Model.Any())
+<hr>
+
+<div class="card-body p-0">
+    <div class="table-responsive">
+        <table id="DataTables" class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th width="10%" class="ps-4">#ID</th>
+                    <th width="40%">Set Adı</th>
+                    <th width="15%">İçerik Sayısı</th>
+                    <th width="15%">Durum</th>
+                    <th width="20%" class="text-end pe-4">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
                     {
-                        foreach (var item in Model)
-                        {
-                            <tr>
-                                <td class="fw-bold text-muted">@item.Id</td>
-                                <td class="fw-bold text-dark">@item.Name</td>
-                                <td>
-                                    <span class="badge bg-info text-dark">
-                                        @(item.ProductSetItems?.Count ?? 0) Ürün
-                                    </span>
-                                </td>
-                                <td>
-                                    @if (item.IsActive)
-                                    {
-                                        <span class="badge bg-success-subtle text-success">Aktif</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-danger-subtle text-danger">Pasif</span>
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    <div class="btn-group">
-                                        <a href="~/Set/Edit/@item.Id" class="btn btn-sm btn-outline-primary" title="Düzenle">
-                                            <i class="mdi mdi-pencil"></i>
-                                        </a>
-                                        <a href="~/Set/ToggleStatus/@item.Id" class="btn btn-sm btn-outline-warning" title="Aktif/Pasif Yap">
-                                            <i class="mdi mdi-swap-horizontal"></i>
-                                        </a>
-                                        <a href="~/Set/Delete/@item.Id" class="btn btn-sm btn-outline-danger" title="Sil" onclick="return confirm('Bu seti silmek istediğinize emin misiniz?');">
-                                            <i class="mdi mdi-trash-can"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
+                        // Setteki ürünlerin isimlerini aralarına virgül koyarak birleştiriyoruz
+                        var activeProducts = item.ProductSetItems?.Where(x => !x.IsDeleted && x.Product != null).ToList();
+                        var productNames = activeProducts != null && activeProducts.Any()
+                            ? string.Join(", ", activeProducts.Select(p => p.Product.Name))
+                            : "İçerik bulunamadı";
+
                         <tr>
-                            <td colspan="5" class="text-center text-muted py-4">Henüz bir set oluşturulmamış.</td>
+                            <td class="fw-bold text-muted ps-4">@item.Id</td>
+                            <td class="fw-bold text-dark">@item.Name</td>
+                            <td>
+                                <span class="badge bg-info text-dark" style="cursor: help;" data-bs-toggle="tooltip"
+                                      data-bs-placement="top" title="@productNames">
+                                    @(activeProducts?.Count ?? 0) Ürün
+                                </span>
+                            </td>
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="badge bg-success-subtle text-success">Aktif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-subtle text-danger">Pasif</span>
+                                }
+                            </td>
+                            <td class="text-end pe-4">
+                                <div class="btn-group">
+                                    <a href="~/Set/Edit/@item.Id" class="btn btn-sm btn-outline-primary" title="Düzenle">
+                                        <i class="mdi mdi-pencil"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-sm btn-outline-warning toggle-status-btn"
+                                            data-id="@item.Id" data-name="@item.Name"
+                                            data-isactive="@item.IsActive.ToString().ToLower()" title="Aktif/Pasif Yap">
+                                        <i class="mdi mdi-swap-horizontal"></i>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                     }
-                </tbody>
-            </table>
-        </div>
+                }
+            </tbody>
+        </table>
     </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // 1. Bootstrap Tooltip'leri Başlat (Mouse üzerine gelince siyah kutu çıkması için şart)
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+
+            // 2. Aktif/Pasif Butonu AJAX İşlemi
+            $('.toggle-status-btn').on('click', function () {
+                const btn = $(this);
+                const id = btn.data('id');
+                const name = btn.data('name');
+                const isCurrentlyActive = btn.data('isactive') === true;
+
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    text: `"${name}" setini ${isCurrentlyActive ? "pasif" : "aktif"} hale getirmek istiyor musunuz?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Evet, Değiştir!',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '/Set/ToggleStatus/' + id,
+                            type: 'POST', // Controller'daki [HttpPost] metoduna gidiyoruz
+                            success: function (res) {
+                                if (res.success) {
+                                    Swal.fire('Başarılı!', res.message, 'success');
+                                    setTimeout(() => location.reload(), 1500);
+                                } else {
+                                    Swal.fire('Hata!', res.message, 'error');
+                                }
+                            },
+                            error: function () {
+                                Swal.fire('Hata!', 'İşlem sırasında bir hata oluştu.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+
+        });
+    </script>
+}

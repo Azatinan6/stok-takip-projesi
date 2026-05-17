@@ -53,9 +53,12 @@
                                         <i class="fa fa-edit"></i>
                                     </button>
 
-                                    <a href="~/CargoName/ToggleStatus/@item.Id" class="btn btn-outline-warning btn-sm" title="Aktif/Pasif Yap">
+                                    <button type="button" class="btn btn-outline-warning btn-sm toggle-status-btn" 
+                                            data-id="@item.Id" 
+                                            data-name="@item.Name" 
+                                            title="Aktif/Pasif Yap">
                                         <i class="fa fa-exchange-alt"></i>
-                                    </a>
+                                    </button>
 
                                     @* <a href="~/CargoName/Delete/@item.Id" class="btn btn-outline-danger btn-sm" title="Sil" onclick="return confirm('@item.Name firmasını silmek istediğinize emin misiniz?');">
                                         <i class="fa fa-trash"></i>
@@ -117,13 +120,52 @@
     </div>
 </div>
 
-<script>
-    function openEditModal(id, name) {
-        // Modal içindeki inputların ID'lerine göre değerleri ata
-        $('#editCargoId').val(id);
-        $('#editCargoName').val(name);
-        // Modalı aç
-        var myModal = new bootstrap.Modal(document.getElementById('editCargoModal'));
-        myModal.show();
-    }
-</script>
+@section Scripts {
+    <script>
+        // 1. DÜZENLEME MODALI AÇMA FONKSİYONU
+        function openEditModal(id, name) {
+            $('#editCargoId').val(id);
+            $('#editCargoName').val(name);
+            var myModal = new bootstrap.Modal(document.getElementById('editCargoModal'));
+            myModal.show();
+        }
+
+        // 2. AKTİF/PASİF YAPMA AJAX İŞLEMİ
+        $(document).ready(function () {
+            $('.toggle-status-btn').on('click', function () {
+                const btn = $(this);
+                const id = btn.data('id');
+                const name = btn.data('name');
+
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    text: `"${name}" firmasının durumunu değiştirmek istiyor musunuz?`,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Evet, Değiştir!',
+                    cancelButtonText: 'İptal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '/CargoName/ToggleStatus/' + id,
+                            type: 'POST', // Controller'daki [HttpPost] metoduna tam uyum!
+                            success: function (res) {
+                                if (res.success) {
+                                    Swal.fire('Başarılı!', res.message, 'success');
+                                    setTimeout(() => location.reload(), 1500);
+                                } else {
+                                    Swal.fire('Hata!', res.message, 'error');
+                                }
+                            },
+                            error: function () {
+                                Swal.fire('Hata!', 'İşlem sırasında bir hata oluştu.', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

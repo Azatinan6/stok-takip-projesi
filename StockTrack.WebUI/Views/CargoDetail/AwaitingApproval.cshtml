@@ -209,9 +209,8 @@ Layout = "~/Views/Shared/_AdminLayout.cshtml";
                             <div id="cargoActionFields" class="d-none mt-3 p-3 border rounded bg-soft-primary">
                                 <div class="mb-3">
                                     <label class="form-label fw-bold">Kargo Firması</label>
-                                    <select name="CargoNameId" class="form-select border-primary"
+                                    <select name="CargoNameId" id="cargoCompanySelect" class="form-select border-primary"
                                             asp-items="@ViewBag.CargoNames">
-                                        <option value="">-- Firma Seçiniz --</option>
                                     </select>
                                 </div>
                                 <div class="mb-3">
@@ -325,10 +324,19 @@ Layout = "~/Views/Shared/_AdminLayout.cshtml";
                 $("#arcBoxConfigIcon").addClass("d-none");
             }
 
-            // Formu Temizle
+            // Formu Temizle ve Varsayılan Kargo Firmasını Seçtir
             $("#cargoStatusSelect").val("").trigger("change");
             $("#cargoPreparer").val("");
-            $("#trackingNumber, #cargoCompany, #cancelReason").val("");
+            $("#trackingNumber, #cancelReason").val("");
+            
+            // Arka plandan gelen Yurtiçi Kargo ID'sini jilet gibi seçtiriyoruz
+            const defaultCargoId = '@ViewBag.DefaultCargoId';
+            if (defaultCargoId) {
+                $("#cargoCompanySelect").val(defaultCargoId);
+            } else {
+                $("#cargoCompanySelect").val("");
+            }
+
             if (typeof syncRequired === "function") syncRequired();
         });
     </script>

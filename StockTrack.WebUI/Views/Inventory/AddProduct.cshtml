@@ -10,13 +10,13 @@
     <div class="col-lg-12">
         <div class="card shadow-sm border-0">
             <div class="card-header text-white d-flex align-items-center">
-                <h5 class="mb-0">🏥Yeni Ürün Girişi</h5>
+                <h5 class="mb-0">Yeni Ürün Girişi</h5>
             </div>
 
             <div class="card-body">
                 <form asp-controller="Inventory" asp-action="AddProduct" method="post" enctype="multipart/form-data">
 
-                    <h6 class="text-muted mb-3">📍 Lokasyon ve Kategori Bilgileri</h6>
+                    <h6 class="text-muted mb-3">Lokasyon ve Kategori Bilgileri</h6>
                     <div class="row mb-4">
                         <div class="col-md-4 mb-3">
                             <label class="form-label fw-bold">Depo Seçiniz</label>
@@ -30,16 +30,16 @@
                                 <option value="">-- Kategori Seçin --</option>
                             </select>
                         </div>
-                        <div class="col-md-4 mb-3">
+                        @* <div class="col-md-4 mb-3">
                             <label class="form-label fw-bold">Ürün Durumu</label>
                             <select class="form-select" asp-for="ProductStatusId" asp-items="@ViewBag.ProductStatuses"
                                     required>
                                 <option value="">-- Durum Seçin --</option>
                             </select>
-                        </div>
+                        </div> *@
                     </div>
 
-                    <h6 class="text-muted mb-3">📦 Ürün Detayları</h6>
+                    <h6 class="text-muted mb-3">Ürün Detayları</h6>
                     <div class="row mb-4">
                         <div class="col-md-4 mb-3">
                             <label class="form-label fw-bold">Ürün Adı</label>
@@ -55,7 +55,7 @@
                                     </div>
                                 </div>
 
-                                <h6 class="text-muted mb-3">📊 Stok ve Medya</h6>
+                                <h6 class="text-muted mb-3">Stok ve Medya</h6>
                                 <div class="row mb-4">
                                     <div class="col-md-4 mb-3">
                                         <label class="form-label fw-bold text-success">Başlangıç Stok Adeti</label>

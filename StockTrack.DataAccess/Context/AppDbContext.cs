@@ -28,6 +28,7 @@ namespace StockTrack.DataAccess.Context
         public DbSet<RequestFormDetail> RequestFormDetails { get; set; }
         public DbSet<ProductMainRepoLocation> ProductMainRepoLocations { get; set; }
         public DbSet<PersonDetail> PersonDetails { get; set; }
+        public IEnumerable<object> CargoCompanies { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

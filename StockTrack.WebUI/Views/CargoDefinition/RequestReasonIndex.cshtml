@@ -12,10 +12,10 @@
         📑 @(isDispatch ? "Gönderim Nedenleri" : "İade Nedenleri") Tanımları
     </h6>
     <div>
-        <a asp-controller="CargoDefinition" asp-action="DeletedRequestReason" asp-route-id="@ViewBag.ReasonType"
+        @* <a asp-controller="CargoDefinition" asp-action="DeletedRequestReason" asp-route-id="@ViewBag.ReasonType"
                class="btn btn-outline-danger me-2 shadow-sm">
             <i class="mdi mdi-delete-restore me-1"></i> Silinenler
-        </a>
+        </a> *@
 
         <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createReasonModal">
             <i class="fa fa-plus"></i> Yeni @(isDispatch ? "Gönderim" : "İade") Nedeni Ekle
@@ -39,8 +39,8 @@
                 <span class="col-3 text-end">
                     <button type="button" class="btn btn-warning btn-sm shadow-sm"
                             onclick="openEditReasonModal(@item.Id, '@item.Name')">Düzenle</button>
-                    <a href="~/CargoDefinition/DeleteRequestReason/@item.Id" class="btn btn-danger btn-sm shadow-sm"
-                       onclick="return confirm('Bu nedeni silmek istediğinize emin misiniz?');">Sil</a>
+                    @* <a href="~/CargoDefinition/DeleteRequestReason/@item.Id" class="btn btn-danger btn-sm shadow-sm"
+                       onclick="return confirm('Bu nedeni silmek istediğinize emin misiniz?');">Sil</a> *@
                 </span>
             </div>
         }
