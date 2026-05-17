@@ -2,96 +2,215 @@
 @model InventoryAddDto
 
 @{
-    ViewData["Title"] = "Depoya Ürün Ekle";
+    ViewData["Title"] = "Depoya Stok Ekle";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
 <div class="row">
     <div class="col-lg-12">
         <div class="card shadow-sm border-0">
-            <div class="card-header text-white d-flex align-items-center">
-                <h5 class="mb-0">Yeni Ürün Girişi</h5>
+            <div class="card-header bg-primary text-white d-flex align-items-center">
+                <h5 class="mb-0 text-white"><i class="mdi mdi-plus-box-multiple me-2"></i> Yeni Stok Girişi</h5>
             </div>
 
-            <div class="card-body">
-                <form asp-controller="Inventory" asp-action="AddProduct" method="post" enctype="multipart/form-data">
+            <div class="card-body p-4">
+                <form asp-controller="Inventory" asp-action="AddProduct" method="post" id="stockEntryForm">
 
-                    <h6 class="text-muted mb-3">Lokasyon ve Kategori Bilgileri</h6>
+                    <h6 class="text-uppercase text-muted border-bottom pb-2 mb-3">1. Lokasyon ve Kategori</h6>
                     <div class="row mb-4">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Depo Seçiniz</label>
-                            <select class="form-select" asp-for="WarehouseId" asp-items="@ViewBag.Warehouses" required>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Depo Seçiniz <span class="text-danger">*</span></label>
+                            <select class="form-select border-primary" asp-for="WarehouseId"
+                                    asp-items="@ViewBag.Warehouses" required>
                                 <option value="">-- Depo Seçin --</option>
                             </select>
                         </div>
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Kategori Seçiniz</label>
-                            <select class="form-select" asp-for="CategoryId" asp-items="@ViewBag.Categories" required>
-                                <option value="">-- Kategori Seçin --</option>
-                            </select>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Kategori Seçiniz <span
+                                class="text-danger">*</span></label>
+                                <select class="form-select border-primary" asp-for="CategoryId" id="categorySelect"
+                                        asp-items="@ViewBag.Categories" required>
+                                    <option value="">-- Kategori Seçin --</option>
+                                </select>
+                            </div>
                         </div>
-                        @* <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Ürün Durumu</label>
-                            <select class="form-select" asp-for="ProductStatusId" asp-items="@ViewBag.ProductStatuses"
-                                    required>
-                                <option value="">-- Durum Seçin --</option>
-                            </select>
-                        </div> *@
-                    </div>
 
-                    <h6 class="text-muted mb-3">Ürün Detayları</h6>
-                    <div class="row mb-4">
-                        <div class="col-md-4 mb-3">
-                            <label class="form-label fw-bold">Ürün Adı</label>
-                            <input type="text" class="form-control" asp-for="ProductName" required>
+                        <h6 class="text-uppercase text-muted border-bottom pb-2 mb-3">2. Ürün Seçimi ve Detayları</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Ürün Seçiniz <span class="text-danger">*</span></label>
+                                <select name="ProductId" id="productSelect" class="form-select border-primary" disabled>
+                                    <option value="">Önce kategori seçiniz...</option>
+                                </select>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label fw-bold">Marka</label>
-                                <input type="text" class="form-control" asp-for="Brand" required>
+                                <input type="text" id="brandInput" class="form-control bg-light" readonly
+                                       placeholder="Otomatik gelecek">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Model</label>
+                                <input type="text" id="modelInput" class="form-control bg-light" readonly
+                                       placeholder="Otomatik gelecek">
+                            </div>
+                        </div>
+
+                        <h6 class="text-uppercase text-muted border-bottom pb-2 mb-3">3. Stok ve Medya</h6>
+                        <div class="row mb-4">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold text-success">Eklenecek Stok Adeti <span
+                                    class="text-danger">*</span></label>
+                                    <input type="number" class="form-control border-success" asp-for="StockQuantity" min="1"
+                                           value="1" required>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label fw-bold">Model</label>
-                                    <input type="text" class="form-control" asp-for="Model" required>
-                                    </div>
+                                    <label class="form-label fw-bold">Stok Uyarı Seviyesi</label>
+                                    <input type="number" id="warningInput" class="form-control bg-light" readonly
+                                           placeholder="Ürün tanımından çekilecek">
+                                    <small class="text-muted">Bu ürüne ait tanımlı uyarı limiti.</small>
                                 </div>
-
-                                <h6 class="text-muted mb-3">Stok ve Medya</h6>
-                                <div class="row mb-4">
-                                    <div class="col-md-4 mb-3">
-                                        <label class="form-label fw-bold text-success">Başlangıç Stok Adeti</label>
-                                        <input type="number" class="form-control" asp-for="StockQuantity" min="0" value="0"
-                                               required>
-                                        </div>
-                                        <div class="col-md-4 mb-3">
-                                            <label class="form-label fw-bold text-danger">Stok Uyarı Seviyesi</label>
-                                            <input type="number" class="form-control" asp-for="StockWarningLevel" min="0" value="5"
-                                                   required>
-                                                <small class="text-muted">Stok bu sayının altına düşünce uyarı verir.</small>
-                                            </div>
-                                            <div class="col-md-4 mb-3">
-                                                <label class="form-label fw-bold">Ürün Görseli</label>
-                                                <input type="file" class="form-control" asp-for="ProductImage" accept="image/*">
-                                                </div>
-                                            </div>
-
-                                            <div class="row mb-4">
-                                                <div class="col-md-12">
-                                                    <label class="form-label fw-bold">Açıklama / Notlar</label>
-                                                    <textarea class="form-control" asp-for="Description" rows="3"></textarea>
-                                                </div>
-                                            </div>
-
-                                            <hr />
-
-                                            <div class="d-flex justify-content-end">
-                                                <a href="~/Inventory/Stock" class="btn btn-light border me-2">İptal</a>
-                                                <button type="submit" class="btn btn-primary">
-                                                    <i class="mdi mdi-content-save"></i> Ürünü Depoya Kaydet
-                                                </button>
-                                            </div>
-
-                                        </form>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label fw-bold">Ürün Görseli</label>
+                                    <div id="productImageContainer"
+                                         class="p-2 border rounded bg-light text-center text-muted d-flex align-items-center justify-content-center"
+                                         style="height: 38px; overflow: hidden;">
+                                        Görsel seçildiğinde gelecek
                                     </div>
                                 </div>
                             </div>
-                        </div>
+
+                            <div class="row mb-4">
+                                <div class="col-md-12">
+                                    <label class="form-label fw-bold">Açıklama / Notlar</label>
+                                    <textarea class="form-control" asp-for="Description" rows="2"></textarea>
+                                </div>
+                            </div>
+
+                            <hr />
+
+                            <div class="d-flex justify-content-end">
+                                <a href="~/Inventory/Stock" class="btn btn-light border me-2 px-4">İptal</a>
+                                <button type="button" id="btnSubmitStock" class="btn btn-primary px-4 fw-bold">
+                                    <i class="mdi mdi-content-save"></i> Stoka Ekle
+                                </button>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @section Scripts {
+            <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+            <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+            <script>
+                $(document).ready(function () {
+
+                // 1. KATEGORİ SEÇİMİ DEĞİŞTİĞİNDE TETİKLENİR
+                $("#categorySelect").on("change", function () {
+                const categoryId = $(this).val();
+                const $productSelect = $("#productSelect");
+
+                $("#brandInput, #modelInput, #warningInput").val("");
+                $("#productImageContainer").html("Görsel seçildiğinde gelecek");
+
+                if (!categoryId) {
+                if ($productSelect.hasClass("select2-hidden-accessible")) {
+                $productSelect.select2('destroy');
+                }
+                $productSelect.empty().append('<option value="">Önce kategori seçiniz...</option>').prop("disabled", true);
+                return;
+                }
+
+                $.ajax({
+                url: '/Inventory/GetProductsByCategory',
+                type: 'GET',
+                data: { categoryId: categoryId },
+                success: function (data) {
+                if ($productSelect.hasClass("select2-hidden-accessible")) {
+                $productSelect.select2('destroy');
+                }
+
+                $productSelect.empty().append('<option value="">-- Bu kategoriden ürün arayın... --</option>');
+
+                $.each(data, function (index, item) {
+                $productSelect.append($('<option>', {
+                value: item.id,
+                text: item.name,
+                'data-model': item.model,
+                'data-brand': item.brand,
+                'data-warning': item.warningThreshold,
+                'data-photo': item.photoUrl
+                }));
+                });
+
+                $productSelect.prop("disabled", false);
+                $productSelect.select2({
+                placeholder: "Ürün ara veya seç...",
+                width: '100%',
+                allowClear: true
+                });
+                },
+                error: function () {
+                Swal.fire('Hata', 'Ürünler getirilirken sistemsel bir sorun oluştu.', 'error');
+                }
+                });
+                });
+
+                // 2. ÜRÜN SEÇİMİ DEĞİŞTİĞİNDE DİĞER KİLİTLİ KUTULARI DOLDUR
+                $("#productSelect").on("change", function () {
+                const selectedOption = $(this).find('option:selected');
+
+                if (!selectedOption.val()) {
+                $("#brandInput, #modelInput, #warningInput").val("");
+                $("#productImageContainer").html("Görsel seçildiğinde gelecek");
+                return;
+                }
+
+                $("#brandInput").val(selectedOption.data('brand'));
+                $("#modelInput").val(selectedOption.data('model'));
+                $("#warningInput").val(selectedOption.data('warning'));
+
+                const photoUrl = selectedOption.data('photo');
+                if (photoUrl && photoUrl !== "null" && photoUrl !== "") {
+                $("#productImageContainer").html(`<a href="${photoUrl}" target="_blank" class="text-primary fw-bold text-decoration-none"><i class="mdi mdi-image-search"></i> Görseli Aç</a>`);
+                } else {
+                $("#productImageContainer").html("Görsel Bulunamadı");
+                }
+                });
+
+                // 3. YENİ EKLENEN GÜVENLİ SUBMIT KONTROLÜ
+                $("#btnSubmitStock").on("click", function () {
+                const warehouse = $("#WarehouseId").val();
+                const category = $("#categorySelect").val();
+                const product = $("#productSelect").val();
+                const quantity = parseInt($("input[name='StockQuantity']").val()) || 0;
+
+                // Temel HTML5 kontrollerini elden geçiriyoruz
+                if (!warehouse) {
+                Swal.fire('Eksik Bilgi', 'Lütfen stok eklemek istediğiniz depoyu seçiniz.', 'warning');
+                return;
+                }
+                if (!category) {
+                Swal.fire('Eksik Bilgi', 'Lütfen bir kategori seçiniz.', 'warning');
+                return;
+                }
+                // İşte tarayıcıyı kilitleyen gizli Select2 doğrulaması burada insanca yapılıyor:
+                if (!product) {
+                Swal.fire('Eksik Bilgi', 'Lütfen stoka eklemek istediğiniz ürünü seçiniz.', 'warning');
+                return;
+                }
+                if (quantity <= 0) {
+                Swal.fire('Hata', 'Eklenecek stok adeti en az 1 olmalıdır!', 'warning');
+                return;
+                }
+
+                // Her şey jilet gibiyse formu arka plana güvenle fırlat!
+                $("#stockEntryForm").submit();
+                });
+
+                });
+            </script>
+        }

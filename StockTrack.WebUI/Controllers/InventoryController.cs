@@ -1,9 +1,8 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using StockTrack.Business.Abstract; // ICargoDefinitionService için gerekli
+using StockTrack.Business.Abstract;
 using StockTrack.DataAccess.Context;
 using StockTrack.Dto.Inventory;
 using StockTrack.Entity.Enitities;
@@ -19,106 +18,156 @@ namespace StockTrack.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env;
-        private readonly ICargoDefinitionService _cargoDefinitionService; // 1. EKLENDİ: Dinamik durumları çekmek için
+        private readonly ICargoDefinitionService _cargoDefinitionService;
 
         public InventoryController(AppDbContext context, IWebHostEnvironment env, ICargoDefinitionService cargoDefinitionService)
         {
             _context = context;
             _env = env;
-            _cargoDefinitionService = cargoDefinitionService; // EKLENDİ
+            _cargoDefinitionService = cargoDefinitionService;
         }
 
+        // 1. STOK GİRİŞ SAYFASI (GET)
         [HttpGet]
         public async Task<IActionResult> AddProduct()
         {
-            ViewBag.Warehouses = new SelectList(_context.MainRepoLocations.Where(x => !x.IsDeleted), "Id", "Name");
-            ViewBag.Categories = new SelectList(_context.Categories.Where(x => !x.IsDeleted), "Id", "Name");
+            ViewBag.Warehouses = new SelectList(await _context.MainRepoLocations.Where(x => !x.IsDeleted).ToListAsync(), "Id", "Name");
+            ViewBag.Categories = new SelectList(await _context.Categories.Where(x => !x.IsDeleted && x.IsActive).ToListAsync(), "Id", "Name");
 
-            var inboundStatuses = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted && x.DefinitionType == 2);
-            ViewBag.ProductStatuses = new SelectList(inboundStatuses, "Id", "Name");
+            // Ürün durumu (ProductStatuses) çantadan tamamen kaldırıldı.
 
             return View(new InventoryAddDto());
         }
 
+        // 2. ZİNCİRLEME (CASCADING) AJAX METODU
+        [HttpGet]
+        public async Task<IActionResult> GetProductsByCategory(int categoryId)
+        {
+            var products = await _context.Products
+                .Where(x => x.CategoryId == categoryId && x.IsActive && !x.IsDeleted)
+                .Select(x => new
+                {
+                    id = x.Id,
+                    name = x.Name,
+                    model = x.Model ?? "-",
+                    brand = x.Brand ?? "-",
+                    warningThreshold = x.WarningThreshold ?? 5,
+                    photoUrl = x.PhotoUrl
+                })
+                .OrderBy(x => x.name)
+                .ToListAsync();
+
+            return Json(products);
+        }
+
+        // 3. STOK GİRİŞİNİ KAYDET 
         [HttpPost]
         public async Task<IActionResult> AddProduct(InventoryAddDto dto)
         {
-            // 1. Model Geçerlilik Kontrolü
             if (!ModelState.IsValid)
             {
-                ViewBag.Warehouses = new SelectList(_context.MainRepoLocations.Where(x => !x.IsDeleted), "Id", "Name");
-                ViewBag.Categories = new SelectList(_context.Categories.Where(x => !x.IsDeleted), "Id", "Name");
-
-                // Giriş Durumlarını (Tip 2) tekrar doldur
-                var inboundStatuses = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted && x.DefinitionType == 2);
-                ViewBag.ProductStatuses = new SelectList(inboundStatuses, "Id", "Name");
-
+                ViewBag.Warehouses = new SelectList(await _context.MainRepoLocations.Where(x => !x.IsDeleted).ToListAsync(), "Id", "Name");
+                ViewBag.Categories = new SelectList(await _context.Categories.Where(x => !x.IsDeleted && x.IsActive).ToListAsync(), "Id", "Name");
                 return View(dto);
             }
 
-            // 2. Görsel Yükleme İşlemi
-            string photoUrl = null;
-            if (dto.ProductImage != null && dto.ProductImage.Length > 0)
+            var existingProduct = await _context.Products.FindAsync(dto.ProductId);
+            if (existingProduct == null)
             {
-                string uploadsFolder = Path.Combine(_env.WebRootPath, "images/products");
-                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-
-                string uniqueFileName = Guid.NewGuid().ToString() + "_" + dto.ProductImage.FileName;
-                string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    await dto.ProductImage.CopyToAsync(fileStream);
-                }
-                photoUrl = "/images/products/" + uniqueFileName;
+                TempData["ErrorMessage"] = "Seçilen ürün sistemde bulunamadı!";
+                return RedirectToAction("AddProduct");
             }
 
-            // 3. Yeni Ürün Kaydı (Product)
-            var newProduct = new Product
+            // KRİTİK DÜZELTME: !x.IsDeleted şartını buradan kaldırdık! Silinmiş olsa bile o satırı yakalayacağız.
+            var existingStock = await _context.ProductMainRepoLocations
+                .FirstOrDefaultAsync(x => x.ProductId == dto.ProductId && x.MainRepoLocationId == dto.WarehouseId);
+
+            int oldStockQuantity = 0;
+
+            if (existingStock != null)
             {
-                Name = dto.ProductName,
-                Brand = dto.Brand,
-                Model = dto.Model,
-                Description = dto.Description,
-                WarningThreshold = dto.StockWarningLevel,
-                CategoryId = dto.CategoryId,
-                PhotoUrl = photoUrl,
+                // Eğer kayıt bulunduysa ama daha önceden SİLİNMİŞSE (Soft Delete durumundaysa):
+                if (existingStock.IsDeleted)
+                {
+                    oldStockQuantity = 0; // Silindiği için fiili eski stoğu 0 kabul et
+                    existingStock.Quantity = dto.StockQuantity; // Yeni adeti doğrudan set et
+                    existingStock.IsDeleted = false; // Silinme bayrağını indir, hayata döndür!
+                    existingStock.DeletedDate = null;
+                }
+                else
+                {
+                    // Kayıt zaten aktif olarak varsa, mevcut stoğun üzerine ekle
+                    oldStockQuantity = existingStock.Quantity;
+                    existingStock.Quantity += dto.StockQuantity;
+                }
+
+                existingStock.IsActive = true;
+                existingStock.ModifiedDate = DateTime.Now;
+                _context.ProductMainRepoLocations.Update(existingStock);
+            }
+            else
+            {
+                // Veritabanında bu (Ürün - Depo) eşleşmesine dair hiç satır yoksa sıfırdan oluştur
+                var newStock = new ProductMainRepoLocation
+                {
+                    ProductId = dto.ProductId,
+                    MainRepoLocationId = dto.WarehouseId,
+                    Quantity = dto.StockQuantity,
+                    IsActive = true,
+                    IsDeleted = false
+                };
+                _context.ProductMainRepoLocations.Add(newStock);
+            }
+
+            // Satırı sağlama al ve SQL'e hemen işlet
+            await _context.SaveChangesAsync();
+
+            // STOK HAREKET (LOG) KAYDI
+            var movement = new StockMovement
+            {
+                ProductId = dto.ProductId,
+                MainRepoLocationId = dto.WarehouseId,
+                MovementType = "IN",
+                OldStockQuantity = oldStockQuantity,
+                NewStockQuantity = oldStockQuantity + dto.StockQuantity,
+                MovementQuantity = dto.StockQuantity,
+                Description = string.IsNullOrEmpty(dto.Description) ? "Yeni Stok Girişi (Form)" : dto.Description,
                 CreatedDate = DateTime.Now,
                 IsActive = true,
-                IsDeleted = false
+                IsDeleted = false,
+                SerialNumber = dto.StockQuantity == 1 ? "-" : "Çoklu İşlem",
+                EthMac = dto.StockQuantity == 1 ? "-" : "Detayda Mevcut",
+                WlanMac = dto.StockQuantity == 1 ? "-" : "Detayda Mevcut"
             };
+            _context.StockMovements.Add(movement);
 
-            _context.Products.Add(newProduct);
-            await _context.SaveChangesAsync(); // ID'nin oluşması için burada bir kez kaydediyoruz.
-
-            // 4. Stok Köprü Tablosu Kaydı (ProductMainRepoLocation)
-            var newStock = new ProductMainRepoLocation
-            {
-                ProductId = newProduct.Id,
-                MainRepoLocationId = dto.WarehouseId,
-                Quantity = dto.StockQuantity,
-                IsActive = true,
-                IsDeleted = false
-            };
-            _context.ProductMainRepoLocations.Add(newStock);
-
-            // İçindeki boşlukları siler ve büyük/küçük harfe bakmaksızın "arcbox" kelimesini arar!
-            bool isArcBox = newProduct.Name != null &&
-                            newProduct.Name.Replace(" ", "").Contains("arcbox", StringComparison.OrdinalIgnoreCase);
+            // ArcBox otomatik seri numarası üretme alanı
+            bool isArcBox = existingProduct.Name != null &&
+                            existingProduct.Name.Replace(" ", "").Contains("arcbox", StringComparison.OrdinalIgnoreCase);
 
             if (isArcBox && dto.StockQuantity > 0)
             {
+                // FK Hatasını Engelleme: Veritabanındaki aktif ve geçerli ilk ürün durumunu (Tip 2) dinamik buluyoruz
+                var defaultStatus = await _context.CargoDefinitions
+                    .FirstOrDefaultAsync(x => x.DefinitionType == 2 && !x.IsDeleted);
+                
+                int validStatusId = defaultStatus != null ? defaultStatus.Id : 1;
+
                 for (int i = 0; i < dto.StockQuantity; i++)
                 {
+                    // UNIQUE İndeks Hatasını Engelleme: Her cihaz için benzersiz geçici bir seri no üretiyoruz (Örn: TEMP-A45F12-1)
+                    string tempGuid = Guid.NewGuid().ToString().Substring(0, 6).ToUpper();
+                    string generatedSerial = $"TEMP-{tempGuid}-{i + 1}";
+
                     _context.ProductSerialNumbers.Add(new ProductSerialNumber
                     {
-                        ProductId = newProduct.Id,
+                        ProductId = dto.ProductId,
                         MainRepoLocationId = dto.WarehouseId,
-                        ProductStatusId = dto.ProductStatusId, // Formdan gelen fiziksel durum (Yeni/Arızalı vb.)
-                        SerialNumber = "-",
+                        ProductStatusId = validStatusId, // Dinamik olarak bulduğumuz geçerli ID basılıyor
+                        SerialNumber = generatedSerial,   // Artık mükerrer hatası vermesi imkansız!
                         EthMac = "-",
                         WlanMac = "-",
-                        Description = "İlk Stok Girişi (Toplu)",
+                        Description = "İlk Stok Girişi (Otomatik)",
                         CreatedDate = DateTime.Now,
                         IsActive = true,
                         IsDeleted = false
@@ -126,12 +175,14 @@ namespace StockTrack.Controllers
                 }
             }
 
-            // Tüm değişiklikleri (Stok ve Seri Noları) tek seferde kaydet
+            // Tüm log ve alt süreçleri veritabanına nihai olarak kaydet
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = "Ürün ve stok kayıtları başarıyla oluşturuldu!";
+            TempData["SuccessMessage"] = "Stok girişi başarıyla gerçekleştirildi!";
             return RedirectToAction("Stock");
         }
+
+        // 4. STOK LİSTELEME EKRANI
         [HttpGet]
         public async Task<IActionResult> Stock()
         {
@@ -157,14 +208,13 @@ namespace StockTrack.Controllers
             return View(stockList);
         }
 
+        // 5. STOK DETAY VE LOG HAREKETLERİ EKRANI
         [HttpGet]
         public async Task<IActionResult> Detail(int id)
         {
-            // 1. Ürünü bul
             var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
             if (product == null) return NotFound();
 
-            // 2. Ana stok bilgisini al (Null kontrolü ile güvenli hale getirildi)
             var stockInfo = await _context.ProductMainRepoLocations
                 .Include(x => x.MainRepoLocation)
                 .FirstOrDefaultAsync(x => x.ProductId == id);
@@ -172,19 +222,16 @@ namespace StockTrack.Controllers
             int currentStock = stockInfo?.Quantity ?? 0;
             string mainWarehouseName = stockInfo?.MainRepoLocation?.Name ?? "-";
 
-            // 3. Stok hareketlerini çek (Log tablosu)
             var movements = await _context.StockMovements
                 .Include(x => x.MainRepoLocation)
                 .Where(x => x.ProductId == id && !x.IsDeleted)
                 .OrderByDescending(x => x.CreatedDate)
                 .ToListAsync();
 
-            // 4. Arc Box kontrolü ve Tanımları çekme
             bool isArcBox = product.Name != null &&
                 product.Name.Replace(" ", "").Contains("arcbox", StringComparison.OrdinalIgnoreCase);
             var definitions = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted);
 
-            // 5. Eğer Arc Box ise seri numaralarını (cihaz detaylarını) çek
             var serials = new List<ArcBoxSerialDto>();
             if (isArcBox)
             {
@@ -202,12 +249,10 @@ namespace StockTrack.Controllers
                     WarehouseName = s.MainRepoLocation?.Name ?? "-",
                     StatusName = definitions.FirstOrDefault(d => d.Id == s.ProductStatusId)?.Name ?? "Yeni",
                     Description = s.Description ?? "-",
-                    // ArcBoxSerialDto içindeki ImageUrl için Detail metodunda:
                     ImageUrl = string.IsNullOrEmpty(product.PhotoUrl) ? "/images/no-image.png" : product.PhotoUrl
                 }).ToList();
             }
 
-            // 6. DTO Oluşturma ve Hareketlerin Seçilmesi
             var dto = new InventoryDetailDto
             {
                 ProductId = product.Id,
@@ -217,7 +262,6 @@ namespace StockTrack.Controllers
                 IsArcBox = isArcBox,
                 CurrentStock = currentStock,
 
-                // GİRİŞ HAREKETLERİ
                 InboundMovements = movements.Where(m => m.MovementType == "IN").Select(m => new MovementDto
                 {
                     Date = m.CreatedDate,
@@ -225,17 +269,14 @@ namespace StockTrack.Controllers
                     OldStock = m.OldStockQuantity,
                     NewStock = m.NewStockQuantity,
                     LocationName = m.MainRepoLocation?.Name ?? "-",
-
                     SerialNumber = m.MovementQuantity == 1 ? (m.SerialNumber ?? "-") : "Çoklu Kayıt",
                     EthMac = m.MovementQuantity == 1 ? (m.EthMac ?? "-") : "Detayda Mevcut",
                     WlanMac = m.MovementQuantity == 1 ? (m.WlanMac ?? "-") : "Detayda Mevcut",
-
                     ProductStatusName = definitions.FirstOrDefault(d => d.Id == m.ProductStatusId)?.Name ?? "-",
                     MovementStatusName = definitions.FirstOrDefault(d => d.Id == m.MovementStatusId)?.Name ?? "-",
                     Description = m.Description
                 }).ToList(),
 
-                // ÇIKIŞ HAREKETLERİ
                 OutboundMovements = movements.Where(m => m.MovementType == "OUT").Select(m => new MovementDto
                 {
                     Date = m.CreatedDate,
@@ -243,7 +284,6 @@ namespace StockTrack.Controllers
                     OldStock = m.OldStockQuantity,
                     NewStock = m.NewStockQuantity,
                     LocationName = m.MainRepoLocation?.Name ?? "-",
-                    // ÖNEMLİ: Miktar 1 ise seri noyu göster
                     SerialNumber = m.MovementQuantity == 1 ? (m.SerialNumber ?? "-") : "Çoklu Kayıt",
                     EthMac = m.MovementQuantity == 1 ? (m.EthMac ?? "-") : "Detayda Mevcut",
                     WlanMac = m.MovementQuantity == 1 ? (m.WlanMac ?? "-") : "Detayda Mevcut",
@@ -254,35 +294,22 @@ namespace StockTrack.Controllers
 
                 SerialNumbers = serials
             };
-            // 7. View için Ek Bilgiler 
+
             ViewBag.MainWarehouseName = mainWarehouseName;
-
-            // Ürün Durumları (Örn: Sıfır, İkinci El, Arızalı) -> Veritabanındaki Type ID'si 2 ise:
             ViewBag.ProductStatuses = new SelectList(definitions.Where(x => x.DefinitionType == 2), "Id", "Name");
-
-            // Giriş Nedenleri (Örn: Merkezden Kargo, Stok Arttır) -> Veritabanındaki Type ID'si 3 ise:
-            ViewBag.InboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 3), "Id", "Name");
-
-            // Çıkış Nedenleri (Örn: Hastaneye Kurulum, Stok Azalt) -> Veritabanındaki Type ID'si 4 ise:
+            ViewBag.InboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 5), "Id", "Name");
             ViewBag.OutboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 4), "Id", "Name");
 
-            // 8. Stok durum özeti (Sadece standart adetli ürünler için)
             if (!dto.IsArcBox)
             {
                 List<string> statusTexts = new List<string>();
-                // Sadece miktar olan durumları (Yeni, Kullanılmış vb.) hesapla
-                var relevantStatuses = definitions.Where(x => x.DefinitionType == 2 || x.DefinitionType == 3).ToList();
-
                 foreach (var tanim in definitions.Where(x => x.DefinitionType == 2))
                 {
                     int girenAdet = movements.Where(m => m.MovementType == "IN" && m.ProductStatusId == tanim.Id).Sum(m => m.MovementQuantity);
                     int cikanAdet = movements.Where(m => m.MovementType == "OUT" && m.ProductStatusId == tanim.Id).Sum(m => m.MovementQuantity);
                     int kalan = girenAdet - cikanAdet;
 
-                    if (kalan > 0)
-                    {
-                        statusTexts.Add($"{kalan} {tanim.Name}");
-                    }
+                    if (kalan > 0) statusTexts.Add($"{kalan} {tanim.Name}");
                 }
                 dto.StatusDetailsText = statusTexts.Any() ? string.Join(", ", statusTexts) : "Stok Yok";
             }
@@ -290,6 +317,7 @@ namespace StockTrack.Controllers
             return View(dto);
         }
 
+        // 6. DETAY SAYFASINDAN MANUEL STOK EKLEME (IN)
         [HttpPost]
         public async Task<IActionResult> AddStock(StockMovementDto dto)
         {
@@ -356,16 +384,12 @@ namespace StockTrack.Controllers
             return RedirectToAction("Detail", new { id = dto.ProductId });
         }
 
+        // 7. DETAY SAYFASINDAN MANUEL STOK DÜŞME (OUT)
         [HttpPost]
         public async Task<IActionResult> RemoveStock(StockMovementDto dto)
         {
-            var existingStock = await _context.ProductMainRepoLocations
-                .FirstOrDefaultAsync(x => x.ProductId == dto.ProductId);
-
-            if (existingStock == null)
-            {
-                return RedirectToAction("Detail", new { id = dto.ProductId });
-            }
+            var existingStock = await _context.ProductMainRepoLocations.FirstOrDefaultAsync(x => x.ProductId == dto.ProductId);
+            if (existingStock == null) return RedirectToAction("Detail", new { id = dto.ProductId });
 
             if (existingStock.Quantity < dto.Quantity)
             {
@@ -385,7 +409,7 @@ namespace StockTrack.Controllers
                 NewStockQuantity = newStock,
                 MovementQuantity = dto.Quantity,
                 MovementStatusId = dto.MovementStatusId,
-                ProductStatusId = dto.ProductStatusId, // Çıkış durumu Dropdown'dan gelecek
+                ProductStatusId = dto.ProductStatusId,
                 Description = dto.Description,
                 SerialNumber = dto.Quantity == 1 ? "-" : "Çoklu Kayıt",
                 EthMac = dto.Quantity == 1 ? "-" : "Detayda Mevcut",
@@ -404,25 +428,22 @@ namespace StockTrack.Controllers
             return RedirectToAction("Detail", new { id = dto.ProductId });
         }
 
+        // 8. AKTİF/PASİF ETME
         [HttpGet]
         public async Task<IActionResult> ToggleStatus(int id)
         {
-            var stockItem = await _context.ProductMainRepoLocations
-                .FirstOrDefaultAsync(x => x.ProductId == id);
-
+            var stockItem = await _context.ProductMainRepoLocations.FirstOrDefaultAsync(x => x.ProductId == id);
             if (stockItem != null)
             {
                 stockItem.IsActive = !stockItem.IsActive;
-
                 _context.ProductMainRepoLocations.Update(stockItem);
                 await _context.SaveChangesAsync();
-
                 TempData["SuccessMessage"] = "Kayıt durumu başarıyla güncellendi!";
             }
-
             return RedirectToAction("Stock");
         }
 
+        // 9. TANIMLI ÜRÜN BİLGİSİNİ DÜZENLEME (GET)
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -446,6 +467,7 @@ namespace StockTrack.Controllers
             return View(dto);
         }
 
+        // 10. TANIMLI ÜRÜN BİLGİSİNİ DÜZENLEME (POST)
         [HttpPost]
         public async Task<IActionResult> Edit(InventoryEditDto dto)
         {
@@ -482,42 +504,37 @@ namespace StockTrack.Controllers
             return RedirectToAction("Stock");
         }
 
+        // 11. SİLME (SOFT DELETE)
         [HttpGet]
         public async Task<IActionResult> Delete(int id)
         {
-            var stockItem = await _context.ProductMainRepoLocations
-                .FirstOrDefaultAsync(x => x.ProductId == id);
-
+            var stockItem = await _context.ProductMainRepoLocations.FirstOrDefaultAsync(x => x.ProductId == id);
             var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
 
             if (stockItem != null && product != null)
             {
                 stockItem.IsDeleted = true;
                 stockItem.DeletedDate = DateTime.Now;
-
                 product.IsDeleted = true;
                 product.DeletedDate = DateTime.Now;
 
                 _context.ProductMainRepoLocations.Update(stockItem);
                 _context.Products.Update(product);
-
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Ürün başarıyla silindi (çöp kutusuna taşındı).";
             }
-
             return RedirectToAction("Stock");
         }
+
+        // 12. SİLİNENLER LİSTESİ
         [HttpGet]
         public async Task<IActionResult> Deleted()
         {
-            // Hem ürün silinmiş olabilir hem de stok kaydı silinmiş olabilir. 
-            // Ürün bazlı listelemek en mantıklısıdır.
             var deletedProducts = await _context.ProductMainRepoLocations
-                .Include(pm => pm.Product)
-                    .ThenInclude(p => p.Category)
+                .Include(pm => pm.Product).ThenInclude(p => p.Category)
                 .Include(pm => pm.MainRepoLocation)
-                .Where(x => x.IsDeleted || x.Product.IsDeleted) // Herhangi biri silindiyse göster
+                .Where(x => x.IsDeleted || x.Product.IsDeleted)
                 .Select(x => new InventoryListDto
                 {
                     Id = x.ProductId,
@@ -534,6 +551,7 @@ namespace StockTrack.Controllers
             return View(deletedProducts);
         }
 
+        // 13. GERİ YÜKLEME (RESTORE)
         [HttpPost]
         public async Task<IActionResult> Restore(int id)
         {
@@ -542,16 +560,13 @@ namespace StockTrack.Controllers
 
             if (stockItem != null && product != null)
             {
-                // Silinme durumlarını geri alıyoruz
                 stockItem.IsDeleted = false;
                 stockItem.DeletedDate = null;
-
                 product.IsDeleted = false;
                 product.DeletedDate = null;
 
                 _context.ProductMainRepoLocations.Update(stockItem);
                 _context.Products.Update(product);
-
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Ürün ve stok kayıtları başarıyla geri yüklendi.";
             }
@@ -559,10 +574,10 @@ namespace StockTrack.Controllers
             {
                 TempData["ErrorMessage"] = "Geri yükleme sırasında bir hata oluştu.";
             }
-
             return RedirectToAction("Deleted");
         }
 
+        // 14. GİRİŞ HAREKET RAPORU
         [HttpGet]
         public async Task<IActionResult> Inbound()
         {
@@ -576,6 +591,7 @@ namespace StockTrack.Controllers
             return View(inboundList);
         }
 
+        // 15. ÇIKIŞ HAREKET RAPORU
         [HttpGet]
         public async Task<IActionResult> Outbound()
         {
@@ -588,11 +604,12 @@ namespace StockTrack.Controllers
 
             return View(outboundList);
         }
+
+        // 16. ARCBOX DETAY CİHAZ GÜNCELLEME
         [HttpPost]
         public async Task<IActionResult> UpdateArcBoxDetails(int id, string serialNumber, string ethMac, string wlanMac, string description)
         {
             var serialRecord = await _context.ProductSerialNumbers.FirstOrDefaultAsync(x => x.Id == id);
-
             if (serialRecord != null)
             {
                 serialRecord.SerialNumber = serialNumber;
@@ -607,7 +624,6 @@ namespace StockTrack.Controllers
                 TempData["SuccessMessage"] = "Cihaz bilgileri başarıyla güncellendi.";
                 return RedirectToAction("Detail", new { id = serialRecord.ProductId });
             }
-
             TempData["ErrorMessage"] = "Kayıt bulunamadı!";
             return RedirectToAction("Stock");
         }

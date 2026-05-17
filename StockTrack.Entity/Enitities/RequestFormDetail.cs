@@ -2,7 +2,7 @@
 
 namespace StockTrack.Entity.Enitities
 {
-    public class RequestFormDetail:EntityBase
+    public class RequestFormDetail : EntityBase
     {
         public int RequestFormId { get; set; }
 
@@ -24,7 +24,7 @@ namespace StockTrack.Entity.Enitities
         public DateTime? PackingDate { get; set; }//Hazırlanma tarihi
         public DateTime? CargoGivenDate { get; set; }//Kargoya verildi  Tarihi
         public string? ReceiverDepartment { get; set; }
-        
+
 
         public int? CargoNameId { get; set; }
 

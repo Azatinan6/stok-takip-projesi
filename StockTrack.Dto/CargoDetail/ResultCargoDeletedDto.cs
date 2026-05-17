@@ -12,6 +12,7 @@ namespace StockTrack.Dto.CargoDetail
         public string Phone { get; set; }
         //public List<string> ProductNames { get; set; }
         public string HospitalName { get; set; }
+        public string? BranchName { get; set; }
         public string HospitalAddress { get; set; }
         public string MainRepoName { get; set; }
         //public List<int> Quantities { get; set; }

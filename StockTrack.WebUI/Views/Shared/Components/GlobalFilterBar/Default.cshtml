@@ -1,0 +1,110 @@
+<style>
+    .modern-filter-bar {
+        background-color: #ffffff;
+        border: 1px solid #e9ecef;
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    .modern-filter-bar .filter-btn {
+        background-color: #3b5bdb;
+        border-color: #3b5bdb;
+        color: white;
+        border-radius: 0.5rem;
+        transition: all 0.2s;
+        min-height: 52px;
+    }
+
+    .modern-filter-bar .filter-btn:hover {
+        background-color: #364fc7;
+        transform: translateY(-1px);
+    }
+
+    .modern-filter-bar .form-select {
+        border: none;
+        background-color: transparent;
+        font-weight: 500;
+        color: #495057;
+        cursor: pointer;
+    }
+
+    .modern-filter-bar .form-select:focus {
+        box-shadow: none;
+        outline: none;
+    }
+
+    .modern-filter-bar .filter-divider {
+        width: 1px;
+        background-color: #e9ecef;
+        height: 35px;
+        margin: 0 10px;
+    }
+
+    .modern-filter-bar .form-floating label {
+        color: #868e96;
+        font-size: 0.85rem;
+        padding-left: 0.5rem;
+    }
+</style>
+
+<div class="modern-filter-bar p-2 mb-4 mt-2">
+    <form id="advancedFilterForm" class="d-flex flex-wrap flex-md-nowrap align-items-center" method="get" action="">
+
+        <button type="submit"
+                class="btn filter-btn d-flex flex-column align-items-center justify-content-center px-4 me-2">
+            <i class="mdi mdi-filter-variant mb-1" style="font-size: 1.1rem; line-height: 1;"></i>
+            <span class="fw-bold" style="font-size: 0.8rem; line-height: 1;">Filtrele</span>
+        </button>
+
+        <div class="form-floating flex-grow-1 position-relative">
+            <select class="form-select ps-4" id="dateFilter" name="dateRange">
+                <option value="all" selected="@(Context.Request.Query["dateRange"] == "all")">Tüm Zamanlar</option>
+                <option value="7" selected="@(Context.Request.Query["dateRange"] == "7")">Son 7 Gün</option>
+                <option value="30" selected="@(Context.Request.Query["dateRange"] == "30")">Son 30 Gün</option>
+                <option value="90" selected="@(Context.Request.Query["dateRange"] == "90")">Son 3 Ay</option>
+            </select>
+            <label for="dateFilter"><i class="mdi mdi-calendar-blank text-primary pe-1"></i> Tarih Aralığı</label>
+        </div>
+
+        <div class="filter-divider d-none d-md-block"></div>
+
+        <div class="form-floating flex-grow-1 position-relative">
+            <select class="form-select ps-4" id="hospitalFilter" name="hospitalId">
+                <option value="">Tüm Kurumlar</option>
+                @if (ViewBag.FilterHospitals != null)
+                {
+                    foreach (var item in ViewBag.FilterHospitals as SelectList)
+                    {
+                        var isSelected = Context.Request.Query["hospitalId"] == item.Value ? "selected" : "";
+                        @Html.Raw($"<option value='{item.Value}' {isSelected}>{item.Text}</option>")
+                    }
+                }
+            </select>
+            <label for="hospitalFilter"><i class="mdi mdi-hospital-building text-danger pe-1"></i> Kurum /
+                Lokasyon</label>
+            </div>
+
+            <div class="filter-divider d-none d-md-block"></div>
+
+            <div class="form-floating flex-grow-1 position-relative">
+                <select class="form-select ps-4" id="categoryFilter" name="categoryId">
+                    <option value="">Tüm Kategoriler</option>
+                    @if (ViewBag.FilterCategories != null)
+                    {
+                        foreach (var item in ViewBag.FilterCategories as SelectList)
+                        {
+                            var isSelected = Context.Request.Query["categoryId"] == item.Value ? "selected" : "";
+                            @Html.Raw($"<option value='{item.Value}' {isSelected}>{item.Text}</option>")
+                        }
+                    }
+                </select>
+                <label for="categoryFilter"><i class="mdi mdi-shape-outline text-success pe-1"></i> Ürün Kategorisi</label>
+            </div>
+
+            <a href="?"
+               class="btn btn-light border d-flex align-items-center justify-content-center text-secondary ms-2 rounded-3"
+               style="min-height: 52px; min-width: 52px;" title="Filtreleri Temizle">
+                <i class="mdi mdi-refresh fs-4"></i>
+            </a>
+        </form>
+    </div>

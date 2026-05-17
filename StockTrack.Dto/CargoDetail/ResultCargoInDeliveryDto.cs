@@ -8,12 +8,15 @@ namespace StockTrack.Dto.CargoDetail
         public List<string> CategoryNames { get; set; }
         public string CargoCompany { get; set; }
         public int? CargoNameId { get; set; }
+        public string? CargoProccessBy { get; set; } //Kargo işlemlerini yapan kişi
+
         public string ReceiverFullName { get; set; }
         public string Phone { get; set; }
         //public List<string> ProductNames { get; set; }
         //public string LocationName { get; set; }
         //public string LocationAdress { get; set; }
         public string HospitalName { get; set; }
+        public string? BranchName { get; set; }
         public string HospitalAddress { get; set; }
         public string MainRepoName { get; set; }
         //public List<int> Quantities { get; set; }
@@ -40,7 +43,7 @@ namespace StockTrack.Dto.CargoDetail
         public string? EthMac { get; set; }
         public string? WlanMac { get; set; }
         public string? ConnectionType { get; set; }
-        public string? ConfigUrl { get; set; }  
+        public string? ConfigUrl { get; set; }
         public List<ProductDetailDto> Products { get; set; }
     }
 }

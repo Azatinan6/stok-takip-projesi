@@ -229,5 +229,18 @@ namespace StockTrack.WebUI.Controllers
 
             return Ok(dto);
         }
+        [HttpGet]
+        public async Task<IActionResult> GetHospitalDetails(int id)
+        {
+            var hospital = await _appDbContext.Hospitals.FindAsync(id);
+            if (hospital == null) return NotFound();
+
+            return Json(new { 
+                address = hospital.Address, 
+                contactName = hospital.Name, // Veritabanındaki kolon adlarına göre düzenle
+                contactPhone = hospital.Phone, 
+                department = "Bilgi İşlem / Satın Alma" // Örnek Departman
+            });
+        }
     }
 }

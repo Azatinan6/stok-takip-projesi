@@ -9,7 +9,6 @@ using StockTrack.Dto.CargoDetail;
 using StockTrack.Dto.RequestForm;
 using StockTrack.Entity.Enitities;
 using StockTrack.WebUI.Enums;
-
 namespace StockTrack.WebUI.Controllers
 {
     [Authorize]
@@ -39,7 +38,7 @@ namespace StockTrack.WebUI.Controllers
             ViewBag.InCargoCount = await baseQuery.CountAsync(x => x.StatusId == (int)EnumStatusType.Kargoda);
             ViewBag.DeliveredCount = await baseQuery.CountAsync(x => x.StatusId == (int)EnumStatusType.Tamamlandı);
             ViewBag.CancelledCount = await baseQuery.CountAsync(x => x.StatusId == (int)EnumStatusType.İptal);
-            
+
             ViewBag.ReturnWaitingCount = await baseQuery.CountAsync(x => x.StatusId == (int)EnumStatusType.IadeGeldigindeKargolanacak);
             ViewBag.OfficePickupCount = await baseQuery.CountAsync(x => x.StatusId == (int)EnumStatusType.OfistenTeslimAlinacak);
             // 3. ADIM: Silinenler sekmesi için (IsDeleted == true) ayrı bir sayım yapıyoruz.
@@ -54,7 +53,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
 
-            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
 
             // URL'DEN PARAMETREYİ ZORLA (GARANTİLİ) OKUMA YÖNTEMİ
@@ -88,8 +87,8 @@ namespace StockTrack.WebUI.Controllers
                                         join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id into hospitalGroup
                                         from h in hospitalGroup.DefaultIfEmpty()
                                         join st in _appDbContext.StatusTypes on rfd.StatusId equals st.Id
-                                        
-                                        select new ResultAwitingApprovalDto 
+
+                                        select new ResultAwitingApprovalDto
                                         {
                                             Id = rfd.Id,
                                             StatusId = rfd.StatusId,
@@ -98,6 +97,7 @@ namespace StockTrack.WebUI.Controllers
                                             Phone = rfd.Phone,
                                             HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
                                             HospitalAddress = h != null ? h.Address : "-",
+                                            BranchName = h != null && h.Branch != null ? h.Branch : "-",
                                             RequestFormRequestedBy = rfd.RequestBy,
                                             RequestFormRequestedDate = rfd.RequestDate,
                                             CargoGivenDate = rfd.CargoGivenDate,
@@ -135,7 +135,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
 
-            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
 
             var resultReturnWaiting = (from rfd in _appDbContext.RequestFormDetails
@@ -144,11 +144,11 @@ namespace StockTrack.WebUI.Controllers
                                        from mrl in repoGroup.DefaultIfEmpty()
                                        join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id into hospitalGroup
                                        from h in hospitalGroup.DefaultIfEmpty()
-                                       
-                                       // ---> LEFT JOIN ZIRHI <---
+
+                                           // ---> LEFT JOIN ZIRHI <---
                                        join st in _appDbContext.StatusTypes on rfd.StatusId equals st.Id into statusGroup
                                        from st in statusGroup.DefaultIfEmpty()
-                                       
+
                                        where rf.RequestFormTypeId == (int)EnumRequestType.Kargo
                                        where rfd.StatusId == (int)EnumStatusType.IadeGeldigindeKargolanacak && !rfd.IsDeleted
                                        select new ResultAwitingApprovalDto
@@ -161,6 +161,7 @@ namespace StockTrack.WebUI.Controllers
                                            Phone = rfd.Phone,
                                            HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
                                            HospitalAddress = h != null ? h.Address : "-",
+                                           BranchName = h != null && h.Branch != null ? h.Branch : "-",
                                            RequestFormRequestedBy = rfd.RequestBy,
                                            RequestFormRequestedDate = rfd.RequestDate,
                                            CargoGivenDate = rfd.CargoGivenDate,
@@ -198,7 +199,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
 
-            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
 
             var resultOfficePickup = (from rfd in _appDbContext.RequestFormDetails
@@ -207,11 +208,11 @@ namespace StockTrack.WebUI.Controllers
                                       from mrl in repoGroup.DefaultIfEmpty()
                                       join h in _appDbContext.Hospitals on rf.HospitalId equals h.Id into hospitalGroup
                                       from h in hospitalGroup.DefaultIfEmpty()
-                                      
-                                      // ---> İŞTE HAYAT KURTARAN LEFT JOIN ZIRHI <---
+
+                                          // ---> İŞTE HAYAT KURTARAN LEFT JOIN ZIRHI <---
                                       join st in _appDbContext.StatusTypes on rfd.StatusId equals st.Id into statusGroup
                                       from st in statusGroup.DefaultIfEmpty()
-                                      
+
                                       where rf.RequestFormTypeId == (int)EnumRequestType.Kargo
                                       where rfd.StatusId == (int)EnumStatusType.OfistenTeslimAlinacak && !rfd.IsDeleted
                                       select new ResultAwitingApprovalDto
@@ -224,6 +225,7 @@ namespace StockTrack.WebUI.Controllers
                                           Phone = rfd.Phone,
                                           HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
                                           HospitalAddress = h != null ? h.Address : "-",
+                                          BranchName = h != null && h.Branch != null ? h.Branch : "-",
                                           RequestFormRequestedBy = rfd.RequestBy,
                                           RequestFormRequestedDate = rfd.RequestDate,
                                           CargoGivenDate = rfd.CargoGivenDate,
@@ -260,7 +262,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
 
-            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
 
             var resultAwaitingApprovals = (from rfd in _appDbContext.RequestFormDetails
@@ -282,6 +284,7 @@ namespace StockTrack.WebUI.Controllers
                                                Phone = rfd.Phone,
                                                HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
                                                HospitalAddress = h != null ? h.Address : "-",
+                                               BranchName = h != null && h.Branch != null ? h.Branch : "-",
                                                RequestFormRequestedBy = rfd.RequestBy,
                                                RequestFormRequestedDate = rfd.RequestDate,
                                                CargoGivenDate = rfd.CargoGivenDate,
@@ -337,7 +340,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
 
-            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();
             // Paketlenmiş kargo taleplerini konum, ürün ve diğer detaylarla birlikte listeliyor
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultCargoForReadyDtos = (from rfd in _appDbContext.RequestFormDetails
@@ -358,6 +361,7 @@ namespace StockTrack.WebUI.Controllers
                                                Phone = rfd.Phone,
                                                HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
                                                HospitalAddress = h != null ? h.Address : "-",
+                                               BranchName = h != null && h.Branch != null ? h.Branch : "-",
                                                RequestFormRequestedBy = rfd.CreatedBy, //talebi onaylayan kişi 
                                                RequestFormRequestedDate = rfd.PackingDate, //tarihi
                                                MainRepoName = mrl != null ? mrl.Name : "Bilinmiyor",
@@ -410,7 +414,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
             // Kargoya verilmiş yolda olan talepleri kargo firması, takip numarası, konum ve ürün detaylarıyla birlikte listeliyor
-            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultCargoInDeliveries = (from rf in _appDbContext.RequestForms
                                            join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
@@ -431,6 +435,7 @@ namespace StockTrack.WebUI.Controllers
                                                Phone = rfd.Phone,
                                                HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
                                                HospitalAddress = h != null ? h.Address : "-",
+                                               BranchName = h != null && h.Branch != null ? h.Branch : "-",
                                                RequestFormBy = rfd.CreatedBy,
                                                RequestFormDate = rfd.CreatedDate,
                                                MainRepoName = m != null ? m.Name : "Bilinmiyor",
@@ -487,7 +492,7 @@ namespace StockTrack.WebUI.Controllers
         {
             await SetCargoCountsAsync();
             // Teslim edilmiş kargo taleplerini ürün, konum, kargo firması, takip numarası ve işlem tarihleriyle birlikte listeliyor      
-            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();            
+            ViewBag.CargoNames = await GetCargoListWithDefaultAsync();
             ViewBag.UserNames = new SelectList(_appDbContext.Users.AsNoTracking().OrderBy(x => x.NameSurname).ToList(), "NameSurname", "NameSurname");
             var resultCargoDelivereds = (from rf in _appDbContext.RequestForms
                                          join rfd in _appDbContext.RequestFormDetails on rf.Id equals rfd.RequestFormId
@@ -509,6 +514,7 @@ namespace StockTrack.WebUI.Controllers
                                              Phone = rfd.Phone,
                                              HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
                                              HospitalAddress = h != null ? h.Address : "-",
+                                             BranchName = h != null && h.Branch != null ? h.Branch : "-",
                                              RequestFormBy = rfd.CreatedBy,
                                              RequestFormDate = rfd.CreatedDate,
                                              MainRepoName = m != null ? m.Name : "Bilinmiyor",
@@ -590,6 +596,7 @@ namespace StockTrack.WebUI.Controllers
                                             Phone = rfd.Phone,
                                             HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
                                             HospitalAddress = h != null ? h.Address : "-",
+                                            BranchName = h != null && h.Branch != null ? h.Branch : "-",
                                             MainRepoName = m != null ? m.Name : "Bilinmiyor",
                                             RequestFormBy = rfd.CreatedBy,
                                             RequestFormDate = rfd.CreatedDate,
@@ -797,6 +804,7 @@ namespace StockTrack.WebUI.Controllers
                                            Phone = rfd.Phone,
                                            HospitalName = h != null ? h.Name : "Ofisten Teslim / Belirtilmemiş",
                                            HospitalAddress = h != null ? h.Address : "-",
+                                           BranchName = h != null && h.Branch != null ? h.Branch : "-",
                                            DeletedBy = rfd.DeletedBy,
                                            DeletedDate = rfd.DeletedDate,
                                            RequestFormBy = rfd.CreatedBy,
@@ -844,6 +852,7 @@ namespace StockTrack.WebUI.Controllers
                                      StatusName = s != null ? s.Name : "Tanımsız Statü",
                                      ReceiverFullName = rfd.ToPerson,
                                      HospitalName = h != null ? h.Name : "Belirtilmemiş",
+                                     BranchName = h != null && h.Branch != null ? h.Branch : "-",
                                      RequestFormRequestedDate = rfd.RequestDate,
                                      RequestFormRequestedBy = rfd.RequestBy,
                                      MainRepoName = m != null ? m.Name : "Bilinmiyor",
@@ -1007,6 +1016,163 @@ namespace StockTrack.WebUI.Controllers
             return RedirectToAction("ReturnsIndex");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ExportDeviceDeliveryPdf(int id)
+        {
+            // 1. Kargo detay ana kaydını ve bağlı hastane/şube bilgilerini çekiyoruz
+            var cargoDetail = await _appDbContext.RequestFormDetails
+                .Include(x => x.RequestForm)
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (cargoDetail == null) return NotFound("Kargo işlemi bulunamadı.");
+
+            var hospital = await _appDbContext.Hospitals.FindAsync(cargoDetail.RequestForm.HospitalId);
+
+            // 2. Bu talebe ait sevk edilen tüm ürünleri listeliyoruz
+            var products = await (from rp in _appDbContext.RequestProducts
+                                  join p in _appDbContext.Products on rp.ProductId equals p.Id
+                                  join c in _appDbContext.Categories on p.CategoryId equals c.Id
+                                  where rp.RequestFormId == cargoDetail.RequestFormId
+                                  select new
+                                  {
+                                      ProductName = p.Name,
+                                      CategoryName = c.Name,
+                                      Quantity = rp.Quantity,
+                                      SerialNumber = cargoDetail.SerialNumber ?? "-",
+                                      EthMac = rp.EthMacAddress ?? "-",
+                                      WlanMac = rp.WlanMacAddress ?? "-",
+                                      ConnectionType = rp.ConnectionType ?? "-",
+                                      ConfigUrl = rp.ConfigUrl ?? "-",
+                                      Label = rp.Label ?? "-"
+                                  }).ToListAsync();
+
+            int totalQty = 0;
+            string kurumAdi = hospital != null ? hospital.Name : "Ofisten Teslim";
+            string subeAdi = hospital != null ? (hospital.Branch ?? "-") : "-";
+
+            // 3. Dinamik HTML Şablonunu İnşa Ediyoruz
+            var htmlBuilder = new System.Text.StringBuilder();
+            htmlBuilder.Append($@"
+            <!DOCTYPE html>
+            <html lang='tr'>
+            <head>
+                <meta charset='UTF-8'>
+                <title>Ordinatrum Cihaz Cikis Formu - #{id}</title>
+                <script src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js'></script>
+                <style>
+                    * {{ box-sizing: border-box; }}
+                    body {{ font-family: 'Arial', sans-serif; margin: 0; padding: 0; color: #212529; background: #fff; }}
+                    #pdf-container {{ padding: 20px; width: 100%; background: #fff; }}
+                    .header-table {{ width: 100%; border-collapse: collapse; margin-bottom: 10px; }}
+                    .header-cell {{ background-color: #e2e6ea !important; border: 1px solid #6c757d; text-align: center; padding: 10px; font-weight: bold; font-size: 14pt; letter-spacing: 0.5px; }}
+                    .data-table {{ width: 100%; border-collapse: collapse; }}
+                    .data-table th {{ background-color: #f8f9fa !important; border: 1px solid #6c757d; padding: 8px 4px; font-size: 9pt; font-weight: bold; text-align: center; text-transform: uppercase; }}
+                    .data-table td {{ border: 1px solid #6c757d; padding: 8px 6px; font-size: 10pt; text-align: center; height: 35px; }}
+                    .font-mono {{ font-family: monospace; font-weight: bold; font-size: 10.5pt; }}
+                    .footer-container {{ display: table; width: 100%; margin-top: 40px; border-collapse: collapse; }}
+                    .footer-row {{ display: table-row; }}
+                    .footer-col {{ display: table-cell; width: 50%; vertical-align: top; }}
+                    .footer-col-left {{ padding-right: 40px; }}
+                    .footer-col-right {{ padding-left: 40px; }}
+                    .section-title {{ font-size: 11pt; font-weight: bold; color: #1971c2 !important; text-transform: uppercase; margin-bottom: 10px; border-bottom: 2px solid #dee2e6; padding-bottom: 5px; }}
+                    .info-line {{ margin-bottom: 8px; font-size: 10pt; }}
+                    .info-label {{ font-weight: bold; color: #495057; display: inline-block; width: 90px; }}
+                    .summary-text {{ margin-top: 25px; font-size: 10pt; font-weight: bold; border-top: 1px dashed #6c757d; padding-top: 10px; }}
+                </style>
+            </head>
+            <body>
+                <div id='pdf-container'>
+                    <table class='header-table'>
+                        <tr><td class='header-cell'>ORDİNATRUM DEPO CİHAZ ÇIKIŞ BİLGİSİ FORMU</td></tr>
+                    </table>
+                    <table class='data-table'>
+                        <thead>
+                            <tr>
+                                <th style='width: 4%;'>S.N.</th>
+                                <th style='width: 12%;'>SERİ NO</th>
+                                <th style='width: 16%;'>MAC WLAN</th>
+                                <th style='width: 16%;'>MAC ETH</th>
+                                <th style='width: 12%;'>IP</th>
+                                <th style='width: 16%;'>KURUM</th>
+                                <th style='width: 12%;'>ŞUBE</th>
+                                <th style='width: 16%;'>DEĞİŞİM YAPILAN SERİ NO</th>
+                                <th style='width: 8%;'>DURUM</th>
+                            </tr>
+                        </thead>
+                        <tbody>");
+
+            int index = 1;
+            foreach (var p in products)
+            {
+                totalQty += p.Quantity;
+                htmlBuilder.Append($@"
+                            <tr>
+                                <td>{index++}</td>
+                                <td class='font-mono'>{p.SerialNumber}</td>
+                                <td class='font-mono'>{p.WlanMac}</td>
+                                <td class='font-mono'>{p.EthMac}</td>
+                                <td class='font-mono'>-</td>
+                                <td>{kurumAdi}</td>
+                                <td>{subeAdi}</td>
+                                <td class='font-mono'>-</td>
+                                <td>{cargoDetail.ProductCondition ?? "Yeni"}</td>
+                            </tr>");
+            }
+
+            while (index <= 10)
+            {
+                htmlBuilder.Append($@"<tr><td>{index++}</td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>");
+            }
+
+            htmlBuilder.Append($@"
+                        </tbody>
+                    </table>
+
+                    <div class='footer-container'>
+                        <div class='footer-row'>
+                            <div class='footer-col footer-col-left'>
+                                <div class='section-title'>TESLİM EDEN DEPO SORUMLUSU</div>
+                                <div class='info-line'><span class='info-label'>Ad Soyad:</span> {cargoDetail.CargoPreparerUserId ?? cargoDetail.CreatedBy ?? "Depo Sorumlusu"}</div>
+                                <div class='info-line'><span class='info-label'>Tarih:</span> {DateTime.Now.ToString("dd.MM.yyyy")}</div>
+                                <div class='info-line'><span class='info-label'>İmza:</span></div>
+                                <div class='summary-text'>{totalQty} adet cihaz teslim edilmiştir.</div>
+                            </div>
+                            <div class='footer-col footer-col-right'>
+                                <div class='section-title'>TESLİM ALAN</div>
+                                <div class='info-line'><span class='info-label'>Ad Soyad:</span> {cargoDetail.ToPerson ?? "-"}</div>
+                                <div class='info-line'><span class='info-label'>Tarih:</span> ...... / ...... / {DateTime.Now.Year}</div>
+                                <div class='info-line'><span class='info-label'>İmza:</span></div>
+                                <div class='summary-text'>{totalQty} adet cihaz teslim edilmiştir.</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script>
+                    window.onload = function() {{
+                        var element = document.getElementById('pdf-container');
+                        var opt = {{
+                            margin:       [10, 15, 10, 15],
+                            filename:     'Ordinatrum_Cihaz_Cikis_Formu_{id}.pdf',
+                            image:        {{ type: 'jpeg', quality: 0.98 }},
+                            html2canvas:  {{ scale: 2, useCORS: true }},
+                            jsPDF:        {{ unit: 'mm', format: 'a4', orientation: 'landscape' }}
+                        }};
+
+                        // Sayfa yüklenir yüklenmez PDF'i oluşturur, indirir ve sekmeyi kapatır
+                        html2pdf().set(opt).from(element).save().then(function() {{
+                            setTimeout(function() {{
+                                window.close();
+                            }}, 600);
+                        }});
+                    }};
+                </script>
+            </body>
+            </html>");
+
+            return Content(htmlBuilder.ToString(), "text/html", System.Text.Encoding.UTF8);
+        }
+
         private async Task<SelectList> GetCargoListWithDefaultAsync()
         {
             var kargoFirmalari = await _appDbContext.CargoNames
@@ -1014,13 +1180,13 @@ namespace StockTrack.WebUI.Controllers
                                     .ToListAsync();
 
             // TÜRKÇE KARAKTER UYUMLU GÜVENLİ ARAMA: Büyük/küçük harfe takılmaz
-            var yurticiKargo = kargoFirmalari.FirstOrDefault(x => x.Name.Contains("Yurtiçi", StringComparison.OrdinalIgnoreCase) 
+            var yurticiKargo = kargoFirmalari.FirstOrDefault(x => x.Name.Contains("Yurtiçi", StringComparison.OrdinalIgnoreCase)
                                                             || x.Name.Contains("Yurtici", StringComparison.OrdinalIgnoreCase));
-            
+
             int? defaultKargoId = yurticiKargo?.Id;
-            
+
             // İşin sırrı: Bu ID'yi JavaScript'in de doğrudan okuyabilmesi için ViewBag'e fırlatıyoruz!
-            ViewBag.DefaultCargoId = defaultKargoId; 
+            ViewBag.DefaultCargoId = defaultKargoId;
 
             return new SelectList(kargoFirmalari, "Id", "Name", defaultKargoId);
         }

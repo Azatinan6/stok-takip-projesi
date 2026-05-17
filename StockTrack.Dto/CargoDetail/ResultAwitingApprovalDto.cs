@@ -15,6 +15,8 @@ namespace StockTrack.Dto.CargoDetail
         public string? Phone { get; set; }
         //public List<string> ProductNames { get; set; }
         public string? HospitalName { get; set; }
+        public string? BranchName { get; set; } // YENİ EKLENEN ŞUBE ALANI
+
         public string? HospitalAddress { get; set; }
         public string? MainRepoName { get; set; } 
         //public List<int> Quantities { get; set; }
@@ -23,7 +25,6 @@ namespace StockTrack.Dto.CargoDetail
         //public List<string>? PhotoUrls { get; set; }
         public int StatusId { get; set; }
         public string? StatusName { get; set; }
-
         public DateTime? CargoGivenDate { get; set; }
         public bool IsOfficeDelivery { get; set; }
         public bool IsShipAfterReturn { get; set; }

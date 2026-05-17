@@ -75,62 +75,50 @@ namespace StockTrack.WebUI.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateRequestFormDto dto)
         {
+            // ZIRH 1: ModelState'i manuel olarak temizle! 
+            // Çünkü dinamik formlarda (Kargo mu Servis mi değiştiği için) DTO'daki her alanı zorunlu sayıp patlayabilir.
+            // Biz doğrulamayı (Validation) kendi if-else Türkçe kurallarımızla yapacağız!
+            ModelState.Clear();
+
             // ADIM 1) ItemsJson Çözümle          
             var items = new List<ItemDto>();
 
             if (string.IsNullOrWhiteSpace(dto.ItemsJson))
-                ModelState.AddModelError("", "En az bir ürün eklemelisiniz.");
+                ModelState.AddModelError("", "Lütfen en az bir ürün ekleyiniz.");
             else
             {
                 try
                 {
                     var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                    items = JsonSerializer.Deserialize<List<ItemDto>>(dto.ItemsJson ?? "[]", options) ?? new();
+                    items = JsonSerializer.Deserialize<List<ItemDto>>(dto.ItemsJson, options) ?? new();
                     if (items.Count == 0)
-                        ModelState.AddModelError("", "Ürün listesi boş olamaz.");
+                        ModelState.AddModelError("", "Seçilen ürün listesi boş olamaz.");
                 }
                 catch
                 {
-                    ModelState.AddModelError("", "Ürün listesi işlenemedi.");
+                    ModelState.AddModelError("", "Ürün listesi sunucu tarafından işlenemedi.");
                 }
             }
 
-            // ADIM 2) Görünüm verilerini doldur (HATA BURADAYDI, DÜZELTİLDİ)
-            ViewBag.Locations = await _appDbContext.Hospitals.AsNoTracking() 
-                .Where(x => !x.IsDeleted && x.IsActive)
-                .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name })
-                .ToListAsync();
+            // ADIM 2) Sunucu Tarafı Mantıksal Türkçe Doğrulamaları
+            if (dto.MainRepoId <= 0) ModelState.AddModelError("", "Lütfen ürünlerin çıkacağı / gireceği depoyu seçiniz.");
+            if (dto.LocationId <= 0) ModelState.AddModelError("", "Lütfen işlem yapılacak hastaneyi seçiniz.");
+            if (dto.TypeId <= 0) ModelState.AddModelError("", "Lütfen talep türünü (Örn: Kargo) seçiniz.");
 
-            ViewBag.MainRepos = await _appDbContext.MainRepoLocations.AsNoTracking()
-                .Where(x => !x.IsDeleted && x.IsActive)
-                .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name })
-                .ToListAsync();
-
-            ViewBag.Persons = await _userManager.Users
-                .Where(x => x.IsActive && !x.IsDeleted)
-                .Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.NameSurname })
-                .ToListAsync();
-
-            var definitions = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted && x.IsActive);
-            // Giriş (İade) Nedenleri -> DefinitionType = 5 (Veritabanındaki ID'sine göre kontrol et)
-            ViewBag.InboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 5), "Id", "Name");
-
-            // Çıkış (Gönderim) Nedenleri -> DefinitionType = 4 (Veritabanındaki ID'sine göre kontrol et)
-            ViewBag.OutboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 4), "Id", "Name");
-
-            // ADIM 3) Sunucu Tarafı Doğrulamaları
-            if (dto.MainRepoId <= 0) ModelState.AddModelError("", "Depo seçimi zorunludur.");
-            if (dto.LocationId <= 0) ModelState.AddModelError("", "Hastane seçimi zorunludur.");
-            if (dto.TypeId <= 0) ModelState.AddModelError("", "Talep türü zorunludur.");
-
+            // GÖREV LİSTESİ MADDE 2 (Gizlenen seçenekler): Sadece Kargo kuralları çalışmalı
             if (dto.TypeId == (int)EnumRequestType.Kargo)
             {
-                if (string.IsNullOrWhiteSpace(dto.ReceiverFullName)) ModelState.AddModelError("", "Kargo için alıcı adı zorunludur.");
+                // Kargo Modu Kontrolleri
+                if (string.IsNullOrWhiteSpace(dto.ReceiverFullName))
+                    ModelState.AddModelError("", "Kargo gönderimi için Alıcı Adı Soyadı zorunludur.");
+                if (string.IsNullOrWhiteSpace(dto.Phone))
+                    ModelState.AddModelError("", "Kargo gönderimi için Alıcı Telefon Numarası zorunludur.");
             }
             else if (dto.TypeId == (int)EnumRequestType.Kurulum || dto.TypeId == (int)EnumRequestType.Servis)
             {
-                if (dto.InstallationDate == null) ModelState.AddModelError("", "Kurulum/Servis için tarih zorunludur.");
-                if (dto.Persons == null || dto.Persons.Count == 0) ModelState.AddModelError("", "Kurulum/Servis için en az bir personel eklenmelidir.");
+                // Kurulum Modu Kontrolleri (İleride açılırsa diye koruma olarak kalabilir)
+                if (dto.InstallationDate == null) ModelState.AddModelError("", "Planlanan kurulum / servis tarihi zorunludur.");
+                if (dto.Persons == null || dto.Persons.Count == 0) ModelState.AddModelError("", "Saha operasyonu için en az bir personel seçilmelidir.");
             }
 
             // Ürün satır kontrolleri ve AKILLI STOK
@@ -139,22 +127,20 @@ namespace StockTrack.WebUI.Controllers
             {
                 if (it.ProductId <= 0 || it.Quantity <= 0)
                 {
-                    ModelState.AddModelError("", "Ürün ve miktar bilgisi hatalı.");
+                    ModelState.AddModelError("", "Ürün seçimi veya miktar girişi eksik olan bir satır tespit edildi.");
                     continue;
                 }
 
-                // Aynı ürünü aynı işlem türüyle (Örn: 2 tane Gönderilecek aynı ArcBox) engelle
                 string uniqueKey = $"{it.ProductId}_{it.OperationType}";
                 if (!duplicate.Add(uniqueKey))
-                    ModelState.AddModelError("", "Aynı ürünü aynı işlem türüyle birden fazla kez ekleyemezsiniz.");
+                    ModelState.AddModelError("", $"Aynı ürünü (ID: {it.ProductId}) aynı işlem türüyle (Gönderim/İade) birden fazla kez ekleyemezsiniz.");
 
-                // STOK KONTROLÜ: Sadece Gönderim (OperationType == 1) ise stok kontrolü yap!
+                // STOK KONTROLÜ: Gönderim (OperationType == 1)
                 if (it.OperationType == 1)
                 {
                     var inRepoQty = await _appDbContext.ProductMainRepoLocations.AsNoTracking()
                         .Where(x => x.MainRepoLocationId == dto.MainRepoId && x.ProductId == it.ProductId).Select(x => (int?)x.Quantity).FirstOrDefaultAsync() ?? 0;
 
-                    // Sadece daha önce gönderilenleri (OperationType == 1) dağıtılmış say
                     var distributed = await (from rp in _appDbContext.RequestProducts.AsNoTracking()
                                              join rf in _appDbContext.RequestForms.AsNoTracking() on rp.RequestFormId equals rf.Id
                                              where rp.ProductId == it.ProductId && rf.MainRepoLocationId == dto.MainRepoId && !rf.IsDeleted && rp.OperationType == 1
@@ -162,17 +148,28 @@ namespace StockTrack.WebUI.Controllers
 
                     var remaining = Math.Max(0, inRepoQty - distributed);
                     if (it.Quantity > remaining)
-                        ModelState.AddModelError("", $"İstenen miktar stoktan fazla: {it.ProductName} için kalan {remaining}.");
+                        ModelState.AddModelError("", $"Stok yetersiz! İstenen miktar stoktan fazla. Ürün için stokta kalan rezerve edilebilir miktar: {remaining} adet.");
                 }
             }
 
+            // ZIRH 2: Eğer bizim eklediğimiz TÜRKÇE hatalardan biri varsa, View'a temizce dön.
             if (!ModelState.IsValid)
             {
-                TempData["ErrorMessage"] = string.Join("<br>", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                // Görünüm (ViewBag) verilerini geri doldur (Sayfa patlamasın diye)
+                ViewBag.Locations = await _appDbContext.Hospitals.AsNoTracking().Where(x => !x.IsDeleted && x.IsActive).Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name }).ToListAsync();
+                ViewBag.MainRepos = await _appDbContext.MainRepoLocations.AsNoTracking().Where(x => !x.IsDeleted && x.IsActive).Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name }).ToListAsync();
+                ViewBag.Persons = await _userManager.Users.Where(x => x.IsActive && !x.IsDeleted).Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.NameSurname }).ToListAsync();
+
+                var definitions = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted && x.IsActive);
+                ViewBag.InboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 5), "Id", "Name");
+                ViewBag.OutboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 4), "Id", "Name");
+
+                // Hataları ekrana basmak için TempData'ya al
+                TempData["ErrorMessage"] = string.Join("<br/>", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
                 return View(dto);
             }
 
-            // ADIM 4) Kayıt + Transaction
+            // ADIM 3) Kayıt + Transaction
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Challenge();
 
@@ -187,8 +184,8 @@ namespace StockTrack.WebUI.Controllers
                     MainRepoLocationId = dto.MainRepoId,
                     HospitalId = dto.LocationId,
                     RequestFormTypeId = dto.TypeId,
-                    IsShipAfterReturn = dto.IsShipAfterReturn, // Yeni
-                    IsOfficeDelivery = dto.IsOfficeDelivery,   // Yeni
+                    IsShipAfterReturn = dto.IsShipAfterReturn,
+                    IsOfficeDelivery = dto.IsOfficeDelivery,
                     CreatedBy = currentUser.NameSurname,
                     CreatedDate = now,
                     ModifiedDate = now,
@@ -208,15 +205,16 @@ namespace StockTrack.WebUI.Controllers
                         Quantity = x.Quantity,
                         OperationType = x.OperationType,       // 1 Gönderim, 2 İade
                         Label = x.Label,                       // Cihaz etiketi
-                        // UI'dan text (örn: "Arıza / Bozuk") geliyor
-                        ReasonId = x.ReasonId,
-                        ConnectionType = x.ArcBoxConfig?.ConnectionType,
-                        ConfigUrl = x.ArcBoxConfig?.ConfigUrl,
-                        DhcpdConf = x.ArcBoxConfig?.DhcpdConf,
-                        WpaSupplicantConf = x.ArcBoxConfig?.WpaSupplicantConf,
-                        IpAddress = x.ArcBoxConfig?.IpAddress,
-                        EthMacAddress = x.ArcBoxConfig?.EthMacAddress,
-                        WlanMacAddress = x.ArcBoxConfig?.WlanMacAddress
+                        ReasonId = x.ReasonId,                 // İade / Gönderim Nedeni
+
+                        // ZIRH 3: ArcBox JSON Değerlerini Güvenli Alma (Null Kontrollü)
+                        ConnectionType = x.ArcBoxConfig != null ? x.ArcBoxConfig.ConnectionType : null,
+                        ConfigUrl = x.ArcBoxConfig != null ? x.ArcBoxConfig.ConfigUrl : null,
+                        DhcpdConf = x.ArcBoxConfig != null ? x.ArcBoxConfig.DhcpdConf : null,
+                        WpaSupplicantConf = x.ArcBoxConfig != null ? x.ArcBoxConfig.WpaSupplicantConf : null,
+                        IpAddress = x.ArcBoxConfig != null ? x.ArcBoxConfig.IpAddress : null,
+                        EthMacAddress = x.ArcBoxConfig != null ? x.ArcBoxConfig.EthMacAddress : null,
+                        WlanMacAddress = x.ArcBoxConfig != null ? x.ArcBoxConfig.WlanMacAddress : null
                     }).ToList();
 
                 if (rpList.Count > 0)
@@ -225,7 +223,7 @@ namespace StockTrack.WebUI.Controllers
                     await _appDbContext.SaveChangesAsync();
                 }
 
-                // DETAY KAYDI (KARGO / KURULUM VB)
+                // DETAY KAYDI (KARGO)
                 var requestFormDetail = new RequestFormDetail
                 {
                     RequestFormId = requestForm.Id,
@@ -236,60 +234,49 @@ namespace StockTrack.WebUI.Controllers
                     IsDeleted = false,
                     IsActive = true,
                     RequestBy = currentUser.NameSurname,
-                    RequestDate = now
+                    RequestDate = now,
+
+                    // ZIRH: Veritabanı NULL kabul etmediği için boş resim linki yerine geçici bir tire atıyoruz!
+                    ImageUrl = "-"
                 };
 
-                if (dto.TypeId == (int)EnumRequestType.Kurulum || dto.TypeId == (int)EnumRequestType.Servis || dto.TypeId == (int)EnumRequestType.EkKurulum)
+                // Görev listesine göre "Kurulum" iptal edildiği için Kargo olarak devam ediyor
+                if (dto.TypeId == (int)EnumRequestType.Kargo)
                 {
-                    if (dto.TypeId == (int)EnumRequestType.Servis)
-                    {
-                        requestFormDetail.StatusId = (int)EnumStatusType.Tamamlandı;
-                        requestFormDetail.CompletedDate = now;
-                    }
-                    requestFormDetail.InstallationDate = dto.InstallationDate;
-                    requestFormDetail.Description = dto.Note;
-
-                    await _appDbContext.RequestFormDetails.AddAsync(requestFormDetail);
-                    await _appDbContext.SaveChangesAsync();
-
-                    if (dto.Persons != null && dto.Persons.Count > 0)
-                    {
-                        var personDetailList = dto.Persons.Select(uid => new PersonDetail
-                        {
-                            RequestFormDetailId = requestFormDetail.Id,
-                            AppUserId = uid
-                        }).ToList();
-
-                        await _appDbContext.PersonDetails.AddRangeAsync(personDetailList);
-                        await _appDbContext.SaveChangesAsync();
-                    }
-                    TempData["SuccessMessage"] = "Kurulum/Servis talebiniz başarıyla oluşturuldu.";
+                    requestFormDetail.ToPerson = dto.ReceiverFullName ?? "Belirtilmedi";
+                    requestFormDetail.Phone = dto.Phone ?? "Belirtilmedi";
+                    requestFormDetail.ReceiverDepartment = dto.ReceiverDepartment ?? "-";
+                    // UI'daki 'Açık Adres' kutusu için Zırhlı kontrol (Zorunlu değilse null patlatmasın)
+                    requestFormDetail.Address = string.IsNullOrEmpty(dto.CargoAddress) ? "-" : dto.CargoAddress;
+                    requestFormDetail.Description = string.IsNullOrEmpty(dto.Note) ? "-" : dto.Note;
                 }
-                else if (dto.TypeId == (int)EnumRequestType.Kargo)
-                {
-                    requestFormDetail.ToPerson = dto.ReceiverFullName;
-                    requestFormDetail.Phone = dto.Phone;
-                    requestFormDetail.ReceiverDepartment = dto.ReceiverDepartment;
 
-                    // UI'daki 'Açık Adres' kutusunu Entity'deki 'CargoAddress' kolonuna yazıyoruz
-                    requestFormDetail.Address = dto.CargoAddress;
-
-                    // Kargo notunu da Description alanına kaydedebilirsin (veya yeni bir kolon açtıysan ona)
-                    requestFormDetail.Description = dto.Note;
-
-                    await _appDbContext.RequestFormDetails.AddAsync(requestFormDetail);
-                    await _appDbContext.SaveChangesAsync();
-                    TempData["SuccessMessage"] = "Kargo talebiniz başarıyla oluşturuldu.";
-                }
+                await _appDbContext.RequestFormDetails.AddAsync(requestFormDetail);
+                await _appDbContext.SaveChangesAsync();
 
                 await transaction.CommitAsync();
-                return RedirectToAction("RequestFormList"); // Başarılıysa Listeye Yönlendir
+                TempData["SuccessMessage"] = "Kargo talebiniz başarıyla oluşturuldu ve onay aşamasına iletildi.";
 
+                return RedirectToAction("RequestFormList");
             }
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                TempData["ErrorMessage"] = "Talep oluşturulurken bir hata oluştu: " + ex.Message;
+
+                // ZIRH 4: Sinsi SQL Hatalarını (InnerException) Yakalayıp Ekrana Basan Ajan
+                string realError = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                Console.WriteLine(realError);
+
+                TempData["ErrorMessage"] = "Veritabanı kayıt işlemi sırasında bir hata oluştu. Girilen teknik parametreleri veya veritabanı bağlantısını kontrol ediniz.";
+                // Sayfa boş gelmesin diye ViewBag'leri tekrar doldur
+                ViewBag.Locations = await _appDbContext.Hospitals.AsNoTracking().Where(x => !x.IsDeleted && x.IsActive).Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name }).ToListAsync();
+                ViewBag.MainRepos = await _appDbContext.MainRepoLocations.AsNoTracking().Where(x => !x.IsDeleted && x.IsActive).Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.Name }).ToListAsync();
+                ViewBag.Persons = await _userManager.Users.Where(x => x.IsActive && !x.IsDeleted).Select(x => new SelectListItem { Value = x.Id.ToString(), Text = x.NameSurname }).ToListAsync();
+
+                var definitions = await _cargoDefinitionService.TGetFilteredListAsync(x => !x.IsDeleted && x.IsActive);
+                ViewBag.InboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 5), "Id", "Name");
+                ViewBag.OutboundReasons = new SelectList(definitions.Where(x => x.DefinitionType == 4), "Id", "Name");
+
                 return View(dto);
             }
         }
@@ -401,8 +388,7 @@ namespace StockTrack.WebUI.Controllers
             if (!ModelState.IsValid)
             {
                 var errorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                TempData["ErrorMessage"] = string.Join("<br>", errorMessages);
-                return RedirectToAction("RequestFormList");
+                TempData["ErrorMessage"] = "Lütfen formda kırmızı ile belirtilen zorunlu alanları doldurunuz.";                return RedirectToAction("RequestFormList");
             }
             var currentUser = await _userManager.GetUserAsync(User);
             var now = DateTime.Now;

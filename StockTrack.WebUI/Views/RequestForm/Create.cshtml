@@ -22,6 +22,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
     </div>
 }
+
 <div class="text-start mb-3">
     <a href="@Url.Action("RequestFormList", "RequestForm")" class="btn btn-outline-secondary shadow-sm"><i class="mdi mdi-check"></i> Talep Listesine Dön</a>
 </div>
@@ -167,7 +168,7 @@
 
                             <div class="col-lg-7 mt-4 mt-lg-0">
                                 <div class="card border border-success mb-3 shadow-sm">
-                                    <div class="card-header bg-success bg-soft text-success fw-bold py-2">
+                                    <div class="card-header bg-success bg-soft text-light fw-bold py-2">
                                         <i class="mdi mdi-arrow-up-bold"></i> Gönderilecek Ürünler
                                     </div>
                                     <div class="card-body p-0">
@@ -191,7 +192,7 @@
                                 </div>
 
                                 <div class="card border border-danger shadow-sm">
-                                    <div class="card-header bg-danger bg-soft text-danger fw-bold py-2">
+                                    <div class="card-header bg-danger bg-soft text-light fw-bold py-2">
                                         <i class="mdi mdi-arrow-down-bold"></i> İade Beklenen Ürünler
                                     </div>
                                     <div class="card-body p-0">
@@ -260,30 +261,33 @@
                                     </div>
                                 </div>
                             </div>
-
                         </div>
 
                         <fieldset class="mb-4 border p-3 rounded bg-light">
                             <legend class="fs-6 fw-bold w-auto px-2">Talep Türü</legend>
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="TypeId" id="typeKargo" value="@((int)EnumRequestType.Kargo)">
-                                <label class="form-check-label" for="typeKargo">Kargo</label>
+                                <input class="form-check-input" type="radio" name="TypeId" id="typeKargo" value="@((int)EnumRequestType.Kargo)" checked>
+                                <label class="form-check-label fw-bold text-primary" for="typeKargo">Kargo (Standart)</label>
                             </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="TypeId" id="typeKurulum" value="@((int)EnumRequestType.Kurulum)">
-                                <label class="form-check-label" for="typeKurulum">Kurulum</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="TypeId" id="typeEkKurulum" value="@((int)EnumRequestType.EkKurulum)">
-                                <label class="form-check-label" for="typeEkKurulum">Ek Kurulum</label>
-                            </div>
-                            <div class="form-check form-check-inline">
-                                <input class="form-check-input" type="radio" name="TypeId" id="typeServis" value="@((int)EnumRequestType.Servis)">
-                                <label class="form-check-label" for="typeServis">Servis</label>
-                            </div>
+                            
+                            @if (User.IsInRole(RoleConsts.Admin))
+                            {
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="TypeId" id="typeKurulum" value="@((int)EnumRequestType.Kurulum)">
+                                    <label class="form-check-label" for="typeKurulum">Kurulum</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="TypeId" id="typeEkKurulum" value="@((int)EnumRequestType.EkKurulum)">
+                                    <label class="form-check-label" for="typeEkKurulum">Ek Kurulum</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="TypeId" id="typeServis" value="@((int)EnumRequestType.Servis)">
+                                    <label class="form-check-label" for="typeServis">Servis</label>
+                                </div>
+                            }
                         </fieldset>
 
-                        <div id="cargoFields" class="d-none border p-3 rounded mb-3 bg-white shadow-sm">
+                        <div id="cargoFields" class="border p-3 rounded mb-3 bg-white shadow-sm">
                             <h6 class="text-primary border-bottom pb-2 mb-3"><i class="mdi mdi-truck-delivery"></i> Kargo Detayları</h6>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
@@ -292,44 +296,45 @@
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="ReceiverPhone" class="form-label">Telefon Numarası <span class="text-danger">*</span></label>
-                                    <input type="tel" id="ReceiverPhone" name="Phone" class="form-control" pattern="^0[5-9][0-9]{9}$" maxlength="11">
+                                    <input type="tel" id="ReceiverPhone" name="Phone" class="form-control" maxlength="15">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label for="ReceiverDepartment" class="form-label">Birimi</label>
                                     <input type="text" id="ReceiverDepartment" name="ReceiverDepartment" class="form-control">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label for="Note" class="form-label">Not</label>
-                                    <textarea id="Note" name="Note" class="form-control" rows="2"></textarea>
+                                    <label for="Note" class="form-label">Not / Açıklama</label>
+                                    <textarea id="Note" name="Note" class="form-control" rows="1"></textarea>
                                 </div>
                                 <div class="col-12 mb-2" id="addressFieldContainer">
                                     <label for="CargoAddress" class="form-label">Açık Adres <span class="text-danger">*</span></label>
-                                    <textarea id="CargoAddress" name="CargoAddress" class="form-control" rows="2"></textarea>
+                                    <textarea id="CargoAddress" name="CargoAddress" class="form-control bg-light" rows="2" placeholder="Hastane seçildiğinde otomatik dolar..."></textarea>
                                 </div>
                             </div>
                         </div>
 
-                        <div id="installationFields" class="d-none">
+                        <div id="installationFields" class="d-none border p-3 rounded mb-3 bg-white shadow-sm">
+                            <h6 class="text-warning border-bottom pb-2 mb-3"><i class="mdi mdi-tools"></i> Saha Operasyon Detayları</h6>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="InstallationDate" class="form-label">Tarih <span class="text-danger">*</span></label>
+                                    <label for="InstallationDate" class="form-label">Planlanan Tarih <span class="text-danger">*</span></label>
                                     <input type="date" id="InstallationDate" name="InstallationDate" class="form-control">
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-lg-6">
                                     <div class="mb-2">
-                                        <label for="PersonId" class="form-label">Personel Seç</label>
+                                        <label for="PersonId" class="form-label">Görevli Personel Seç</label>
                                         <select id="PersonId" class="form-select" asp-items="@(ViewBag.Persons as List<SelectListItem>)">
                                             <option value="">Seçiniz</option>
                                         </select>
                                     </div>
                                     <div id="userAddWarn" class="alert alert-warning d-none py-1 px-2 small"><span></span></div>
-                                    <button type="button" id="btnAddPerson" class="btn btn-outline-primary btn-sm mt-1">Ekle</button>
+                                    <button type="button" id="btnAddPerson" class="btn btn-outline-primary btn-sm mt-1"><i class="mdi mdi-plus"></i> Listeye Ekle</button>
                                 </div>
                                 <div class="col-lg-6">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
-                                        <h6 class="mb-0">Eklenen Personeller</h6>
+                                        <h6 class="mb-0">Atanan Personeller</h6>
                                         <small class="text-muted" id="totalUsersInfo">0 kullanıcı</small>
                                     </div>
                                     <div class="table-responsive">
@@ -346,7 +351,6 @@
                                     <div id="userListWarn" class="alert alert-warning d-none py-1 px-2 small"><span></span></div>
                                 </div>
                             </div>
-                            
                         </div>
 
                         <div class="border p-3 rounded mt-3 bg-light">
@@ -357,7 +361,7 @@
                             </div>
                             <div class="form-check">
                                 <input class="form-check-input" type="checkbox" id="IsOfficeDelivery" name="IsOfficeDelivery" value="true">
-                                <label class="form-check-label" for="IsOfficeDelivery">Ofisten Teslim Edilecek</label>
+                                <label class="form-check-label" for="IsOfficeDelivery">Ofisten Teslim Edilecek (Adrese Gönderilmeyecek)</label>
                             </div>
                         </div>
 
@@ -380,15 +384,15 @@
 </div>
 
 <div class="modal fade" id="arcBoxConfigModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-warning">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-warning">
             <div class="modal-header bg-warning">    
                 <h5 class="modal-title text-dark" id="configModalTitle"><i class="mdi mdi-cog"></i> Arc Box Configürasyonu</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
             </div>
             <div class="modal-body">
                 <div class="alert alert-info py-2 small">
-                    <i class="mdi mdi-information"></i> Son girilen CFG bilgileri yakında buraya otomatik gelecektir.
+                    <i class="mdi mdi-information"></i> Lütfen cihazın ağ ve kimlik bilgilerini eksiksiz girin.
                 </div>
 
                 <div class="mb-3">
@@ -402,13 +406,9 @@
                     </select>
                 </div>
                 
-                <!-- GÖNDERİM AYARLARI -->
                 <div id="shippingConfigFields">
-                    
                     <hr class="text-muted"/>
-                    <h6 class="text-primary mb-3">
-                        <i class="mdi mdi-truck-delivery"></i> Gönderim Ayarları
-                    </h6>
+                    <h6 class="text-primary mb-3"><i class="mdi mdi-truck-delivery"></i> Gönderim Ayarları</h6>
 
                     <div class="mb-3">
                         <label class="form-label">Config URL <span class="text-danger">*</span></label>
@@ -425,45 +425,24 @@
                         <textarea id="ConfigWpa" class="form-control" rows="2"></textarea>
                     </div>
                 </div>
-                <!-- İade AYARLARI (Başta Gizli) -->
+
                 <div id="returnConfigFields" style="display:none;">
-
                     <hr class="text-muted"/>
-                    <h6 class="text-danger mb-3">
-                        <i class="mdi mdi-keyboard-return"></i> İade Kimlik Bilgileri
-                    </h6>
+                    <h6 class="text-danger mb-3"><i class="mdi mdi-keyboard-return"></i> İade Kimlik Bilgileri</h6>
 
-                    <!-- IP adresi -->
                     <div class="mb-3">
-                        <label class="form-label">
-                            IP Adresi <span class="text-danger">*</span>
-                        </label>
-
-                        <input type="text"
-                               id="ReturnIpAddress"
-                               class="form-control"
+                        <label class="form-label">IP Adresi <span class="text-danger">*</span></label>
+                        <input type="text" id="ReturnIpAddress" class="form-control">
                     </div>
 
-                    <!-- Ethernet MAC -->
                     <div class="mb-3">
-                        <label class="form-label">
-                            ETH MAC Adresi <span class="text-danger">*</span>
-                        </label>
-
-                        <input type="text"
-                               id="ReturnEthMac"
-                               class="form-control"
+                        <label class="form-label">ETH MAC Adresi <span class="text-danger">*</span></label>
+                        <input type="text" id="ReturnEthMac" class="form-control">
                     </div>
 
-                    <!-- Wifi MAC -->
                     <div class="mb-3">
-                        <label class="form-label">
-                            WLAN MAC Adresi <span class="text-danger">*</span>
-                        </label>
-
-                        <input type="text"
-                               id="ReturnWlanMac"
-                               class="form-control"
+                        <label class="form-label">WLAN MAC Adresi <span class="text-danger">*</span></label>
+                        <input type="text" id="ReturnWlanMac" class="form-control">
                     </div>
                 </div>
                 
@@ -515,27 +494,20 @@
             if (!pid) return;
 
             const baseRem = parseInt($('#RemainingStock').attr('data-base') || 0);
-
             let cartDelta = 0;
 
             items.forEach(item => {
                 if(item.productId == parseInt(pid)){
-                    if(item.operationType == 1) {
-                        cartDelta -= item.quantity //Gönderim ise
-                    }
-                    if(item.operationType == 2) {
-                        cartDelta += item.quantity //İade ise
-                    }
+                    if(item.operationType == 1) cartDelta -= item.quantity;
+                    if(item.operationType == 2) cartDelta += item.quantity;
                 }
             });
-        
 
             const currentAvailable = baseRem + cartDelta;
-
-            // Ekrana yeni limiti bas ve inputun Max değerini güncelle
             $('#RemainingStock').text(currentAvailable);
             $('#AddQty').attr('max', currentAvailable > 0 ? currentAvailable : 1);
         }
+
         // --- Validations ---
         function step1Valid() {
             const locOk = !!$('#LocationId').val();
@@ -550,18 +522,16 @@
                 setWarn('#listWarn', 'En az bir ürün eklemelisiniz.');
                 return false;
             }
-            // Sadece iade varsa ve kargo seçilecekse stok kuralı uygulanmaz, vb. logicler burada genişletilebilir
             setWarn('#listWarn', null);
             return true;
         }
 
-        // --- 3. Aşama Özet Tablosu Doldurma (Tek Tablo - Kompakt Görünüm) ---
+        // --- 3. Aşama Özet Tablosu Doldurma ---
         function step3BindSummary() {
             $('#sumLocation').text(getSelText('#LocationId') ?? '-');
             $('#sumRepo').text(getSelText('#MainRepoId') ?? '-');
 
-            // Özet ekranında adres gösterimi için küçük bir zeka (İsteğe bağlı):
-            let finalAddress = $('#IsOfficeDelivery').is(':checked') ? "--- Ofisten Teslim ---" : $('#CargoAddress').val();
+            let finalAddress = $('#IsOfficeDelivery').is(':checked') ? "--- Ofisten Teslim Edilecek ---" : $('#CargoAddress').val();
             
             const $tb = $('#sumItemsTable tbody');
             $tb.empty();
@@ -576,17 +546,14 @@
                     ? '<span class="badge bg-success">Gönderim</span>'
                     : '<span class="badge bg-danger">İade</span>';
 
-                // --- TOOLTIP DETAY METNİNİ HAZIRLAMA ---
                 let tooltipHtml = "";
                 if (it.arcBoxConfig) {
                         if (it.operationType === 1) {
-                             // Gönderim detayları (Tüm Config bilgileri eklendi)
                             tooltipHtml = `<b>Bağlantı:</b> ${it.arcBoxConfig.connectionType || '-'}<br>
                                            <b>URL:</b> ${it.arcBoxConfig.configUrl || '-'}<br>
                                            <b>DHCPD:</b> ${it.arcBoxConfig.dhcpdConf || '-'}<br>
                                            <b>WPA:</b> ${it.arcBoxConfig.wpaSupplicantConf || '-'}`;
-                        }else if (it.operationType === 2) {
-                            // İade detayları (Zaten eksiksiz, sadece boş gelme ihtimaline karşı zırhlandı)
+                        } else if (it.operationType === 2) {
                             tooltipHtml = `<b>Bağlantı:</b> ${it.arcBoxConfig.connectionType || '-'}<br>
                                            <b>IP:</b> ${it.arcBoxConfig.ipAddress || '-'}<br>
                                            <b>ETH MAC:</b> ${it.arcBoxConfig.ethMacAddress || '-'}<br>
@@ -594,14 +561,12 @@
                         }
                 }
 
-                // İkona data-bs-html="true" ekledik ki <br> ve <b> etiketleri çalışsın!
                 let configIcon = it.arcBoxConfig
                     ? `<i class="mdi mdi-cog text-warning ms-1" data-bs-html="true" title="${tooltipHtml}" data-bs-toggle="tooltip" style="cursor:help;"></i>`
                     : '';
                 
                 let labelText = it.label ? it.label : "-";
 
-                // Tabloya satırı çakıyoruz
                 $tb.append(
                     `<tr>
                         <td>${badge}</td>
@@ -615,17 +580,16 @@
                 );
             });
 
-            // Modern Tooltip Tetikleyici
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('#sumItemsTable [data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
               return new bootstrap.Tooltip(tooltipTriggerEl);
             });
 
             if ($('input[name="TypeId"]:checked').val() == '@((int)EnumRequestType.Kargo)') {
-            $('#sumAddressDiv').removeClass('d-none');
-            $('#sumAddressText').text(finalAddress);
+                $('#sumAddressDiv').removeClass('d-none');
+                $('#sumAddressText').text(finalAddress);
             } else {
-            $('#sumAddressDiv').addClass('d-none');
+                $('#sumAddressDiv').addClass('d-none');
             }
         }
 
@@ -641,7 +605,7 @@
             });
         }
 
-        // --- 2. Aşama Tabloları Render (Gönderim & İade) ---
+        // --- 2. Aşama Tabloları Render ---
         function renderItemsTable() {
             const $sendTb = $('#sendItemsTable tbody');
             const $returnTb = $('#returnItemsTable tbody');
@@ -682,7 +646,6 @@
             if(sendCount === 0) $sendTb.append('<tr><td colspan="7" class="text-center text-muted small py-3">Gönderilecek ürün eklenmedi.</td></tr>');
             if(returnCount === 0) $returnTb.append('<tr><td colspan="7" class="text-center text-muted small py-3">İade beklenecek ürün eklenmedi.</td></tr>');
 
-            // Modern Tooltip Tetikleyici
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('#sendItemsTable [data-bs-toggle="tooltip"], #returnItemsTable [data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
               return new bootstrap.Tooltip(tooltipTriggerEl);
@@ -732,7 +695,34 @@
             refreshNav();
         });
 
-        // --- Step 1 Events ---
+        // --- YENİ EKLENDİ: HASTANE SEÇİLDİĞİNDE OTOMATİK ADRES DOLDURMA AJANI ---
+        $('#LocationId').on('change', function () {
+            const locId = $(this).val();
+            
+            // Eğer hastane seçimi kaldırılırsa alanları temizle
+            if (!locId) {
+                $('#CargoAddress').val('');
+                $('#ReceiverFullName').val('');
+                $('#ReceiverPhone').val('');
+                $('#ReceiverDepartment').val('');
+                return;
+            }
+
+            // Arka plandaki ajanı tetikle ve hastanenin detaylarını çek
+            $.getJSON('@Url.Action("GetHospitalDetails", "Hospital")', { id: locId })
+                .done(function (data) {
+                    if (data) {
+                        $('#CargoAddress').val(data.address || '');
+                        $('#ReceiverFullName').val(data.contactName || '');
+                        $('#ReceiverPhone').val(data.contactPhone || '');
+                        $('#ReceiverDepartment').val(data.department || '');
+                    }
+                })
+                .fail(function () {
+                    console.log("Hastane detayları çekilirken sorun oluştu.");
+                });
+        });
+
         $('#MainRepoId').on('change', function () {
             $('#CategoryId').empty().append('<option value="">Seçiniz</option>');
             $('#ProductId').empty().append('<option value="">Seçiniz</option>');
@@ -746,9 +736,6 @@
             $('#sumLocation').text('-');
             $('#sumRepo').text('-');
             $('#sumItemsTable tbody').empty();
-            $('input[name="TypeId"]').prop('checked', false);
-            $('#cargoFields').addClass('d-none');
-            $('#installationFields').addClass('d-none');
             $('#InstallationDate').val('');
             $('#Note').val('');
             setWarn('#step3Warn', null);
@@ -768,7 +755,6 @@
                 });
         });
 
-        // --- Step 2 Events ---
         $('#CategoryId').on('change', function () {
             const repoId = $('#MainRepoId').val();
             const catId = $(this).val();
@@ -788,7 +774,7 @@
                 });
         });
 
-        // Ürün değişince (Arc Box Kontrolü ve Stok)
+        // Ürün değişince Arc Box Kontrolü
         $('#ProductId').on('change', function () {
             const pid = $(this).val();
             const ptext = getSelText('#ProductId') || "";
@@ -797,16 +783,15 @@
             $('#RemainingStock').text('-');
             $('#AddQty').val('').removeAttr('max');
             setWarn('#addWarn', null);
-            tempArcBoxConfig = null; // Configi sıfırla
+            tempArcBoxConfig = null; 
 
-            // Ürün adı "Arc Box" ise Config butonunu göster
             var isArcBox = ptext.replace(/\s+/g, '').toLowerCase().includes("arcbox");
 
             if (isArcBox) {
-                $('#btnConfigArcBox').removeClass('d-none'); // Sarı config butonunu göster!
+                $('#btnConfigArcBox').removeClass('d-none'); 
                 $('#LabelInput').val("-").prop('disabled', true);
             } else {
-                $('#btnConfigArcBox').addClass('d-none'); // Arc Box değilse gizle
+                $('#btnConfigArcBox').addClass('d-none'); 
                 $('#LabelInput').val("").prop('disabled', false);
             }
 
@@ -820,7 +805,6 @@
                 });
         });
 
-        // Arc Box Config Modal Validation
         $('#ConfigConnectionType').on('change', function() {
             const val = $(this).val();
             if (val === "Ethernet Statik" || val === "WIFI Statik") {
@@ -832,12 +816,11 @@
             } else { $('#reqWpa').hide(); }
         });
 
-        // 1. Yeni Ürün İçin Config Butonu (Aşağıdaki Sarı Buton)
         $('#btnConfigArcBox').on('click',function(e){
             e.preventDefault();
 
-            editingConfigIndex = -1; // "Yeni kayıt açıyorum" diye hafızaya kazı!
-            $('#ConfigConnectionType, #ConfigUrl, #ConfigDhcpd, #ConfigWpa, #ReturnIpAddress, #ReturnEthMac, #ReturnWlanMac').val(''); // İçini temizle
+            editingConfigIndex = -1; 
+            $('#ConfigConnectionType, #ConfigUrl, #ConfigDhcpd, #ConfigWpa, #ReturnIpAddress, #ReturnEthMac, #ReturnWlanMac').val(''); 
             $('#ConfigConnectionType').trigger('change');
 
             let opType = $('input[name="OperationType"]:checked').val();
@@ -856,9 +839,7 @@
             $('#arcBoxConfigModal').modal('show');
         });
 
-        // 2. Modaldaki Yeşil "Config Kaydet" Butonu
         $('#btnSaveConfig').on('click', function() {
-            // Düzenleme mi yoksa Yeni mi? Oku!
             let opType = (editingConfigIndex !== -1) ? items[editingConfigIndex].operationType : $('input[name="OperationType"]:checked').val();
             
             const connType = $('#ConfigConnectionType').val();
@@ -866,7 +847,6 @@
 
             if(!connType) { alert("Bağlantı Türü zorunludur!"); return; }
 
-            // Gönderim Kontrolleri
             if (opType == 1) {
                 url = $('#ConfigUrl').val();
                 dhcpd = $('#ConfigDhcpd').val();
@@ -880,7 +860,6 @@
                     alert("WIFI bağlantılarında wpa_supplicant.conf alanı zorunludur!"); return;
                 }
             }
-            // İade Kontrolleri
             else if (opType == 2) {
                 ip = $('#ReturnIpAddress').val();
                 ethMac = $('#ReturnEthMac').val();
@@ -889,31 +868,25 @@
                 if(!ip || !ethMac || !wlanMac){ alert("İade işlemi için IP, ETH MAC ve WLAN MAC adreslerinin tümü zorunludur!"); return; }
             }
 
-            // Yeni Config Objesi
             const newConfig = {
                 connectionType: connType, configUrl: url, dhcpdConf: dhcpd, wpaSupplicantConf: wpa,
                 ipAddress: ip, ethMacAddress: ethMac, wlanMacAddress: wlanMac
             };
 
-            // DÜZENLEME Mİ YENİ Mİ?
             if (editingConfigIndex !== -1) {
-                // Eski satırı güncelle ve tabloyu yenile!
                 items[editingConfigIndex].arcBoxConfig = newConfig;
                 renderItemsTable();
             } else {
-                // Yeni ürün ekleniyorsa sepete at
                 tempArcBoxConfig = newConfig;
             }
 
             $('#arcBoxConfigModal').modal('hide');
 
-            // Temizlik ve Sıfırlama
             $('#ConfigConnectionType, #ConfigUrl, #ConfigDhcpd, #ConfigWpa, #ReturnIpAddress, #ReturnEthMac, #ReturnWlanMac').val('');
             $('#ConfigConnectionType').trigger('change');
-            editingConfigIndex = -1; // İşlem bitti, hafızayı sıfırla
+            editingConfigIndex = -1; 
         });
 
-        // Ürün Ekle Butonu
         $('#btnAddProduct').on('click', function () {
             const opType = parseInt($('input[name="OperationType"]:checked').val());
             const categoryId = $('#CategoryId').val();
@@ -924,13 +897,13 @@
             const qty = parseInt($('#AddQty').val());
             let reason = "";
             let reasonId = "";
-            if (opType === 1) { // Gönderim
+            if (opType === 1) {
                 reason = getSelText('#SendReasonId');
                 reasonId = $('#SendReasonId').val();
-            } else { // İade
+            } else {
                 reason = getSelText('#ReturnReasonId');
                 reasonId = $('#ReturnReasonId').val();
-            }// Backend'e ID olarak da gidebilir
+            }
             const label = $('#LabelInput').val();
 
             if (!categoryId || !productId || !reasonId) {
@@ -940,7 +913,6 @@
                 setWarn('#addWarn', 'Geçerli bir miktar giriniz.'); return;
             }
 
-            // Eğer GÖNDERİM yapılıyorsa stok kontrolü yapılır (İade ürünü bizde olmadığı için stoğa bakılmaz)
             if (opType === 1) {
                 if (isNaN(remaining) || remaining <= 0) {
                     setWarn('#addWarn', 'Bu ürün için depoda kalan stok bulunmuyor.'); return;
@@ -950,13 +922,14 @@
                 }
             }
 
-            // Arc Box ise config girilmiş mi?
             if (!$('#btnConfigArcBox').hasClass('d-none') && !tempArcBoxConfig) {
                 setWarn('#addWarn', 'Lütfen Arc Box için sarı renkli Config butonundan ayarları giriniz.'); return;
             }
-                let stockAfterOperation = remaining;
-            if (opType === 1) stockAfterOperation -= qty; // Gönderimse gideni düş
-            if (opType === 2) stockAfterOperation += qty; // İadeyse geleni ekle
+            
+            let stockAfterOperation = remaining;
+            if (opType === 1) stockAfterOperation -= qty; 
+            if (opType === 2) stockAfterOperation += qty; 
+            
             items.push({
                 operationType: opType,
                 productId: parseInt(productId),
@@ -977,44 +950,39 @@
             $('#AddQty, #ReasonId').val('');
             if(!$('#LabelInput').prop('disabled')) $('#LabelInput').val('');
 
-            // Reset
             tempArcBoxConfig = null;
             const currentProductName = getSelText('#ProductId') || "";
             const isStillArcBox = currentProductName.replace(/\s+/g, '').toLowerCase().includes("arcbox");
 
             if(isStillArcBox){
-                // Eğer hala Arc Box seçiliyse butonu GİZLEME, Label'ı da kapalı tut.
                 $('#btnConfigArcBox').removeClass('d-none');
                 $('#LabelInput').val("-").prop('disabled', true);
-            }
-            else{
+            } else {
                 $('#btnConfigArcBox').addClass('d-none');
                 $('#LabelInput').val("").prop('disabled', false);
             }
         });
 
-        // Tablodan Ürün Silme
         $(document).on('click', '.btn-remove', function () {
             const $tr = $(this).closest('tr');
             const idx = parseInt($tr.data('idx'));
             items.splice(idx, 1);
             renderItemsTable();
-            updateRemainingStockUI(); // SİLİNCE STOK OTOMATİK GERİ GELSİN!
+            updateRemainingStockUI(); 
         });
-        // Tablodan Config Düzenleme (Kalem İkonuna Tıklayınca)
+
         $(document).on('click', '.btn-edit-config', function () {
             const $tr = $(this).closest('tr');
             const idx = parseInt($tr.data('idx'));
-            const item = items[idx]; // Hangi ürüne tıkladık?
+            const item = items[idx]; 
 
-            editingConfigIndex = idx; // Hafızaya yazıyoruz: "Şu an bu satırı düzenliyorum!"
+            editingConfigIndex = idx; 
 
-            const opType = item.operationType; // 1: Gönderim, 2: İade
+            const opType = item.operationType; 
 
-            // Modaldaki kutuları o anki ürünün config bilgileriyle doldur
             $('#ConfigConnectionType').val(item.arcBoxConfig.connectionType || '').trigger('change');
 
-            if (opType === 1) { // Gönderim
+            if (opType === 1) { 
                 $('#shippingConfigFields').show();
                 $('#returnConfigFields').hide();
                 $('#configModalTitle').html('<i class="mdi mdi-pencil"></i> Gönderim Configürasyonu (Düzenle)');
@@ -1023,7 +991,7 @@
                 $('#ConfigDhcpd').val(item.arcBoxConfig.dhcpdConf || '');
                 $('#ConfigWpa').val(item.arcBoxConfig.wpaSupplicantConf || '');
             }
-            else if (opType === 2) { // İade
+            else if (opType === 2) { 
                 $('#shippingConfigFields').hide();
                 $('#returnConfigFields').show();
                 $('#configModalTitle').html('<i class="mdi mdi-pencil"></i> İade Configürasyonu (Düzenle)');
@@ -1032,16 +1000,13 @@
                 $('#ReturnEthMac').val(item.arcBoxConfig.ethMacAddress || '');
                 $('#ReturnWlanMac').val(item.arcBoxConfig.wlanMacAddress || '');
             }
-
-            // Her şey doldu, modalı aç!
             $('#arcBoxConfigModal').modal('show');
         });
 
-        // --- Step 3 Events ---
-         $('input[name="TypeId"]').on('change', function () {
+        // TÜR SEÇİMİ (Kargo - Kurulum vs)
+        $('input[name="TypeId"]').on('change', function () {
              var selectedVal = $(this).val();
 
-             // Ek Kurulum da eklendi!
              if (selectedVal == '@((int)EnumRequestType.Kurulum)' || selectedVal == '@((int)EnumRequestType.Servis)' || selectedVal == '@((int)EnumRequestType.EkKurulum)') {
                  $('#installationFields').removeClass('d-none');
                  $('#cargoFields').addClass('d-none');
@@ -1053,7 +1018,7 @@
                  clearPersonsUI();
              }
              setWarn('#step3Warn', null);
-         });
+        });
 
         $('#btnAddPerson').on('click', function () {
             const pid = $('#PersonId').val();
@@ -1074,14 +1039,12 @@
             renderUsersTable();
             serializePersonsToInputs();
         });
-        // Ofisten Teslim Edilecek seçilirse Adresi Gizle / Göster
+
         $('#IsOfficeDelivery').on('change', function () {
             if ($(this).is(':checked')) {
-                // Tikliyse Adresi kaydırarak gizle ve içini temizle (Hata vermesin)
                 $('#addressFieldContainer').slideUp(200);
                 $('#CargoAddress').val('');
             } else {
-                // Tik kaldırılırsa Adresi geri getir
                 $('#addressFieldContainer').slideDown(200);
             }
         });
@@ -1098,7 +1061,7 @@
             const typeVal = $('input[name="TypeId"]:checked').val();
             if (!typeVal) {
                 e.preventDefault();
-                setWarn('#step3Warn', 'Lütfen Kargo, Kurulum veya Servis türünden birini seçiniz.');
+                setWarn('#step3Warn', 'Lütfen talep türünü seçiniz.');
                 return;
             }
 
@@ -1110,33 +1073,29 @@
                 }
             }
 
-            // Kurulum, Servis VEYA Ek Kurulum seçildiyse tarih kontrolü:
             if ((typeVal == @((int)EnumRequestType.Kurulum) || typeVal == @((int)EnumRequestType.Servis) || typeVal == @((int)EnumRequestType.EkKurulum)) && !$('#InstallationDate').val()) {
-                e.preventDefault(); setWarn('#step3Warn', 'Kurulum/Servis/Ek Kurulum için tarih zorunludur.'); return;
+                e.preventDefault(); setWarn('#step3Warn', 'Kurulum/Servis için tarih zorunludur.'); return;
             }
 
-            // Kurulum, Servis VEYA Ek Kurulum seçildiyse personel kontrolü:
             if ((typeVal == @((int)EnumRequestType.Kurulum) || typeVal == @((int)EnumRequestType.Servis) || typeVal == @((int)EnumRequestType.EkKurulum)) && persons.length === 0) {
-                e.preventDefault(); setWarn('#step3Warn', 'Kurulum/Servis/Ek Kurulum için en az bir personel eklemelisiniz.'); return;
+                e.preventDefault(); setWarn('#step3Warn', 'Kurulum/Servis için en az bir personel eklemelisiniz.'); return;
             }
 
             serializeItems();
             serializePersonsToInputs();
         });
-                // İşlem Türü (Radyo Buton) değiştiğinde Neden kutularını ayarla
+
         $('input[name="OperationType"]').on('change', function () {
             const opType = parseInt($(this).val());
 
             if (opType === 1) {
-                // 1: Gönderilecek Seçildi -> Çıkış Nedenlerini Göster
                 $('#boxSendReason').removeClass('d-none');
                 $('#boxReturnReason').addClass('d-none');
-                $('#ReturnReasonId').val(''); // Gizlenenin içini temizle
+                $('#ReturnReasonId').val(''); 
             } else {
-                // 2: İade Seçildi -> Giriş Nedenlerini Göster
                 $('#boxSendReason').addClass('d-none');
                 $('#boxReturnReason').removeClass('d-none');
-                $('#SendReasonId').val(''); // Gizlenenin içini temizle
+                $('#SendReasonId').val(''); 
             }
         });
 
